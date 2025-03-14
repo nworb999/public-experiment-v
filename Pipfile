@@ -4,9 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+pydantic = "*"
+fastapi = "*"
+requests = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.11"
-python_full_version = "3.11.11"
+python_full_version = "3.11"
+
+[scripts]
+start = "python main.py"
+start-short = "python main.py --turns 3"
+start-long = "python main.py --turns 10"
+test-ollama = "python scripts/test_ollama.py"

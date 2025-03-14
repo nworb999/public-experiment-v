@@ -1,129 +1,75 @@
-# context management
-# prompt formatter
-# decision pipeline
-# tensionmeter
-# .say() .do() .go()
-# plan act reflect
-# available actions
-# relationships
-# complexes/personal narrative
-# goals/motivations->tactics
+import asyncio
+import argparse
+import sys
+import signal
+from stable_genius.agents.personalities import create_agent
 
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List, Dict, Optional
-import json
+def signal_handler(sig, frame):
+    """Handle keyboard interrupt gracefully"""
+    print("\n\nKeyboard interrupt detected. Shutting down gracefully...")
+    print("Thank you for using the application! ₍ᐢ._.ᐢ₎♡ ༘")
+    sys.exit(0)
 
-app = FastAPI()
-
-# === Context Management ===
-class Context(BaseModel):
-    """Maintains agent's current state and history"""
-    memories: List[str] = []
-    relationships: Dict[str, Dict] = {}  # Entity -> relationship metadata
-    current_goal: Optional[str] = None
-    pending_actions: List[str] = []
-    tension_level: int = 0  # 0-100 stress meter
-
-# === Prompt Formatter ===
-class PromptFormatter:
-    @staticmethod
-    def plan_prompt(context: Context) -> str:
-        """Format context into planning prompt"""
-        return f"""
-        Current state: {context.tension_level}/100 tension
-        Recent history: {context.memories[-3:]}
-        Relationships: {list(context.relationships.keys())}
-        Goals: {context.current_goal or 'None'}
+async def simulate_conversation(turns=5):
+    """Run a simulated conversation between two agents"""
+    try:
+        agent1 = create_agent("Alice", "friendly")
+        agent2 = create_agent("Bob", "analytical")
         
-        What should I do next? Respond in JSON format with 'goal' and 'tactic' keys.
-        """
-    
-    @staticmethod
-    def act_prompt(context: Context, observation: str) -> str:
-        """Format context into action prompt"""
-        return f"""
-        {observation}
-        Current goal: {context.current_goal}
-        Available actions: {context.pending_actions}
+        print("=== Starting Conversation ===")
         
-        How should I respond? Respond in JSON format with 'action' and 'speech' keys.
-        """
-
-# === Decision Pipeline ===
-class DecisionPipeline:
-    def __init__(self):
-        self.llm = DummyLLM()  # Replace with actual LLM integration
-    
-    async def react_cycle(self, observation: str, context: Context) -> dict:
-        """ReAct-style loop: Plan -> Act -> Reflect"""
-        # Plan phase
-        plan = json.loads(self.llm.generate(PromptFormatter.plan_prompt(context)))
-        context.current_goal = plan['goal']
+        # Start with a greeting
+        message = "Hello there!"
         
-        # Act phase
-        action_response = json.loads(self.llm.generate(
-            PromptFormatter.act_prompt(context, observation)
-        ))
+        for i in range(turns):
+            print(f"\nTurn {i+1}:")
+            try:
+                print(f"Alice receives: {message}")
+                response1 = await agent1.receive_message(message, "Bob")
+                message1 = response1['speech']
+                # Get current psyche state
+                alice_psyche = agent1.get_psyche()
+                print(f"Alice ({alice_psyche.tension_level}/100 tension): {message1}")
+                
+                print(f"Bob receives: {message1}")
+                response2 = await agent2.receive_message(message1, "Alice")
+                message = response2['speech']
+                # Get current psyche state
+                bob_psyche = agent2.get_psyche()
+                print(f"Bob ({bob_psyche.tension_level}/100 tension): {message}")
+            except Exception as e:
+                print(f"Error during conversation turn {i+1}: {str(e)}")
+                message = "I'm not sure I understood that. Can you try again?"
         
-        # Reflect phase
-        self._update_tension(context, action_response.get('action'))
-        context.memories.append(observation)
+        print("\n=== Conversation Ended ===")
+        alice_psyche = agent1.get_psyche()
+        bob_psyche = agent2.get_psyche()
+        print(f"Alice's final state: {alice_psyche.tension_level}/100 tension")
+        print(f"Bob's final state: {bob_psyche.tension_level}/100 tension")
+        print("Alice's memories:", alice_psyche.memories)
+        print("Bob's memories:", bob_psyche.memories)
         
-        return action_response
+    except KeyboardInterrupt:
+        print("\n\nConversation interrupted by user. Exiting gracefully...")
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+        return 1
+    return 0
+
+if __name__ == "__main__":
+    # Register signal handler for CTRL+C
+    signal.signal(signal.SIGINT, signal_handler)
     
-    def _update_tension(self, context: Context, action: str):
-        """Update tension meter based on action"""
-        if "confront" in action:
-            context.tension_level = min(context.tension_level + 20, 100)
-        elif "cooperate" in action:
-            context.tension_level = max(context.tension_level - 10, 0)
-
-# === API Endpoints ===
-class AgentRequest(BaseModel):
-    message: str
-    current_context: Optional[Context] = None
-
-@app.post("/message")
-async def handle_message(request: AgentRequest):
-    """Main endpoint for agent interaction"""
-    context = request.current_context or Context()
-    pipeline = DecisionPipeline()
+    parser = argparse.ArgumentParser(description='Run AI agent conversation')
+    parser.add_argument('--turns', type=int, default=5, help='Number of conversation turns')
     
-    response = await pipeline.react_cycle(request.message, context)
+    args = parser.parse_args()
     
-    return {
-        "response": response['speech'],
-        "action": response['action'],
-        "updated_context": context
-    }
-
-# === Mock LLM ===
-class DummyLLM:
-    """Replace with actual LLM calls"""
-    def generate(self, prompt: str) -> str:
-        if "What should I do next?" in prompt:
-            return json.dumps({
-                "goal": "reduce tension",
-                "tactic": "diplomatic dialogue"
-            })
-        return json.dumps({
-            "action": "say",
-            "speech": "Let's discuss this calmly."
-        })
-
-# === Tension Meter Helpers ===
-@app.post("/action")
-async def log_action(action: str):
-    """Track actions affecting tension"""
-    # Implement tension update logic here
-    return {"status": "logged"}
-
-@app.post("/go")
-async def advance_state():
-    """Progress agent's internal state"""
-    # Implement time-based updates here
-    return {"status": "advanced"}
-
-
-
+    try:
+        # Run the conversation
+        exit_code = asyncio.run(simulate_conversation(args.turns))
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        # This is a fallback in case the signal handler doesn't catch it
+        print("\n\nKeyboard interrupt detected. Shutting down...")
+        sys.exit(0) 

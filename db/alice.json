@@ -1,0 +1,23 @@
+{
+  "memories": [
+    "Bob: Hello there! -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
+    "Bob: Hello there! -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
+    "Bob: Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate"
+  ],
+  "relationships": {
+    "Bob": {
+      "familiarity": 3
+    }
+  },
+  "current_goal": "build rapport",
+  "pending_actions": [
+    "say",
+    "ask",
+    "express",
+    "confront",
+    "cooperate"
+  ],
+  "tension_level": 0,
+  "personality": "friendly",
+  "name": "Alice"
+}

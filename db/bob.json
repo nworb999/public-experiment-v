@@ -1,0 +1,21 @@
+{
+  "memories": [
+    "Alice: Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate"
+  ],
+  "relationships": {
+    "Alice": {
+      "familiarity": 1
+    }
+  },
+  "current_goal": "gather information",
+  "pending_actions": [
+    "say",
+    "ask",
+    "express",
+    "confront",
+    "cooperate"
+  ],
+  "tension_level": 30,
+  "personality": "analytical",
+  "name": "Bob"
+}
