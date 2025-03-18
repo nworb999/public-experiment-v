@@ -1,5 +1,6 @@
 import json
 from typing import Dict, Any
+from stable_genius.utils.logger import logger
 
 class ActionProcessor:
     """Processes action responses from LLMs into structured action data"""
@@ -20,7 +21,7 @@ class ActionProcessor:
         """
         # Check if this is an error response
         if raw_response.startswith("Error:"):
-            print(f"Action error encountered: {raw_response}")
+            logger.info(f"Action error encountered: {raw_response}")
             # Return a default action if there's an error
             return {
                 "action": "say",
@@ -41,14 +42,14 @@ class ActionProcessor:
                     try:
                         action = json.loads(json_str)
                     except json.JSONDecodeError:
-                        print(f"Failed to parse JSON from action response: {raw_response}")
+                        logger.info(f"Failed to parse JSON from action response: {raw_response}")
                         action = {
                             "action": "say",
                             "speech": "I'm having trouble understanding. Let's try again."
                         }
                 else:
                     # Fallback to default action
-                    print(f"No JSON found in action response: {raw_response}")
+                    logger.info(f"No JSON found in action response: {raw_response}")
                     action = {
                         "action": "say",
                         "speech": "I'm not sure what to say right now."
@@ -63,7 +64,7 @@ class ActionProcessor:
             return action
             
         except Exception as e:
-            print(f"Error processing action: {str(e)}")
+            logger.info(f"Error processing action: {str(e)}")
             # Fallback to default action
             return {
                 "action": "say",

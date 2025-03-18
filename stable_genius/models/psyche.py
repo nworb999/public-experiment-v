@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 import json
 import os
 from pathlib import Path
+from stable_genius.utils.logger import logger
 
 class Psyche(BaseModel):
     """Maintains agent's mental state and history"""
@@ -30,7 +31,7 @@ class Psyche(BaseModel):
                     data = json.load(f)
                 return cls(**data)
             except (json.JSONDecodeError, IOError) as e:
-                print(f"Error loading psyche for {agent_name}: {e}")
+                logger.info(f"Error loading psyche for {agent_name}: {e}")
                 # Fall back to a new instance with the provided name
                 return cls(name=agent_name)
         else:
@@ -50,4 +51,4 @@ class Psyche(BaseModel):
             with open(filepath, 'w') as f:
                 f.write(self.model_dump_json(indent=2))
         except IOError as e:
-            print(f"Error saving psyche for {self.name}: {e}") 
+            logger.info(f"Error saving psyche for {self.name}: {e}") 

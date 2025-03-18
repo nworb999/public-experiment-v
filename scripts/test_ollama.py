@@ -5,10 +5,11 @@ Simple script to test the connection to Ollama server
 import requests
 import json
 import sys
+from stable_genius.utils.logger import logger
 
 def test_ollama_connection():
     """Test if Ollama is running and responding"""
-    print("Testing connection to Ollama server...")
+    logger.info("Testing connection to Ollama server...")
     
     base_url = "http://localhost:11434"
     
@@ -17,18 +18,17 @@ def test_ollama_connection():
         response = requests.get(f"{base_url}/api/tags")
         if response.status_code == 200:
             models = response.json().get("models", [])
-            print(f"✅ Successfully connected to Ollama server")
+            logger.info(f"✅ Successfully connected to Ollama server")
             
             if models:
-                print(f"Available models: {', '.join([m['name'] for m in models])}")
+                logger.info(f"Available models: {', '.join([m['name'] for m in models])}")
             else:
-                print("No models found. You may need to pull a model first.")
-                print("Try: ollama pull mistral")
+                logger.info("No models found. You may need to pull a model first.")
             
             # Test basic generation if models exist
             if models:
                 test_model = models[0]['name']
-                print(f"\nTesting generation with {test_model}...")
+                logger.info(f"\nTesting generation with {test_model}...")
                 
                 prompt_response = requests.post(
                     f"{base_url}/api/generate",
@@ -41,24 +41,24 @@ def test_ollama_connection():
                 
                 if prompt_response.status_code == 200:
                     result = prompt_response.json()
-                    print(f"✅ Model response: {result.get('response', '(no response)')}")
+                    logger.info(f"✅ Model response: {result.get('response', '(no response)')}")
                 else:
-                    print(f"❌ Failed to generate response: {prompt_response.status_code}")
-                    print(prompt_response.text)
+                    logger.info(f"❌ Failed to generate response: {prompt_response.status_code}")
+                    logger.info(prompt_response.text)
             
             return True
         else:
-            print(f"❌ Connection failed with status code: {response.status_code}")
-            print(response.text)
+            logger.info(f"❌ Connection failed with status code: {response.status_code}")
+            logger.info(response.text)
             return False
             
     except requests.exceptions.ConnectionError:
-        print("❌ Failed to connect to Ollama server at localhost:11434")
-        print("Make sure Ollama is running. You can start it with:")
-        print("  ollama serve")
+        logger.info("❌ Failed to connect to Ollama server at localhost:11434")
+        logger.info("Make sure Ollama is running. You can start it with:")
+        logger.info("  ollama serve")
         return False
     except Exception as e:
-        print(f"❌ Error testing Ollama connection: {str(e)}")
+        logger.info(f"❌ Error testing Ollama connection: {str(e)}")
         return False
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from typing import Dict, Any
 import json
+from stable_genius.utils.logger import logger
 
 class PlanProcessor:
     """Processes planning responses from LLMs into structured plan data"""
@@ -17,7 +18,7 @@ class PlanProcessor:
         """Process a planning response into a structured plan"""
         # Check if this is an error response
         if raw_response.startswith("Error:"):
-            print(f"Planning error encountered: {raw_response}")
+            logger.info(f"Planning error encountered: {raw_response}")
             # Return a default plan if there's an error
             return {
                 "goal": self._default_goal(),
@@ -38,14 +39,14 @@ class PlanProcessor:
                     try:
                         plan = json.loads(json_str)
                     except json.JSONDecodeError:
-                        print(f"Failed to parse JSON from response: {raw_response}")
+                        logger.info(f"Failed to parse JSON from response: {raw_response}")
                         plan = {
                             "goal": self._default_goal(),
                             "tactic": self._default_tactic()
                         }
                 else:
                     # Fallback to default plan
-                    print(f"No JSON found in response: {raw_response}")
+                    logger.info(f"No JSON found in response: {raw_response}")
                     plan = {
                         "goal": self._default_goal(),
                         "tactic": self._default_tactic()
@@ -60,7 +61,7 @@ class PlanProcessor:
             return plan
             
         except Exception as e:
-            print(f"Error processing plan: {str(e)}")
+            logger.info(f"Error processing plan: {str(e)}")
             # Fallback to default plan
             return {
                 "goal": self._default_goal(), 
