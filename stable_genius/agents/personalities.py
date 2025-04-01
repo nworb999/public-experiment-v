@@ -48,6 +48,3 @@ def create_agent(name, personality_type):
     
     return agent
 
-# Usage examples:
-# friendly_agent = create_agent("Bob", "friendly")
-# analytical_agent = create_agent("Alice", "analytical")

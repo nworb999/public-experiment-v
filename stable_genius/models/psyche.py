@@ -51,4 +51,17 @@ class Psyche(BaseModel):
             with open(filepath, 'w') as f:
                 f.write(self.model_dump_json(indent=2))
         except IOError as e:
-            logger.info(f"Error saving psyche for {self.name}: {e}") 
+            logger.info(f"Error saving psyche for {self.name}: {e}")
+            
+    def clear_memories(self):
+        """Clear all memories from this psyche"""
+        self.memories = []
+        return self
+    
+    @classmethod
+    def clear_all_memories(cls, agent_name: str):
+        """Load psyche, clear memories, and save it back"""
+        psyche = cls.load(agent_name)
+        psyche.memories = []
+        psyche.save()
+        return psyche 

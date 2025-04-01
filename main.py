@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from stable_genius.agents.personalities import create_agent
 from stable_genius.utils.logger import logger
+from stable_genius.models.psyche import Psyche
 
 
 def signal_handler(sig, frame):
@@ -42,6 +43,11 @@ async def simulate_conversation():
         if len(agents_config) < 2:
             logger.error("Need at least 2 agents in config file")
             return 1
+        
+        # Clear memories for all agents before starting
+        logger.info("Clearing memories from previous runs...")
+        for agent_config in agents_config:
+            Psyche.clear_all_memories(agent_config["name"])
         
         # Create agents
         agent1 = create_agent(agents_config[0]["name"], agents_config[0]["personality"])

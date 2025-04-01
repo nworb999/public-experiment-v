@@ -11,7 +11,7 @@ class PromptFormatter:
         Relationships: {list(psyche.relationships.keys())}
         Goals: {psyche.current_goal or 'None'}
         
-        What should I do next? 
+        What should you do next? 
         
         IMPORTANT: Respond ONLY with valid JSON containing 'goal' and 'tactic' keys.
         Example response: {{"goal": "understand situation", "tactic": "ask questions"}}
@@ -26,7 +26,7 @@ class PromptFormatter:
         Current goal: {psyche.current_goal}
         Available actions: {psyche.pending_actions or ['say', 'ask', 'express']}
         
-        How should I respond?
+        How should you respond?
         
         IMPORTANT: Respond ONLY with valid JSON containing 'action' and 'speech' keys.
         Example response: {{"action": "say", "speech": "Hello, how are you doing today?"}}
