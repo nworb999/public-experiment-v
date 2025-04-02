@@ -22,7 +22,7 @@ class DecisionPipeline:
         
     def _create_default_pipeline(self) -> List[PipelineComponent]:
         """Create the default pipeline components when none are provided"""
-        from stable_genius.core.components_impl import ObserveComponent, PlanComponent, ActionComponent, ReflectComponent
+        from stable_genius.core.components import ObserveComponent, PlanComponent, ActionComponent, ReflectComponent
         
         return [
             ObserveComponent("observe"),

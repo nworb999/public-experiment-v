@@ -14,6 +14,7 @@ class Psyche(BaseModel):
     tension_level: int = 0  # 0-100 stress meter
     personality: str = "neutral"  # Default personality
     name: str = "Agent"  # Agent name
+    stressful_phrases: List[str] = []  # Personalized list of stressful phrases
     
     @classmethod
     def load(cls, agent_name: str):

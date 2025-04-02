@@ -56,8 +56,8 @@ class OllamaLLM:
         
         # Log the request with a truncated prompt (for privacy/readability)
         truncated_prompt = prompt[:100] + "..." if len(prompt) > 100 else prompt
-        logger.info(f"Sending request to Ollama model: {self.model}")
-        logger.info(f"Prompt: {truncated_prompt}")
+        logger.debug(f"Sending request to Ollama model: {self.model}")
+        logger.debug(f"Prompt: {truncated_prompt}")
         
         start_time = time.time()
         
@@ -74,14 +74,14 @@ class OllamaLLM:
                 )
                 
                 elapsed_time = time.time() - start_time
-                logger.info(f"Request completed in {elapsed_time:.2f} seconds")
+                logger.debug(f"Request completed in {elapsed_time:.2f} seconds")
                 
                 # Retry specifically on 404 errors
                 if response.status_code == 404:
                     retries += 1
                     if retries <= self.max_retries:
                         error_msg = f"Error: 404 Not Found for URL: {self.base_url}/api/generate"
-                        logger.info(f"{error_msg}. Retrying ({retries}/{self.max_retries}) after {backoff} seconds...")
+                        logger.debug(f"{error_msg}. Retrying ({retries}/{self.max_retries}) after {backoff} seconds...")
                         time.sleep(backoff)
                         # Implement exponential backoff
                         backoff *= 1.5
@@ -103,15 +103,15 @@ class OllamaLLM:
             except requests.exceptions.Timeout:
                 retries += 1
                 if retries <= self.max_retries:
-                    logger.info(f"Request timed out. Retrying ({retries}/{self.max_retries}) after {backoff} seconds...")
+                    logger.debug(f"Request timed out. Retrying ({retries}/{self.max_retries}) after {backoff} seconds...")
                     time.sleep(backoff)
                     # Implement exponential backoff
                     backoff *= 1.5
                 else:
                     error_msg = "Error: Maximum retries reached for request timeout"
-                    logger.info(error_msg)
+                    logger.debug(error_msg)
                     elapsed_time = time.time() - start_time
-                    logger.info(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
+                    logger.indebugfo(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
                     
                     # Return a JSON formatted error that can be processed by the system
                     if "JSON" in prompt.upper():
@@ -122,9 +122,9 @@ class OllamaLLM:
                     
             except requests.exceptions.RequestException as e:
                 error_msg = f"Error connecting to Ollama service: {str(e)}"
-                logger.info(error_msg)
+                logger.debug(error_msg)
                 elapsed_time = time.time() - start_time
-                logger.info(f"Request failed after {elapsed_time:.2f} seconds")
+                logger.debug(f"Request failed after {elapsed_time:.2f} seconds")
                 
                 # Return a JSON formatted error that can be processed by the system
                 if "JSON" in prompt.upper():
@@ -135,9 +135,9 @@ class OllamaLLM:
 
         # Return an error if we've exhausted all retries
         error_msg = "Error: Maximum retries reached"
-        logger.info(error_msg)
+        logger.debug(error_msg)
         elapsed_time = time.time() - start_time
-        logger.info(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
+        logger.debug(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
         
         # Return a JSON formatted error that can be processed by the system
         if "JSON" in prompt.upper():

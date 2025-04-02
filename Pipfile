@@ -9,6 +9,7 @@ fastapi = "*"
 requests = "*"
 flask = "*"
 flask-socketio = "*"
+fasttext-wheel = "*"
 
 [dev-packages]
 

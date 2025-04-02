@@ -45,7 +45,7 @@ async def simulate_conversation():
             return 1
         
         # Clear memories for all agents before starting
-        logger.info("Clearing memories from previous runs...")
+        logger.debug("Clearing memories from previous runs...")
         for agent_config in agents_config:
             Psyche.clear_all_memories(agent_config["name"])
         
@@ -53,14 +53,15 @@ async def simulate_conversation():
         agent1 = create_agent(agents_config[0]["name"], agents_config[0]["personality"])
         agent2 = create_agent(agents_config[1]["name"], agents_config[1]["personality"])
         
-        logger.info(f"\n\n========== Starting Conversation between {agent1.name} and {agent2.name} ==========\n")
+        logger.info(f"========== Starting Conversation between {agent1.name} and {agent2.name} ==========\n")
         logger.info(f"Conversation turns: {turns}\n")
         
         # Start with a greeting
+        # TODO make this dynamic
         message = "Hello there!"
         
         for i in range(turns):
-            logger.info(f"\n\n---------- Turn {i+1} ----------\n")
+            logger.debug(f"\n\n---------- Turn {i+1} ----------\n")
             try:
                 response1 = await agent1.receive_message(message, agent2.name)
                 message1 = response1['speech']
@@ -82,15 +83,15 @@ async def simulate_conversation():
         logger.info("\n\n========== Conversation Ended ==========\n")
         agent1_psyche = agent1.get_psyche()
         agent2_psyche = agent2.get_psyche()
-        logger.info(f"{agent1.name}'s final state: {agent1_psyche.tension_level}/100 tension")
-        logger.info(f"{agent2.name}'s final state: {agent2_psyche.tension_level}/100 tension")
-        logger.info(f"\n{agent1.name}'s memories:")
+        logger.debug(f"{agent1.name}'s final state: {agent1_psyche.tension_level}/100 tension")
+        logger.debug(f"{agent2.name}'s final state: {agent2_psyche.tension_level}/100 tension")
+        logger.debug(f"{agent1.name}'s memories:")
         for memory in agent1_psyche.memories:
-            logger.info(f"  - {memory}")
-        logger.info(f"\n{agent2.name}'s memories:")
+            logger.debug(f"  - {memory}")
+        logger.debug(f"{agent2.name}'s memories:")
         for memory in agent2_psyche.memories:
-            logger.info(f"  - {memory}")
-        logger.info("")
+            logger.debug(f"  - {memory}")
+        logger.info("Thank you for using the application! ₍ᐢ._.ᐢ₎♡")
         
     except KeyboardInterrupt:
         logger.info("\n\nConversation interrupted by user. Exiting gracefully...")
