@@ -1,16 +1,13 @@
 {
   "memories": [
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What's been the highlight of your day so far? -> That's great to hear! What have you been up to today that's made it so lovely?",
-    "Alice: I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always lovely to start the day with a smile! -> That sounds like a great morning! What did you talk about with your friends over coffee?",
-    "Alice: We had a wonderful time chatting about our plans for the weekend and sharing some funny stories. It's always great to catch up with them over a cup of coffee. -> What specific plans did you have for the weekend that you're looking forward to the most?"
+    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm curious to know more about you."
   ],
   "relationships": {
     "Alice": {
-      "familiarity": 34
+      "familiarity": 41
     }
   },
-  "current_goal": "gather more information",
+  "current_goal": "gather information",
   "pending_actions": [
     "say",
     "ask",
@@ -18,7 +15,34 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 20,
+  "tension_level": 35,
   "personality": "analytical",
-  "name": "Bob"
+  "name": "Bob",
+  "stressful_phrases": [
+    "uncertain",
+    "unclear",
+    "ambiguous",
+    "imprecise",
+    "approximate",
+    "error",
+    "mistake",
+    "incorrect",
+    "flawed",
+    "bug",
+    "problem",
+    "lacking data",
+    "insufficient",
+    "unverified",
+    "unreliable",
+    "inconsistent",
+    "illogical",
+    "irrational",
+    "failure",
+    "deadline",
+    "incomplete",
+    "inefficient",
+    "complex",
+    "chaotic",
+    "unpredictable"
+  ]
 }

@@ -1,7 +1,18 @@
+from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from stable_genius.models.psyche import Psyche
+from stable_genius.core.prompt import PromptFormatter
+from stable_genius.utils.llm import OllamaLLM
+from stable_genius.core.plan_processor import PlanProcessor
+from stable_genius.core.action_processor import ActionProcessor
 from stable_genius.utils.logger import logger
+import fasttext
+import os
+from pathlib import Path
+import tempfile
+import random
+
+
 
 class PipelineComponent(ABC):
     """Base class for all pipeline components"""
@@ -22,3 +33,314 @@ class PipelineComponent(ABC):
             Updated context dictionary
         """
         pass 
+
+
+class ObserveComponent(PipelineComponent):
+    """Processes observations and prepares context for planning"""
+    
+    def __init__(self, name: str):
+        super().__init__(name)
+    
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Process observation and update the context with relevant information"""
+        # Extract and format observation
+        observation = context.get("input", "")
+        
+        # Update context with observation information
+        context["observation"] = observation
+        context["observation_processed"] = True
+        
+        return context
+
+class PlanComponent(PipelineComponent):
+    """Plans based on observation and psyche state"""
+    
+    def __init__(self, name: str, personality: str):
+        super().__init__(name)
+        self.llm = OllamaLLM(personality)
+        self.plan_processor = PlanProcessor(personality)
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Generate a plan based on observation and psyche state"""
+        # Generate planning prompt
+        plan_prompt = PromptFormatter.plan_prompt(psyche)
+        
+        # Generate and process plan
+        raw_plan_response = self.llm.generate(plan_prompt)
+        plan = self.plan_processor.process(raw_plan_response)
+        
+        # Update psyche with new goal
+        psyche.current_goal = plan.get('goal', 'understand the situation')
+        
+        # Update context with plan
+        context["plan"] = plan
+        
+        return context
+
+class ActionComponent(PipelineComponent):
+    """Determines action based on plan, observation, and psyche state"""
+    
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.llm = OllamaLLM()
+        self.action_processor = ActionProcessor()
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Generate an action based on the plan and observation"""
+        # Extract observation from context
+        observation = context.get("observation", "")
+        
+        # Generate action prompt
+        action_prompt = PromptFormatter.act_prompt(psyche, observation)
+        
+        # Generate and process action
+        raw_action_response = self.llm.generate(action_prompt)
+        action_response = self.action_processor.process(raw_action_response)
+        
+        # Ensure action_response has required keys
+        if 'action' not in action_response:
+            action_response['action'] = 'say'
+        if 'speech' not in action_response:
+            action_response['speech'] = "I'm not sure what to say right now."
+        
+        # Update context with action
+        context["action"] = action_response
+        context["speech"] = action_response.get("speech")
+        
+        return context
+
+class ReflectComponent(PipelineComponent):
+    """Updates the psyche based on plan, action, and observation"""
+    
+    def __init__(self, name: str):
+        super().__init__(name)
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Update psyche based on the planning and action results"""
+        # Extract data from context
+        observation = context.get("observation", "")
+        action = context.get("action", {})
+        speech = action.get("speech", "")
+        action_type = action.get("action", "say")
+        
+        # Update tension based on action
+        self._update_tension(psyche, action_type)
+        
+        # Add to memories
+        psyche.memories.append(f"{observation} -> {speech}")
+        
+        # Update context with reflection results
+        context["reflection"] = {
+            "tension_level": psyche.tension_level,
+            "memory_added": f"{observation} -> {speech}"
+        }
+        
+        return context
+        
+    def _update_tension(self, psyche: Psyche, action: str):
+        """Update tension meter based on action"""
+        if "confront" in action:
+            psyche.tension_level = min(psyche.tension_level + 20, 100)
+        elif "cooperate" in action or "say" in action:
+            psyche.tension_level = max(psyche.tension_level - 10, 0)
+        elif "ask" in action:
+            # Asking questions slightly reduces tension
+            psyche.tension_level = max(psyche.tension_level - 5, 0)
+
+class IntentClassifierComponent(PipelineComponent):
+    """Classifies user intent from input text"""
+    
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.llm = OllamaLLM()
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Classify intent of the input and add to context"""
+        observation = context.get("observation", "")
+        
+        # Generate intent classification prompt
+        prompt = f"""
+        Classify the intent of the following message into one of these categories:
+        - question
+        - statement
+        - command
+        - greeting
+        - farewell
+        - small_talk
+        - other
+        
+        Message: "{observation}"
+        
+        Respond with a JSON object containing:
+        {{"intent": "category", "confidence": 0-100}}
+        """
+        
+        raw_response = self.llm.generate(prompt)
+        
+        try:
+            # Extract JSON or create default
+            import json
+            start = raw_response.find('{')
+            end = raw_response.rfind('}') + 1
+            
+            if start >= 0 and end > 0:
+                intent_data = json.loads(raw_response[start:end])
+            else:
+                intent_data = {"intent": "other", "confidence": 50}
+                
+        except Exception as e:
+            logger.error(f"Error processing intent classification: {e}")
+            intent_data = {"intent": "other", "confidence": 50}
+            
+        # Add to context
+        context["intent"] = intent_data
+        
+        return context 
+
+class TensionClassifierComponent(PipelineComponent):
+    """Classifies input text to detect stressful content using fastText"""
+    
+    def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None):
+        """
+        Initialize the tension classifier component
+        
+        Args:
+            name: Component name
+            model_path: Path to pretrained fastText model (if None, will create a simple model)
+            default_stressors: List of default stressful phrases to seed the model
+        """
+        super().__init__(name)
+        self.model_path = model_path
+        self.default_stressors = default_stressors or [
+            "deadline", "urgent", "hurry", "problem", "mistake", "failure", 
+            "conflict", "argument", "angry", "disappointed", "stressed",
+            "critical", "emergency", "crisis", "pressure", "worried"
+        ]
+        self.models_dir = Path("models")
+        self.models_dir.mkdir(exist_ok=True)
+        self.model = None
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Process input to classify for stress and update psyche's tension level"""
+        observation = context.get("observation", "")
+        
+        # Ensure personalized stressors exist in psyche
+        if not hasattr(psyche, "stressful_phrases"):
+            # Initialize stressful phrases if not present
+            psyche.stressful_phrases = self.default_stressors.copy()
+            psyche.save()
+            
+        # Get or create agent-specific model
+        model = self._get_or_create_model(psyche)
+        
+        # Classify the text
+        prediction = self._classify_text(model, observation)
+        stress_score = prediction[1]  # Confidence score
+        
+        # Update psyche tension level based on stress score
+        original_tension = psyche.tension_level
+        if stress_score > 0.7:  # High confidence of stress
+            # Increase tension more significantly
+            psyche.tension_level = min(psyche.tension_level + int(stress_score * 20), 100)
+            
+            # Potentially learn new stressful phrases
+            self._learn_new_stressors(observation, psyche)
+            
+        elif stress_score > 0.5:  # Medium confidence
+            # Mild tension increase
+            psyche.tension_level = min(psyche.tension_level + int(stress_score * 10), 100)
+            
+        # Add results to context
+        context["tension_analysis"] = {
+            "is_stressful": stress_score > 0.5,
+            "stress_score": stress_score,
+            "tension_before": original_tension,
+            "tension_after": psyche.tension_level,
+            "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
+        }
+        
+        # Save updated psyche
+        psyche.save()
+        
+        return context
+    
+    def _get_or_create_model(self, psyche):
+        """Get or create a fastText model for this agent"""
+        model_file = self.models_dir / f"{psyche.name.lower()}_tension.bin"
+        
+        if model_file.exists():
+            # Load existing model
+            return fasttext.load_model(str(model_file))
+        else:
+            # Create a simple model based on personalized stressors
+            return self._create_simple_model(psyche, model_file)
+            
+    def _create_simple_model(self, psyche, model_file):
+        """Create a simple fastText model from stressful phrases"""
+        # Create temporary training file
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            temp_path = f.name
+            
+            # Write training examples
+            # Format: __label__stress stressful phrase
+            # Format: __label__normal neutral phrase
+            
+            # Write stressful examples
+            for phrase in psyche.stressful_phrases:
+                f.write(f"__label__stress {phrase}\n")
+                
+                # Generate some variations
+                words = phrase.split()
+                if len(words) > 1:
+                    for i in range(min(3, len(words))):
+                        f.write(f"__label__stress {' '.join(random.sample(words, len(words)))}\n")
+            
+            # Generate some non-stressful examples
+            neutral_phrases = [
+                "hello there", "good morning", "how are you", "nice day", 
+                "thank you", "appreciate it", "sounds good", "that's interesting",
+                "welcome", "have a nice day", "pleased to meet you", "that's helpful",
+                "I understand", "makes sense", "I see", "good point"
+            ]
+            
+            for phrase in neutral_phrases:
+                f.write(f"__label__normal {phrase}\n")
+        
+        try:
+            # Train the model
+            model = fasttext.train_supervised(temp_path, epoch=20, lr=1.0)
+            # Save the model
+            model.save_model(str(model_file))
+            return model
+        finally:
+            # Clean up temp file
+            os.unlink(temp_path)
+    
+    def _classify_text(self, model, text):
+        """Classify text using the fastText model"""
+        # Return tuple (label, probability)
+        prediction = model.predict(text)
+        label = prediction[0][0].replace('__label__', '')
+        probability = prediction[1][0]
+        
+        # If normal, return inverted probability
+        if label == 'normal':
+            return ('stress', 1.0 - probability)
+        return ('stress', probability)
+    
+    def _learn_new_stressors(self, observation, psyche):
+        """Learn new stressful phrases from observation"""
+        # Simple approach: occasionally sample words from stressful observations
+        if random.random() < 0.3:  # 30% chance to learn
+            words = observation.split()
+            if len(words) > 3:
+                # Sample a few words to create a new stressful phrase
+                sample_size = min(3, len(words))
+                new_stressor = ' '.join(random.sample(words, sample_size))
+                
+                # Don't add duplicates
+                if new_stressor not in psyche.stressful_phrases:
+                    psyche.stressful_phrases.append(new_stressor)
+                    # Keep list at reasonable size
+                    if len(psyche.stressful_phrases) > 50:
+                        psyche.stressful_phrases = psyche.stressful_phrases[-50:] 

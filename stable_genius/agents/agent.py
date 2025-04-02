@@ -1,6 +1,6 @@
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.decision import DecisionPipeline
-from stable_genius.core.components_impl import IntentClassifierComponent
+from stable_genius.core.components import IntentClassifierComponent, TensionClassifierComponent
 
 class Agent:
     def __init__(self, name, personality="neutral", custom_pipeline=None):
@@ -32,11 +32,24 @@ class Agent:
         """Add a component to the pipeline"""
         self.pipeline.add_component(component, position)
     
-    def create_with_intent_classifier(cls, name, personality="neutral"):
-        """Factory method to create an agent with intent classification"""
+    @classmethod
+    def create_with_tension_classifier(cls, name, personality="neutral", initial_stressors=None):
+        """Factory method to create an agent with tension classification"""
         agent = cls(name, personality)
-        # Add intent classifier after observation but before planning
-        agent.add_component(IntentClassifierComponent("intent_classifier"), position=1)
+        # Add tension classifier after observation but before planning
+        agent.add_component(TensionClassifierComponent("tension_classifier", 
+                                                     default_stressors=initial_stressors), 
+                          position=1)
+        return agent
+    
+    @classmethod
+    def create_full_pipeline(cls, name, personality="neutral", initial_stressors=None):
+        """Factory method to create an agent with tension classifier"""
+        agent = cls(name, personality)
+        # Add tension classifier
+        agent.add_component(TensionClassifierComponent("tension_classifier", 
+                                                     default_stressors=initial_stressors), 
+                          position=1)
         return agent
     
     async def receive_message(self, message: str, sender: str = None):

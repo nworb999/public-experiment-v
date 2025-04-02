@@ -1,13 +1,11 @@
 {
   "memories": [
     "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What's been the highlight of your day so far?",
-    "Bob: That's great to hear! What have you been up to today that's made it so lovely? -> I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always lovely to start the day with a smile!",
-    "Bob: That sounds like a great morning! What did you talk about with your friends over coffee? -> We had a wonderful time chatting about our plans for the weekend and sharing some funny stories. It's always great to catch up with them over a cup of coffee."
+    "Bob: What brings you here today, Alice? I'm curious to know more about you. -> Hi Bob, it's lovely to meet you! I'm here just to chat and get to know some new people. How about you, what brings you here today?"
   ],
   "relationships": {
     "Bob": {
-      "familiarity": 41
+      "familiarity": 49
     }
   },
   "current_goal": "build rapport",
@@ -20,5 +18,27 @@
   ],
   "tension_level": 0,
   "personality": "friendly",
-  "name": "Alice"
+  "name": "Alice",
+  "stressful_phrases": [
+    "conflict",
+    "argument",
+    "disagree",
+    "angry",
+    "disappointed",
+    "rejected",
+    "criticized",
+    "ignored",
+    "disrespected",
+    "rude",
+    "unfriendly",
+    "hostile",
+    "mean",
+    "upset",
+    "hurt feelings",
+    "misunderstood",
+    "alone",
+    "isolated",
+    "abandoned",
+    "betrayed"
+  ]
 }

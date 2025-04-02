@@ -3,9 +3,15 @@ from stable_genius.models.psyche import Psyche
 
 class Personality:
     """Base class for all personality types"""
+    def __init__(self):
+        self.stressful_phrases = [
+            "deadline", "urgent", "hurry", "problem", "mistake", "failure",
+            "conflict", "argument", "angry", "disappointed"
+        ]
+        
     def configure_psyche(self, psyche):
         """Apply personality-specific configurations to a psyche"""
-        pass
+        psyche.stressful_phrases = self.stressful_phrases
     
     def get_type(self):
         """Return the personality type name"""
@@ -13,19 +19,38 @@ class Personality:
 
 class FriendlyPersonality(Personality):
     def __init__(self):
+        super().__init__()
         self.type = "friendly"
         
+        # Friendly personality stressors - focused on social tension and conflict
+        self.stressful_phrases = [
+            "conflict", "argument", "disagree", "angry", "disappointed", 
+            "rejected", "criticized", "ignored", "disrespected", "rude",
+            "unfriendly", "hostile", "mean", "upset", "hurt feelings",
+            "misunderstood", "alone", "isolated", "abandoned", "betrayed"
+        ]
+        
     def configure_psyche(self, psyche):
+        super().configure_psyche(psyche)
         psyche.tension_level = 20  # Starts relaxed
-        # You could add more friendly-specific configurations here
 
 class AnalyticalPersonality(Personality):
     def __init__(self):
+        super().__init__()
         self.type = "analytical"
         
+        # Analytical personality stressors - focused on uncertainty and errors
+        self.stressful_phrases = [
+            "uncertain", "unclear", "ambiguous", "imprecise", "approximate", 
+            "error", "mistake", "incorrect", "flawed", "bug", "problem",
+            "lacking data", "insufficient", "unverified", "unreliable",
+            "inconsistent", "illogical", "irrational", "failure", "deadline",
+            "incomplete", "inefficient", "complex", "chaotic", "unpredictable"
+        ]
+        
     def configure_psyche(self, psyche):
+        super().configure_psyche(psyche)
         psyche.tension_level = 40  # Starts slightly tense
-        # You could add more analytical-specific configurations here
 
 # Factory function to create agents with specific personalities
 def create_agent(name, personality_type):
