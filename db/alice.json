@@ -1,44 +1,13 @@
 {
   "memories": [
-    "Bob: Hello there! -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
-    "Bob: Hello there! -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
-    "Bob: Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
     "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm having a pretty standard day so far, just trying to gather my thoughts and prioritize tasks. How about you? -> I'm not sure what to say.",
-    "Bob: What's on your mind, is there something specific that's bothering you? -> Honestly, I'm feeling a bit overwhelmed, but talking to you always makes me feel better. How about you, how's your day going so far?",
-    "Bob: What's been going on that's making you feel overwhelmed? Is it something specific or just a general feeling? -> I'm not sure what to say.",
-    "Bob: What's on your mind that's making it hard for you to find the right words? -> Honestly, I'm feeling a bit overwhelmed and it's making me struggle to find the right words, but talking to you makes me feel more at ease.",
-    "Bob: Hello there! -> Hi Bob, it's so nice to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm not sure what to say.",
-    "Bob: What's on your mind that's making it hard for you to find the right words? -> To be honest, I'm feeling a bit overwhelmed and it's making it hard for me to put my thoughts into words. I appreciate your patience and willingness to listen.",
-    "Bob: Can you try to break down what's feeling overwhelming for you? Is it a specific situation or a combination of things that's causing you to feel this way? -> I'm not sure what to say.",
-    "Bob: What's on your mind that's making it hard for you to find the right words? -> To be honest, I'm feeling a bit overwhelmed at the moment, but talking to you is really helping me relax and gather my thoughts.",
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks for asking! It's lovely to meet you, Bob. What's been the highlight of your day so far?",
-    "Bob: That's great to hear! What have you been up to today that's made it so lovely? -> I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee, it's always great to start the day with a smile",
-    "Bob: That sounds like a great morning, what specifically did you talk about with your friends over coffee that put you in such a good mood? -> I'm not sure what to say.",
-    "Bob: Hello there! -> Hi Bob, it's so nice to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> It's great to hear that you're doing well, Bob! I'm doing all right myself, thanks for asking. Just thought I'd drop by and catch up with you.",
-    "Bob: What have you been up to lately, anything new or exciting happening in your life? -> I've been keeping busy, just got back from a wonderful vacation and started taking a new cooking class, how about you, what's new with you?",
-    "Bob: That sounds interesting, where did you go on vacation and what kind of cooking are you learning in your class? -> I'm not sure what to say.",
-    "Bob: What's on your mind that's making it hard for you to find the right words? -> I'm feeling a bit overwhelmed, to be honest. There's just so much going on in my head and I want to make sure I communicate it correctly.",
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What do you like to do around here?",
-    "Bob: What brings you to this place, and what are your interests? I'm curious to know more about you. -> I'm not sure what to say.",
-    "Bob: What's on your mind that's making it hard for you to find the right words? -> Honestly, I'm feeling a bit overwhelmed at the moment, but talking to you is really helping me relax and gather my thoughts.",
-    "Bob: What's been going on that's making you feel overwhelmed? Is it something specific or a combination of things? -> Honestly, I'm feeling a bit overwhelmed with work and personal stuff lately. It's nice to talk to someone about it.",
-    "Bob: Hello there! -> Hi Bob, it's so nice to meet you! How's your day going so far?",
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks for asking! It's lovely to meet you, Bob. What's been the highlight of your day so far?",
-    "Bob: That's great to hear! What have you been up to today that's made it so lovely? -> I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always great to start the day with a smile!",
-    "Bob: That sounds like a great way to start the day! What specifically made your coffee catch-up with friends so enjoyable? -> I just love spending time with my friends over a cup of coffee, it's always so much fun chatting and laughing together, and this morning was no exception!",
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm having a pretty standard day so far, just trying to gather my thoughts and prioritize tasks. -> That sounds like a great way to start the day! What's on your task list that you're trying to prioritize?"
+    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What's been the highlight of your day so far?",
+    "Bob: That's great to hear! What have you been up to today that's made it so lovely? -> I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always lovely to start the day with a smile!",
+    "Bob: That sounds like a great morning! What did you talk about with your friends over coffee? -> We had a wonderful time chatting about our plans for the weekend and sharing some funny stories. It's always great to catch up with them over a cup of coffee."
   ],
   "relationships": {
     "Bob": {
-      "familiarity": 35
+      "familiarity": 41
     }
   },
   "current_goal": "build rapport",
@@ -49,7 +18,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 20,
+  "tension_level": 0,
   "personality": "friendly",
   "name": "Alice"
 }

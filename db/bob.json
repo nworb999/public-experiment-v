@@ -1,38 +1,13 @@
 {
   "memories": [
-    "Alice: Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate -> Error: 404 Client Error: Not Found for url: http://localhost:11434/api/generate",
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm having a pretty standard day so far, just trying to gather my thoughts and prioritize tasks. How about you?",
-    "Alice: I'm not sure what to say. -> What's on your mind, is there something specific that's bothering you?",
-    "Alice: Honestly, I'm feeling a bit overwhelmed, but talking to you always makes me feel better. How about you, how's your day going so far? -> What's been going on that's making you feel overwhelmed? Is it something specific or just a general feeling?",
-    "Alice: I'm not sure what to say. -> What's on your mind that's making it hard for you to find the right words?",
-    "Alice: Honestly, I'm feeling a bit overwhelmed and it's making me struggle to find the right words, but talking to you makes me feel more at ease. -> Can you tell me more about what's causing you to feel overwhelmed? Is it something specific that's happening or a general feeling you've been experiencing lately?",
-    "Alice: Hi Bob, it's so nice to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: I'm not sure what to say. -> What's on your mind that's making it hard for you to find the right words?",
-    "Alice: To be honest, I'm feeling a bit overwhelmed and it's making it hard for me to put my thoughts into words. I appreciate your patience and willingness to listen. -> Can you try to break down what's feeling overwhelming for you? Is it a specific situation or a combination of things that's causing you to feel this way?",
-    "Alice: I'm not sure what to say. -> What's on your mind that's making it hard for you to find the right words?",
-    "Alice: To be honest, I'm feeling a bit overwhelmed at the moment, but talking to you is really helping me relax and gather my thoughts. -> What's been going on that's making you feel overwhelmed? Is it something specific or a combination of things?",
     "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: I'm doing great, thanks for asking! It's lovely to meet you, Bob. What's been the highlight of your day so far? -> That's great to hear! What have you been up to today that's made it so lovely?",
-    "Alice: I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee, it's always great to start the day with a smile -> That sounds like a great morning, what specifically did you talk about with your friends over coffee that put you in such a good mood?",
-    "Alice: Hi Bob, it's so nice to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: It's great to hear that you're doing well, Bob! I'm doing all right myself, thanks for asking. Just thought I'd drop by and catch up with you. -> What have you been up to lately, anything new or exciting happening in your life?",
-    "Alice: I've been keeping busy, just got back from a wonderful vacation and started taking a new cooking class, how about you, what's new with you? -> That sounds interesting, where did you go on vacation and what kind of cooking are you learning in your class?",
-    "Alice: I'm not sure what to say. -> What's on your mind that's making it hard for you to find the right words?",
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What do you like to do around here? -> What brings you to this place, and what are your interests? I'm curious to know more about you.",
-    "Alice: I'm not sure what to say. -> What's on your mind that's making it hard for you to find the right words?",
-    "Alice: Honestly, I'm feeling a bit overwhelmed at the moment, but talking to you is really helping me relax and gather my thoughts. -> What's been going on that's making you feel overwhelmed? Is it something specific or a combination of things?",
-    "Alice: Honestly, I'm feeling a bit overwhelmed with work and personal stuff lately. It's nice to talk to someone about it. -> Can you tell me more about what's been going on at work and personally that's making you feel overwhelmed?",
-    "Alice: Hi Bob, it's so nice to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: I'm doing great, thanks for asking! It's lovely to meet you, Bob. What's been the highlight of your day so far? -> That's great to hear! What have you been up to today that's made it so lovely?",
-    "Alice: I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always great to start the day with a smile! -> That sounds like a great way to start the day! What specifically made your coffee catch-up with friends so enjoyable?",
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm having a pretty standard day so far, just trying to gather my thoughts and prioritize tasks.",
-    "Alice: That sounds like a great way to start the day! What's on your task list that you're trying to prioritize? -> What specific tasks do you have in mind that we should prioritize, and what are the key objectives we're trying to accomplish today?"
+    "Alice: I'm doing great, thanks for sharing that you're doing well! It's lovely to meet you, Bob. What's been the highlight of your day so far? -> That's great to hear! What have you been up to today that's made it so lovely?",
+    "Alice: I've just had a wonderful morning, the sun is shining and I got to catch up with some friends over coffee. It's always lovely to start the day with a smile! -> That sounds like a great morning! What did you talk about with your friends over coffee?",
+    "Alice: We had a wonderful time chatting about our plans for the weekend and sharing some funny stories. It's always great to catch up with them over a cup of coffee. -> What specific plans did you have for the weekend that you're looking forward to the most?"
   ],
   "relationships": {
     "Alice": {
-      "familiarity": 29
+      "familiarity": 34
     }
   },
   "current_goal": "gather more information",
@@ -43,7 +18,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 40,
+  "tension_level": 20,
   "personality": "analytical",
   "name": "Bob"
 }
