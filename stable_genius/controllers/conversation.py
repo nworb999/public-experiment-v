@@ -106,6 +106,15 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
             
             # Update LLM data with context
             data.update(interaction_context)
+            
+            # Send LLM interaction to visualizer
+            send_to_visualizer({
+                'event_type': 'llm_interaction',
+                'prompt': data.get('prompt', ''),
+                'response': data.get('response', ''),
+                'agent': agent.name,
+                'turn': turn
+            }, visualizer_url)
         
         send_to_visualizer({
             'event_type': 'pipeline_update',

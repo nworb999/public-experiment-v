@@ -63,6 +63,11 @@ def receive_update():
     
     if event_type == 'config':
         socketio.emit('config', update_data.get('config', {}))
+    elif event_type == 'llm_interaction':
+        socketio.emit('llm_interaction', {
+            'prompt': update_data.get('prompt', ''),
+            'response': update_data.get('response', '')
+        })
     elif event_type == 'message':
         socketio.emit('add_message', {
             'sender': update_data.get('sender', 'System'),
@@ -169,7 +174,7 @@ def check_conversation_status(api_url):
 
 def signal_handler(sig, frame):
     """Handle keyboard interrupt gracefully"""
-    logger.info("\nKeyboard interrupt detected. Shutting down gracefully...")
+    logger.info("Keyboard interrupt detected. Shutting down gracefully...")
     if socketio:
         socketio.emit('add_message', {'sender': 'System', 'message': 'Server shutting down...'})
     sys.exit(0)

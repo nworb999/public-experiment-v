@@ -63,45 +63,42 @@ body {
 }
 
 .conversation-flow {
-    position: absolute;
+    display: flex;
+    flex-direction: row;
+    gap: 4rem;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.box-container {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    width: 300px;
-    right: 50px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.section {
-    display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-}
-
-.circle {
-    width: 24px;
-    height: 24px;
-    border: 6px solid #897BD1;
-    border-radius: 50%;
-    flex-shrink: 0;
+    gap: 1rem;
 }
 
 .label {
     font-family: 'Comic Neue', cursive;
     font-weight: 700;
-    font-size: 16px;
-    color: #897BD1;
-    line-height: 1.15;
-    width: 100px;
-    flex-shrink: 0;
+    font-size: 20px;
+    color: #FF0D6A;
+    text-align: center;
 }
 
 .box {
-    flex: 1;
-    height: 60px;
-    min-width: 150px;
-    border: 6px solid #897BD1;
+    width: 300px;
+    height: 200px;
+    border: 6px solid #FF0D6A;
     border-radius: 4px;
+    padding: 1rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 14px;
+    color: #FF0D6A;
+    background: rgba(0, 0, 0, 0.2);
 }

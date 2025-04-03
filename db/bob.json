@@ -1,7 +1,5 @@
 {
-  "memories": [
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm curious to know more about you."
-  ],
+  "memories": [],
   "relationships": {
     "Alice": {
       "familiarity": 41
@@ -15,7 +13,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 35,
+  "tension_level": 40,
   "personality": "analytical",
   "name": "Bob",
   "stressful_phrases": [

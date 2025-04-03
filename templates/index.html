@@ -6,6 +6,7 @@
     <title>Agent Conversation</title>
     <link rel="stylesheet" href="/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
     <div class="container">
@@ -16,28 +17,31 @@
         </div>
         <div class="content">
             <div class="conversation-flow">
-                <div class="section">
-                    <div class="circle"></div>
+                <div class="box-container">
                     <h2 class="label">Prompt</h2>
-                    <div class="box prompt-box"></div>
+                    <div class="box" id="prompt-box"></div>
                 </div>
-                <div class="section">
-                    <div class="circle"></div>
-                    <h2 class="label">Agent 1</h2>
-                    <div class="box agent1-box"></div>
-                </div>
-                <div class="section">
-                    <div class="circle"></div>
-                    <h2 class="label">Agent 2</h2>
-                    <div class="box agent2-box"></div>
-                </div>
-                <div class="section">
-                    <div class="circle"></div>
+                <div class="box-container">
                     <h2 class="label">Response</h2>
-                    <div class="box response-box"></div>
+                    <div class="box" id="response-box"></div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        const socket = io();
+        const promptBox = document.getElementById('prompt-box');
+        const responseBox = document.getElementById('response-box');
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('llm_interaction', (data) => {
+            promptBox.textContent = data.prompt;
+            responseBox.textContent = data.response;
+        });
+    </script>
 </body>
 </html>

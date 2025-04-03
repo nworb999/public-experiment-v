@@ -1,5 +1,7 @@
 import asyncio
 import argparse
+import requests
+import json
 import sys
 import signal
 from pathlib import Path
@@ -64,13 +66,15 @@ def start_conversation():
     conversation_id = request.json.get('conversation_id', str(len(active_conversations) + 1))
     visualizer_url = request.json.get('visualizer_url', "http://localhost:5000/api/update")
     
+    def run_async_conversation():
+        """Wrapper function to run the async conversation in a synchronous context"""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(run_conversation(conversation_id, visualizer_url, llm_service))
+        loop.close()
+    
     # Schedule the conversation to run asynchronously
-    socketio.start_background_task(
-        run_conversation, 
-        conversation_id,
-        visualizer_url,
-        llm_service
-    )
+    socketio.start_background_task(run_async_conversation)
     
     return jsonify({
         'status': 'started',

@@ -1,11 +1,8 @@
 {
-  "memories": [
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm curious to know more about you. -> Hi Bob, it's lovely to meet you! I'm here just to chat and get to know some new people. How about you, what brings you here today?"
-  ],
+  "memories": [],
   "relationships": {
     "Bob": {
-      "familiarity": 49
+      "familiarity": 50
     }
   },
   "current_goal": "build rapport",
@@ -16,7 +13,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 0,
+  "tension_level": 20,
   "personality": "friendly",
   "name": "Alice",
   "stressful_phrases": [
