@@ -1,14 +1,18 @@
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.decision import DecisionPipeline
 from stable_genius.core.components import IntentClassifierComponent, TensionClassifierComponent
+from stable_genius.utils.llm import OllamaLLM
 
 class Agent:
-    def __init__(self, name, personality="neutral", custom_pipeline=None):
+    def __init__(self, name, personality="neutral", llm=None, custom_pipeline=None):
         self.name = name
         self.personality = personality
         
+        # Store shared LLM instance
+        self.llm = llm if llm else OllamaLLM()
+        
         # Create pipeline - optionally use custom components
-        self.pipeline = DecisionPipeline(personality, components=custom_pipeline)
+        self.pipeline = DecisionPipeline(personality, llm=self.llm, components=custom_pipeline)
         
         # Load or initialize the psyche
         psyche = Psyche.load(name)
@@ -33,9 +37,9 @@ class Agent:
         self.pipeline.add_component(component, position)
     
     @classmethod
-    def create_with_tension_classifier(cls, name, personality="neutral", initial_stressors=None):
+    def create_with_tension_classifier(cls, name, personality="neutral", llm=None, initial_stressors=None):
         """Factory method to create an agent with tension classification"""
-        agent = cls(name, personality)
+        agent = cls(name, personality, llm)
         # Add tension classifier after observation but before planning
         agent.add_component(TensionClassifierComponent("tension_classifier", 
                                                      default_stressors=initial_stressors), 
@@ -43,9 +47,9 @@ class Agent:
         return agent
     
     @classmethod
-    def create_full_pipeline(cls, name, personality="neutral", initial_stressors=None):
+    def create_full_pipeline(cls, name, personality="neutral", llm=None, initial_stressors=None):
         """Factory method to create an agent with tension classifier"""
-        agent = cls(name, personality)
+        agent = cls(name, personality, llm)
         # Add tension classifier
         agent.add_component(TensionClassifierComponent("tension_classifier", 
                                                      default_stressors=initial_stressors), 
