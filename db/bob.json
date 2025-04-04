@@ -1,8 +1,14 @@
 {
-  "memories": [],
+  "memories": [
+    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
+    "Alice: I'm doing great, thanks! It's lovely to meet you, Bob. I was just in the neighborhood and thought I'd drop by to say hello. -> What brings you to the neighborhood, if you don't mind me asking?",
+    "Alice: I'm so glad I ran into you! I just moved in down the street and I'm excited to get to know the neighborhood. It's lovely here, isn't it? -> What made you decide to move into this neighborhood, and what do you think of it so far?",
+    "Alice: I'm so glad I made the decision to move here, the neighborhood seems really lovely and I've already met some wonderful people. What about you, have you lived here long? -> What specifically made you decide to move here, was it the location, affordability, or something else?",
+    "Alice: I'm not sure what to say. -> What's on your mind, is there something specific that's causing your uncertainty?"
+  ],
   "relationships": {
     "Alice": {
-      "familiarity": 41
+      "familiarity": 48
     }
   },
   "current_goal": "gather information",
@@ -13,7 +19,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 40,
+  "tension_level": 15,
   "personality": "analytical",
   "name": "Bob",
   "stressful_phrases": [

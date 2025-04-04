@@ -9,38 +9,144 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="background">
-            <div class="ellipse ellipse-1"></div>
-            <div class="ellipse ellipse-2"></div>
-            <div class="ellipse ellipse-3"></div>
+    <div class="page-container">
+        <div class="column left-column">
+            <div class="container">
+                <div class="background">
+                    <div class="ellipse ellipse-1"></div>
+                    <div class="ellipse ellipse-2"></div>
+                    <div class="ellipse ellipse-3"></div>
+                </div>
+                <div class="content">
+                    <div class="conversation-flow">
+                        <div class="conversation-column">
+                            <h2 class="title-text">Prompts</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="conversation-column">
+                            <h2 class="title-text">Responses</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-1">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-2">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-3">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="content">
-            <div class="conversation-flow">
-                <div class="box-container">
-                    <h2 class="label">Prompt</h2>
-                    <div class="box" id="prompt-box"></div>
-                </div>
-                <div class="box-container">
-                    <h2 class="label">Response</h2>
-                    <div class="box" id="response-box"></div>
-                </div>
+        <div class="column right-column">
+            <div class="terminal-container">
+                <div class="terminal-header" id="agent1-name">Waiting for agent...</div>
+                <div class="terminal-content" id="agent1-terminal"></div>
+            </div>
+            <div class="terminal-container">
+                <div class="terminal-header" id="agent2-name">Waiting for agent...</div>
+                <div class="terminal-content" id="agent2-terminal"></div>
             </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        const promptBox = document.getElementById('prompt-box');
-        const responseBox = document.getElementById('response-box');
+        const promptBoxes = [
+            document.getElementById('prompt-box-1'),
+            document.getElementById('prompt-box-2'),
+            document.getElementById('prompt-box-3')
+        ];
+        const responseBoxes = [
+            document.getElementById('response-box-1'),
+            document.getElementById('response-box-2'),
+            document.getElementById('response-box-3')
+        ];
+        const responseTimeDisplays = [
+            document.getElementById('response-time-1'),
+            document.getElementById('response-time-2'),
+            document.getElementById('response-time-3')
+        ];
+        const agent1Name = document.getElementById('agent1-name');
+        const agent2Name = document.getElementById('agent2-name');
+        const agent1Terminal = document.getElementById('agent1-terminal');
+        const agent2Terminal = document.getElementById('agent2-terminal');
+
+        // Keep track of message history
+        const agent1Messages = [];
+        const agent2Messages = [];
 
         socket.on('connect', () => {
             console.log('Connected to server');
         });
 
+        socket.on('config', (data) => {
+            if (data.config && data.config.agents && data.config.agents.length >= 2) {
+                agent1Name.textContent = data.config.agents[0].name;
+                agent2Name.textContent = data.config.agents[1].name;
+            }
+        });
+
         socket.on('llm_interaction', (data) => {
-            promptBox.textContent = data.prompt;
-            responseBox.textContent = data.response;
+            // Move content down to other boxes first
+            promptBoxes[2].textContent = promptBoxes[1].textContent;
+            responseBoxes[2].textContent = responseBoxes[1].textContent;
+            responseTimeDisplays[2].textContent = responseTimeDisplays[1].textContent;
+            
+            promptBoxes[1].textContent = promptBoxes[0].textContent;
+            responseBoxes[1].textContent = responseBoxes[0].textContent;
+            responseTimeDisplays[1].textContent = responseTimeDisplays[0].textContent;
+            
+            // Add new content to first box
+            promptBoxes[0].textContent = data.prompt;
+            responseBoxes[0].textContent = data.response;
+            responseTimeDisplays[0].textContent = `Time elapsed: ${data.elapsed_time || '--'}`;
+        });
+
+        socket.on('message', (data) => {
+            if (data.sender_id === 0 || data.sender_id === 1) {
+                const messages = data.sender_id === 0 ? agent1Messages : agent2Messages;
+                const terminal = data.sender_id === 0 ? agent1Terminal : agent2Terminal;
+                
+                // Add new message to the beginning of the array
+                messages.unshift(data.message);
+                
+                // Keep only the last 10 messages
+                if (messages.length > 10) {
+                    messages.pop();
+                }
+                
+                // Update terminal content with messages in descending order
+                terminal.textContent = messages.join('\n\n');
+            }
         });
     </script>
 </body>

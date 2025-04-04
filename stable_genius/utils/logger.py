@@ -28,7 +28,7 @@ class Logger:
             self.logger.handlers.clear()
         
         # Create formatter with timestamp
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', 
+        formatter = logging.Formatter('%(asctime)s - ₍ᐢ._.ᐢ₎♡ - %(message)s', 
                                      datefmt='%Y-%m-%d %H:%M:%S')
         
         # Console handler

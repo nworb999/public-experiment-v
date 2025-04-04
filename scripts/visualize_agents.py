@@ -185,7 +185,8 @@ def handle_connect():
     logger.info('Client connected')
     socketio.emit('add_message', {'sender': 'System', 'message': 'Connected to server successfully!'})
     
-    if not conversation_active and app.config.get('AUTO_START', False):
+    # Only auto-start if not in debug mode and no conversation is active
+    if not conversation_active and app.config.get('AUTO_START', False) and not app.debug:
         start_conversation(app.config.get('API_URL', 'http://localhost:8000'))
 
 def poll_conversation_status():
@@ -203,7 +204,7 @@ def run_flask(port=5000, api_url='http://localhost:8000', auto_start=True):
     # Start background task to poll conversation status
     socketio.start_background_task(poll_conversation_status)
     
-    socketio.run(app, debug=True, host='0.0.0.0', port=port)
+    socketio.run(app, debug=False, host='0.0.0.0', port=port)
 
 def main():
     global config, agents_config

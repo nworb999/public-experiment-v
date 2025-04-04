@@ -32,7 +32,7 @@ llm_service = OllamaLLM()
 
 def signal_handler(sig, frame):
     """Handle keyboard interrupt gracefully"""
-    logger.info("\n\nKeyboard interrupt detected. Shutting down gracefully...\n\n")
+    logger.info("Keyboard interrupt detected. Shutting down gracefully...\n\n")
     logger.info("Thank you for using the application! ₍ᐢ._.ᐢ₎♡")
     sys.exit(0)
 
@@ -65,6 +65,18 @@ def start_conversation():
     """Start a new conversation between agents"""
     conversation_id = request.json.get('conversation_id', str(len(active_conversations) + 1))
     visualizer_url = request.json.get('visualizer_url', "http://localhost:5000/api/update")
+    
+    # Check if conversation already exists and is running
+    existing_conv = get_conversation_status(conversation_id)
+    if existing_conv and existing_conv.get('status') == 'running':
+        return jsonify({
+            'status': 'already_running',
+            'conversation_id': conversation_id
+        })
+    
+    # If conversation exists but is not running, stop it first
+    if existing_conv:
+        stop_conversation(conversation_id)
     
     def run_async_conversation():
         """Wrapper function to run the async conversation in a synchronous context"""
