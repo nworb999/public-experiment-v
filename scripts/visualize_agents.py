@@ -6,14 +6,15 @@ import asyncio
 import sys
 import signal
 import json
+import requests
+import argparse
 from pathlib import Path
-from flask import Flask, render_template
+from flask import Flask, render_template, request, url_for, jsonify
 from flask_socketio import SocketIO
 
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from stable_genius.agents.personalities import create_agent
 from stable_genius.utils.logger import logger
 
 template_dir = PROJECT_ROOT / "templates"
@@ -21,7 +22,11 @@ template_dir.mkdir(exist_ok=True)
 
 index_template = template_dir / "index.html"
 
-app = Flask(__name__, template_folder=str(template_dir))
+app = Flask(__name__, 
+    template_folder=str(template_dir),
+    static_folder=str(template_dir),
+    static_url_path=''
+)
 socketio = SocketIO(app, async_mode='threading')
 
 config_dir = PROJECT_ROOT / "config"
@@ -42,162 +47,191 @@ def load_config():
 config = load_config()
 agents_config = config["agents"]
 
+# Track conversation state
+conversation_active = False
+current_conversation_id = None
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-agents = []
-conversation_active = False
+@app.route('/api/update', methods=['POST'])
+def receive_update():
+    """Receive updates from the conversation API server"""
+    update_data = request.json
+    event_type = update_data.get('event_type')
+    
+    if event_type == 'config':
+        socketio.emit('config', update_data.get('config', {}))
+    elif event_type == 'llm_interaction':
+        socketio.emit('llm_interaction', {
+            'prompt': update_data.get('prompt', ''),
+            'response': update_data.get('response', '')
+        })
+    elif event_type == 'message':
+        socketio.emit('add_message', {
+            'sender': update_data.get('sender', 'System'),
+            'sender_id': update_data.get('sender_id', None),
+            'message': update_data.get('message', '')
+        })
+    elif event_type == 'agent_update':
+        agent_id = update_data.get('agent_id', 0)
+        socketio.emit(f'update_agent{agent_id+1}', {
+            'name': update_data.get('name', ''),
+            'personality': update_data.get('personality', ''),
+            'tension': update_data.get('tension', 0),
+            'memories': update_data.get('memories', []),
+            'plan': update_data.get('plan', {})
+        })
+    elif event_type == 'pipeline_update':
+        socketio.emit('pipeline_update', {
+            'agent_id': update_data.get('agent_id', 0),
+            'agent_name': update_data.get('agent_name', ''),
+            'stage': update_data.get('stage', ''),
+            'data': update_data.get('data', {})
+        })
+    
+    return jsonify({'status': 'success'})
 
 @socketio.on('get_config')
 def handle_get_config():
     """Send configuration to client"""
     socketio.emit('config', config)
 
-async def run_conversation(turns=None):
-    """Run a simulated conversation between agents with UI updates"""
-    global agents, conversation_active
+def start_conversation(api_url):
+    """Start a new conversation by calling the conversation API server"""
+    global conversation_active, current_conversation_id
     
-    if turns is None:
-        turns = config.get("turns", 5)
+    if conversation_active:
+        logger.info("A conversation is already active")
+        return
     
     try:
-        conversation_active = True
+        # Set up the visualization URL
+        vis_url = f"http://localhost:{app.config['PORT']}/api/update"
         
-        agents = []
-        for i, agent_config in enumerate(agents_config):
-            agent = create_agent(agent_config["name"], agent_config["personality"])
-            agents.append(agent)
+        # Call the conversation API server to start a conversation
+        response = requests.post(
+            f"{api_url}/api/start-conversation",
+            json={
+                'visualizer_url': vis_url
+            },
+            timeout=5
+        )
         
-        if len(agents) < 2:
+        if response.status_code == 200:
+            data = response.json()
+            conversation_active = True
+            current_conversation_id = data.get('conversation_id')
+            logger.info(f"Started conversation with ID: {current_conversation_id}")
             socketio.emit('add_message', {
-                'sender': 'Error', 
-                'message': 'Need at least 2 agents in config file'
+                'sender': 'System',
+                'message': f'Started conversation with ID: {current_conversation_id}'
             })
-            return
-        
-        for i, agent in enumerate(agents):
-            socketio.emit(f'update_agent{i+1}', {
-                'name': agent.name,
-                'personality': agent.personality,
-                'tension': agent.get_psyche().tension_level,
-                'memories': agent.get_psyche().memories
+        else:
+            logger.error(f"Failed to start conversation: {response.status_code} {response.text}")
+            socketio.emit('add_message', {
+                'sender': 'Error',
+                'message': f'Failed to start conversation: {response.status_code} {response.text}'
             })
+    except requests.RequestException as e:
+        logger.error(f"Error connecting to conversation API server: {str(e)}")
+        socketio.emit('add_message', {
+            'sender': 'Error',
+            'message': f'Error connecting to conversation API server: {str(e)}'
+        })
+
+def check_conversation_status(api_url):
+    """Check the status of the current conversation"""
+    global conversation_active, current_conversation_id
+    
+    if not current_conversation_id:
+        return
+    
+    try:
+        response = requests.get(
+            f"{api_url}/api/conversation-status/{current_conversation_id}",
+            timeout=5
+        )
         
-        message = "Hello there!"
-        socketio.emit('add_message', {'sender': 'System', 'message': 'Starting conversation...'})
-        
-        for turn in range(turns):
-            socketio.emit('add_message', {'sender': 'System', 'message': f'Turn {turn+1}'})
+        if response.status_code == 200:
+            data = response.json()
+            status = data.get('status')
             
-            # Agent 1's turn with pipeline visualization
-            socketio.emit('add_message', {'sender': 'System', 'message': f'Agent {agents[0].name} processing...'})
-            
-            # Subscribe to pipeline updates for agent 1
-            def agent1_pipeline_callback(stage, data):
-                socketio.emit('pipeline_update', {
-                    'agent_id': 0,
-                    'agent_name': agents[0].name,
-                    'stage': stage,
-                    'data': data
+            if status in ['completed', 'error']:
+                conversation_active = False
+                socketio.emit('add_message', {
+                    'sender': 'System',
+                    'message': f'Conversation {current_conversation_id} {status}'
                 })
-            
-            # Register the callback
-            agents[0].pipeline.register_callback(agent1_pipeline_callback)
-            
-            response1 = await agents[0].receive_message(message, agents[1].name)
-            message1 = response1['speech']
-            agent1_psyche = agents[0].get_psyche()
-            
-            socketio.emit('update_agent1', {
-                'name': agents[0].name,
-                'personality': agents[0].personality,
-                'tension': agent1_psyche.tension_level,
-                'memories': agent1_psyche.memories,
-                'plan': response1.get('plan', {})
-            })
-            
-            socketio.emit('add_message', {
-                'sender': agents[0].name,
-                'sender_id': 0,
-                'message': message1
-            })
-            
-            await asyncio.sleep(0.5)
-            
-            # Agent 2's turn with pipeline visualization
-            socketio.emit('add_message', {'sender': 'System', 'message': f'Agent {agents[1].name} processing...'})
-            
-            # Subscribe to pipeline updates for agent 2
-            def agent2_pipeline_callback(stage, data):
-                socketio.emit('pipeline_update', {
-                    'agent_id': 1,
-                    'agent_name': agents[1].name,
-                    'stage': stage,
-                    'data': data
-                })
-            
-            # Register the callback
-            agents[1].pipeline.register_callback(agent2_pipeline_callback)
-            
-            response2 = await agents[1].receive_message(message1, agents[0].name)
-            message = response2['speech']
-            agent2_psyche = agents[1].get_psyche()
-            
-            socketio.emit('update_agent2', {
-                'name': agents[1].name,
-                'personality': agents[1].personality,
-                'tension': agent2_psyche.tension_level,
-                'memories': agent2_psyche.memories,
-                'plan': response2.get('plan', {})
-            })
-            
-            socketio.emit('add_message', {
-                'sender': agents[1].name,
-                'sender_id': 1,
-                'message': message
-            })
-            
-            await asyncio.sleep(0.5)
-        
-        socketio.emit('add_message', {'sender': 'System', 'message': 'Conversation ended'})
-        
-    except Exception as e:
-        socketio.emit('add_message', {'sender': 'Error', 'message': f'Error: {str(e)}'})
-    finally:
-        conversation_active = False
+                current_conversation_id = None
+        elif response.status_code == 404:
+            conversation_active = False
+            current_conversation_id = None
+    except requests.RequestException:
+        # Ignore connection errors during status checks
+        pass
 
 def signal_handler(sig, frame):
     """Handle keyboard interrupt gracefully"""
-    logger.info("\nKeyboard interrupt detected. Shutting down gracefully...")
+    logger.info("Keyboard interrupt detected. Shutting down gracefully...")
     if socketio:
         socketio.emit('add_message', {'sender': 'System', 'message': 'Server shutting down...'})
     sys.exit(0)
 
 @socketio.on('connect')
 def handle_connect():
+    """Handle client connection"""
     logger.info('Client connected')
     socketio.emit('add_message', {'sender': 'System', 'message': 'Connected to server successfully!'})
-    if not conversation_active:
-        asyncio.run(run_conversation())
+    
+    # Only auto-start if not in debug mode and no conversation is active
+    if not conversation_active and app.config.get('AUTO_START', False) and not app.debug:
+        start_conversation(app.config.get('API_URL', 'http://localhost:8000'))
 
-def run_flask(port=5000):
-    socketio.run(app, debug=True, host='0.0.0.0', port=port)
+def poll_conversation_status():
+    """Background task to poll the conversation status"""
+    while True:
+        check_conversation_status(app.config.get('API_URL', 'http://localhost:8000'))
+        socketio.sleep(2)
+
+def run_flask(port=5000, api_url='http://localhost:8000', auto_start=True):
+    """Run the Flask server"""
+    app.config['PORT'] = port
+    app.config['API_URL'] = api_url
+    app.config['AUTO_START'] = auto_start
+    
+    # Start background task to poll conversation status
+    socketio.start_background_task(poll_conversation_status)
+    
+    socketio.run(app, debug=False, host='0.0.0.0', port=port)
 
 def main():
     global config, agents_config
     
     signal.signal(signal.SIGINT, signal_handler)
     
-    port = 5000
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Run a visualization server for agent conversations")
+    parser.add_argument("--port", type=int, default=5000, help="Port to run the visualization server on")
+    parser.add_argument("--api-url", default="http://localhost:8000", help="URL of the conversation API server")
+    parser.add_argument("--no-auto-start", action="store_true", help="Disable auto-starting a conversation on connect")
+    args = parser.parse_args()
+    
+    port = args.port
+    api_url = args.api_url
+    auto_start = not args.no_auto_start
     
     logger.info(f"Starting visualization server on http://localhost:{port}")
+    logger.info(f"Using conversation API server at: {api_url}")
     logger.info("Open this URL in your browser to view the agent conversation")
-    logger.info(f"Using agents: {', '.join([a['name'] for a in agents_config])}")
-    logger.info(f"Conversation turns: {config.get('turns', 5)}")
+    
+    if auto_start:
+        logger.info("Will auto-start conversation when client connects")
+    
     logger.info("Press Ctrl+C to exit")
     
-    run_flask(port)
+    run_flask(port=port, api_url=api_url, auto_start=auto_start)
     return 0
 
 if __name__ == "__main__":

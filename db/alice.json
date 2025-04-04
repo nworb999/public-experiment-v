@@ -1,11 +1,14 @@
 {
   "memories": [
     "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
-    "Bob: What brings you here today, Alice? I'm curious to know more about you. -> Hi Bob, it's lovely to meet you! I'm here just to chat and get to know some new people. How about you, what brings you here today?"
+    "Bob: What brings you here today, Alice? I'm doing well, thanks for asking. -> I'm doing great, thanks! It's lovely to meet you, Bob. I was just in the neighborhood and thought I'd drop by to say hello.",
+    "Bob: What brings you to the neighborhood, if you don't mind me asking? -> I'm so glad I ran into you! I just moved in down the street and I'm excited to get to know the neighborhood. It's lovely here, isn't it?",
+    "Bob: What made you decide to move into this neighborhood, and what do you think of it so far? -> I'm so glad I made the decision to move here, the neighborhood seems really lovely and I've already met some wonderful people. What about you, have you lived here long?",
+    "Bob: What specifically made you decide to move here, was it the location, affordability, or something else? -> I'm not sure what to say."
   ],
   "relationships": {
     "Bob": {
-      "familiarity": 49
+      "familiarity": 60
     }
   },
   "current_goal": "build rapport",

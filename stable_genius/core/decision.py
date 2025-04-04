@@ -3,20 +3,23 @@ import logging
 from typing import List, Dict, Any, Callable, Optional
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.components import PipelineComponent
+from stable_genius.utils.llm import OllamaLLM
 from stable_genius.utils.logger import logger
 
 class DecisionPipeline:
     """Manages the agent's decision-making process using composable components"""
     
-    def __init__(self, personality: str = "neutral", components: Optional[List[PipelineComponent]] = None):
+    def __init__(self, personality: str = "neutral", llm=None, components: Optional[List[PipelineComponent]] = None):
         """
         Initialize the decision pipeline
         
         Args:
             personality: The agent's personality trait
+            llm: Shared LLM instance to use for all components
             components: List of pipeline components in processing order (if None, default pipeline is created)
         """
         self.personality = personality
+        self.llm = llm if llm else OllamaLLM()
         self.callbacks = []
         self.components = components or self._create_default_pipeline()
         
@@ -26,8 +29,8 @@ class DecisionPipeline:
         
         return [
             ObserveComponent("observe"),
-            PlanComponent("plan", self.personality),
-            ActionComponent("action"),
+            PlanComponent("plan", self.personality, self.llm),
+            ActionComponent("action", self.llm),
             ReflectComponent("reflect")
         ]
     
@@ -81,6 +84,23 @@ class DecisionPipeline:
                 
                 # Process through component
                 context = await component.process(context, psyche)
+                
+                # Check if an LLM call was made during component processing
+                if context.get("llm_call"):
+                    # Notify about LLM call
+                    llm_data = {
+                        "prompt": context.get("prompt", ""),
+                        "response": context.get("response", ""),
+                        "timestamp": context.get("timestamp", ""),
+                        "component": component.name,
+                        "elapsed_time": context.get("elapsed_time", "")
+                    }
+                    # Pass the data to callbacks for further processing
+                    self.notify_callbacks("llm_call", llm_data)
+                    
+                    # Clear LLM call flags to prevent duplicate notifications
+                    context.pop("llm_call", None)
+                    context.pop("llm_call_start", None)
                 
                 # Notify completion of component processing
                 self.notify_callbacks(component.name, context)

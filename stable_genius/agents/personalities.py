@@ -53,10 +53,10 @@ class AnalyticalPersonality(Personality):
         psyche.tension_level = 40  # Starts slightly tense
 
 # Factory function to create agents with specific personalities
-def create_agent(name, personality_type):
+def create_agent(name, personality_type, llm=None):
     """Create an agent with a specific personality type"""
     # Create the base agent
-    agent = Agent(name, personality=personality_type)
+    agent = Agent(name, personality=personality_type, llm=llm)
     
     # Create and apply the appropriate personality
     personality = None

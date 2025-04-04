@@ -1,231 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Psyche Visualizer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Conversation</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-        .container {
-            display: flex;
-            height: 100vh;
-        }
-        .agents-panel {
-            width: 30%;
-            display: flex;
-            flex-direction: column;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .agent-container {
-            flex: 1;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            overflow-y: auto;
-        }
-        .conversation-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            background-color: #fff;
-            margin-left: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-        .header {
-            background-color: #4a86e8;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .system-message {
-            background-color: #f1f1f1;
-            color: #666;
-        }
-        .agent1-message {
-            background-color: #e3f2fd;
-            align-self: flex-start;
-        }
-        .agent2-message {
-            background-color: #fce4ec;
-            align-self: flex-end;
-        }
-        .error-message {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-        .metadata {
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
-        .memory-item {
-            margin: 5px 0;
-            padding: 5px;
-            background-color: #f5f5f5;
-            border-radius: 3px;
-        }
-        .pipeline-stage {
-            margin: 5px 0;
-            padding: 5px;
-            background-color: #f0f8ff;
-            border-radius: 3px;
-            border-left: 3px solid #4a86e8;
-        }
-        .status-container {
-            padding: 10px;
-            background-color: #e8f5e9;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-    </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Psyche Visualizer</h1>
-    </div>
-    
-    <div class="container">
-        <div class="agents-panel">
-            <div class="agent-container" id="agent1">
-                <h2>Agent 1</h2>
-                <div class="status-container">
-                    <div><strong>Name:</strong> <span id="agent1-name">Loading...</span></div>
-                    <div><strong>Personality:</strong> <span id="agent1-personality">Loading...</span></div>
-                    <div><strong>Tension:</strong> <span id="agent1-tension">0</span>/100</div>
+    <div class="page-container">
+        <div class="column left-column">
+            <div class="container">
+                <div class="background">
+                    <div class="ellipse ellipse-1"></div>
+                    <div class="ellipse ellipse-2"></div>
+                    <div class="ellipse ellipse-3"></div>
                 </div>
-                <h3>Pipeline Stages</h3>
-                <div id="agent1-pipeline"></div>
-                <h3>Memories</h3>
-                <div id="agent1-memories"></div>
-            </div>
-            <div class="agent-container" id="agent2">
-                <h2>Agent 2</h2>
-                <div class="status-container">
-                    <div><strong>Name:</strong> <span id="agent2-name">Loading...</span></div>
-                    <div><strong>Personality:</strong> <span id="agent2-personality">Loading...</span></div>
-                    <div><strong>Tension:</strong> <span id="agent2-tension">0</span>/100</div>
+                <div class="content">
+                    <div class="conversation-flow">
+                        <div class="conversation-column">
+                            <h2 class="title-text">Prompts</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="conversation-column">
+                            <h2 class="title-text">Responses</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-1">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-2">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-3">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h3>Pipeline Stages</h3>
-                <div id="agent2-pipeline"></div>
-                <h3>Memories</h3>
-                <div id="agent2-memories"></div>
             </div>
         </div>
-        <div class="conversation-panel" id="conversation">
-            <div class="status-container" id="connection-status">
-                Connecting to server...
+        <div class="column right-column">
+            <div class="terminal-container">
+                <div class="terminal-header" id="agent1-name">Waiting for agent...</div>
+                <div class="terminal-content" id="agent1-terminal"></div>
+            </div>
+            <div class="terminal-container">
+                <div class="terminal-header" id="agent2-name">Waiting for agent...</div>
+                <div class="terminal-content" id="agent2-terminal"></div>
             </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        
-        // Connection established handler
-        socket.on('connect', function() {
-            $('#connection-status').html('Connected to server successfully!');
-            $('#connection-status').css('background-color', '#e8f5e9');
-        });
-        
-        // Connection error handler
-        socket.on('connect_error', function() {
-            $('#connection-status').html('Connection error! Please check if the server is running.');
-            $('#connection-status').css('background-color', '#ffebee');
+        const promptBoxes = [
+            document.getElementById('prompt-box-1'),
+            document.getElementById('prompt-box-2'),
+            document.getElementById('prompt-box-3')
+        ];
+        const responseBoxes = [
+            document.getElementById('response-box-1'),
+            document.getElementById('response-box-2'),
+            document.getElementById('response-box-3')
+        ];
+        const responseTimeDisplays = [
+            document.getElementById('response-time-1'),
+            document.getElementById('response-time-2'),
+            document.getElementById('response-time-3')
+        ];
+        const agent1Name = document.getElementById('agent1-name');
+        const agent2Name = document.getElementById('agent2-name');
+        const agent1Terminal = document.getElementById('agent1-terminal');
+        const agent2Terminal = document.getElementById('agent2-terminal');
+
+        // Keep track of message history
+        const agent1Messages = [];
+        const agent2Messages = [];
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
         });
 
-        // Fetch initial configuration
-        socket.emit('get_config');
-        
-        // Handle configuration data
-        socket.on('config', function(data) {
-            console.log('Received config:', data);
-        });
-        
-        // Handle messages
-        socket.on('add_message', function(data) {
-            let messageClass = 'system-message';
-            if (data.sender === 'Error') {
-                messageClass = 'error-message';
-            } else if (data.sender_id === 0) {
-                messageClass = 'agent1-message';
-            } else if (data.sender_id === 1) {
-                messageClass = 'agent2-message';
+        socket.on('config', (data) => {
+            if (data.config && data.config.agents && data.config.agents.length >= 2) {
+                agent1Name.textContent = data.config.agents[0].name;
+                agent2Name.textContent = data.config.agents[1].name;
             }
-            
-            $('#conversation').append(
-                `<div class="message ${messageClass}">
-                    <strong>${data.sender}:</strong>
-                    <div>${data.message}</div>
-                </div>`
-            );
-            
-            // Auto-scroll to the latest message
-            $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
         });
-        
-        // Handle agent updates
-        socket.on('update_agent1', function(data) {
-            updateAgentUI(1, data);
-        });
-        
-        socket.on('update_agent2', function(data) {
-            updateAgentUI(2, data);
-        });
-        
-        // Handle pipeline updates
-        socket.on('pipeline_update', function(data) {
-            const agentId = data.agent_id + 1;
-            const pipelineDiv = $(`#agent${agentId}-pipeline`);
+
+        socket.on('llm_interaction', (data) => {
+            // Move content down to other boxes first
+            promptBoxes[2].textContent = promptBoxes[1].textContent;
+            responseBoxes[2].textContent = responseBoxes[1].textContent;
+            responseTimeDisplays[2].textContent = responseTimeDisplays[1].textContent;
             
-            // Clear previous pipeline data if this is the first stage
-            if (data.stage === 'observe') {
-                pipelineDiv.html('');
+            promptBoxes[1].textContent = promptBoxes[0].textContent;
+            responseBoxes[1].textContent = responseBoxes[0].textContent;
+            responseTimeDisplays[1].textContent = responseTimeDisplays[0].textContent;
+            
+            // Add new content to first box
+            promptBoxes[0].textContent = data.prompt;
+            responseBoxes[0].textContent = data.response;
+            responseTimeDisplays[0].textContent = `Time elapsed: ${data.elapsed_time || '--'}`;
+        });
+
+        socket.on('message', (data) => {
+            if (data.sender_id === 0 || data.sender_id === 1) {
+                const messages = data.sender_id === 0 ? agent1Messages : agent2Messages;
+                const terminal = data.sender_id === 0 ? agent1Terminal : agent2Terminal;
+                
+                // Add new message to the beginning of the array
+                messages.unshift(data.message);
+                
+                // Keep only the last 10 messages
+                if (messages.length > 10) {
+                    messages.pop();
+                }
+                
+                // Update terminal content with messages in descending order
+                terminal.textContent = messages.join('\n\n');
             }
-            
-            // Add this stage
-            const stageHtml = `
-                <div class="pipeline-stage">
-                    <strong>${data.stage}:</strong>
-                    <pre>${JSON.stringify(data.data, null, 2)}</pre>
-                </div>
-            `;
-            pipelineDiv.append(stageHtml);
-            
-            // Auto-scroll the pipeline
-            pipelineDiv.scrollTop(pipelineDiv[0].scrollHeight);
         });
-        
-        // Helper function to update agent UI
-        function updateAgentUI(agentNum, data) {
-            $(`#agent${agentNum}-name`).text(data.name);
-            $(`#agent${agentNum}-personality`).text(data.personality);
-            $(`#agent${agentNum}-tension`).text(data.tension);
-            
-            // Update memories
-            const memoriesDiv = $(`#agent${agentNum}-memories`);
-            memoriesDiv.html(''); // Clear previous memories
-            
-            if (data.memories && data.memories.length > 0) {
-                data.memories.forEach(memory => {
-                    memoriesDiv.append(`<div class="memory-item">${memory}</div>`);
-                });
-            } else {
-                memoriesDiv.append('<div>No memories yet</div>');
-            }
-        }
     </script>
 </body>
 </html>
-        

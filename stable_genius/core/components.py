@@ -1,16 +1,19 @@
+import fasttext
+import time
+import os
+from pathlib import Path
+import tempfile
+import random
+
 from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
+
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.prompt import PromptFormatter
 from stable_genius.utils.llm import OllamaLLM
 from stable_genius.core.plan_processor import PlanProcessor
 from stable_genius.core.action_processor import ActionProcessor
 from stable_genius.utils.logger import logger
-import fasttext
-import os
-from pathlib import Path
-import tempfile
-import random
 
 
 
@@ -55,9 +58,10 @@ class ObserveComponent(PipelineComponent):
 class PlanComponent(PipelineComponent):
     """Plans based on observation and psyche state"""
     
-    def __init__(self, name: str, personality: str):
+    def __init__(self, name: str, personality: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = OllamaLLM(personality)
+        self.llm = llm if llm else OllamaLLM()
+        self.personality = personality
         self.plan_processor = PlanProcessor(personality)
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
@@ -65,8 +69,40 @@ class PlanComponent(PipelineComponent):
         # Generate planning prompt
         plan_prompt = PromptFormatter.plan_prompt(psyche)
         
+        # Notify before LLM call
+        context.update({
+            "llm_call_start": True,
+            "prompt": plan_prompt
+        })
+        
         # Generate and process plan
-        raw_plan_response = self.llm.generate(plan_prompt)
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "personality": self.personality,
+            "component": self.name
+        }
+        
+        # Start time tracking
+        start_time = time.time()
+        
+        raw_plan_response = self.llm.generate(plan_prompt, agent_context)
+        
+        # Calculate elapsed time
+        elapsed_time = time.time() - start_time
+        
+        # Notify after LLM call with prompt and response
+        context.update({
+            "llm_call": True,
+            "prompt": plan_prompt,
+            "response": raw_plan_response,
+            "timestamp": timestamp,
+            "elapsed_time": f"{elapsed_time:.2f}s"
+        })
+        
+        # Process the plan response
         plan = self.plan_processor.process(raw_plan_response)
         
         # Update psyche with new goal
@@ -80,9 +116,9 @@ class PlanComponent(PipelineComponent):
 class ActionComponent(PipelineComponent):
     """Determines action based on plan, observation, and psyche state"""
     
-    def __init__(self, name: str):
+    def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = OllamaLLM()
+        self.llm = llm if llm else OllamaLLM()
         self.action_processor = ActionProcessor()
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
@@ -93,8 +129,38 @@ class ActionComponent(PipelineComponent):
         # Generate action prompt
         action_prompt = PromptFormatter.act_prompt(psyche, observation)
         
+        # Notify before LLM call
+        context.update({
+            "llm_call_start": True,
+            "prompt": action_prompt
+        })
+        
         # Generate and process action
-        raw_action_response = self.llm.generate(action_prompt)
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": self.name
+        }
+        
+        # Start time tracking
+        start_time = time.time()
+        
+        raw_action_response = self.llm.generate(action_prompt, agent_context)
+        
+        # Calculate elapsed time
+        elapsed_time = time.time() - start_time
+        
+        # Notify after LLM call with prompt and response
+        context.update({
+            "llm_call": True,
+            "prompt": action_prompt,
+            "response": raw_action_response,
+            "timestamp": timestamp,
+            "elapsed_time": f"{elapsed_time:.2f}s"
+        })
+        
         action_response = self.action_processor.process(raw_action_response)
         
         # Ensure action_response has required keys
@@ -150,9 +216,9 @@ class ReflectComponent(PipelineComponent):
 class IntentClassifierComponent(PipelineComponent):
     """Classifies user intent from input text"""
     
-    def __init__(self, name: str):
+    def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = OllamaLLM()
+        self.llm = llm if llm else OllamaLLM()
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Classify intent of the input and add to context"""
@@ -175,7 +241,37 @@ class IntentClassifierComponent(PipelineComponent):
         {{"intent": "category", "confidence": 0-100}}
         """
         
-        raw_response = self.llm.generate(prompt)
+        # Notify before LLM call
+        context.update({
+            "llm_call_start": True,
+            "prompt": prompt
+        })
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": self.name
+        }
+        
+        # Generate classification response
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Start time tracking
+        start_time = time.time()
+        
+        raw_response = self.llm.generate(prompt, agent_context)
+        
+        # Calculate elapsed time
+        elapsed_time = time.time() - start_time
+        
+        # Notify after LLM call with prompt and response
+        context.update({
+            "llm_call": True,
+            "prompt": prompt,
+            "response": raw_response,
+            "timestamp": timestamp,
+            "elapsed_time": f"{elapsed_time:.2f}s"
+        })
         
         try:
             # Extract JSON or create default
