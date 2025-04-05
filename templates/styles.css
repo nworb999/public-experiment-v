@@ -25,7 +25,7 @@ body {
 .left-column {
     flex: 1;
     min-width: 0;
-    background: #E7F0DC;
+    background: #FEF3E2;
 }
 
 .right-column {
@@ -60,19 +60,19 @@ body {
 }
 
 .ellipse-1 {
-    background: #ACE1AF;
+    background: #FEF3E2;
     top: 20%;
     left: 20%;
 }
 
 .ellipse-2 {
-    background: #729762;
+    background: #708871;
     top: 40%;
     left: 40%;
 }
 
 .ellipse-3 {
-    background: #658147;
+    background: #606676;
     top: 30%;
     left: 60%;
 }
@@ -120,7 +120,7 @@ body {
 .time-elapsed {
     font-family: monospace;
     font-size: clamp(10px, 1vw, 12px);
-    color: #597445;
+    color: #606676;
     margin-bottom: 0.5vw;
     opacity: 0.8;
 }
@@ -129,7 +129,7 @@ body {
     font-family: 'Comic Neue', cursive;
     font-weight: 700;
     font-size: clamp(16px, 2vw, 24px);
-    color: #ACE1AF;
+    color: #606676;
     text-align: center;
     margin-bottom: 1vw;
 }
@@ -138,7 +138,7 @@ body {
     font-family: 'Comic Neue', cursive;
     font-weight: 700;
     font-size: clamp(16px, 2vw, 24px);
-    color: #597445;
+    color: #606676;
     text-align: center;
     margin-bottom: 1vw;
 }
@@ -146,7 +146,7 @@ body {
 .box {
     width: 100%;
     height: clamp(150px, 25vh, 300px);
-    border: clamp(2px, 0.4vw, 6px) solid #ACE1AF;
+    border: clamp(2px, 0.4vw, 6px) solid #606676;
     border-radius: 4px;
     padding: clamp(8px, 1vw, 16px);
     overflow-y: auto;
@@ -154,7 +154,7 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #ACE1AF;
+    color: #606676;
     background: rgba(0, 0, 0, 0.6);
 }
 
@@ -163,7 +163,7 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #E7F0DC;
+    color: #FEF3E2;
 }
 
 .response-text {
@@ -171,7 +171,7 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #ACE1AF;
+    color: #FEF3E2;
 }
 
 .box:nth-child(2) {
@@ -200,6 +200,31 @@ body {
     padding: 0.5vw 1vw;
     border-bottom: 2px solid #00FF00;
     background: rgba(0, 255, 0, 0.1);
+}
+
+.agent-properties {
+    padding: 0.8vw;
+    font-family: monospace;
+    font-size: clamp(10px, 1.2vw, 14px);
+    color: #00FF00;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.property-item {
+    margin-bottom: 0.4vw;
+    display: flex;
+    align-items: baseline;
+}
+
+.property-label {
+    font-weight: bold;
+    margin-right: 0.5vw;
+    min-width: 35%;
+}
+
+.property-value {
+    color: #FFF;
 }
 
 .terminal-content {
@@ -231,7 +256,7 @@ body {
     
     .right-column {
         border-left: none;
-        border-top: 2px solid #ACE1AF;
+        border-top: 2px solid #606676;
     }
 
     .conversation-flow {
@@ -246,6 +271,14 @@ body {
     .terminal-container {
         min-height: 30vh;
     }
+    
+    .agent-properties {
+        padding: 1vw;
+    }
+    
+    .property-item {
+        margin-bottom: 0.6vw;
+    }
 }
 
 @media (max-width: 480px) {
@@ -255,5 +288,72 @@ body {
 
     .box {
         height: clamp(100px, 15vh, 200px);
+    }
+    
+    .agent-properties {
+        padding: 2vw;
+    }
+    
+    .property-label {
+        min-width: 40%;
+    }
+}
+
+.pipeline-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1vw;
+    margin-bottom: 1vw;
+    flex-wrap: wrap;
+    padding: 0 1vw;
+}
+
+.pipeline-circle {
+    min-width: 100px;
+    min-height: 100px;
+    padding: 10px;
+    border-radius: 50%;
+    background-color: #000;
+    border: 2px solid #00FF00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 12px;
+    color: #00FF00;
+    margin: 0.5vw;
+    text-align: center;
+    word-break: break-word;
+}
+
+.pipeline-circle.active {
+    background-color: #00FF00;
+    color: #000;
+}
+
+.pipeline-arrow {
+    font-size: 24px;
+    color: #00FF00;
+    margin: 0 0.5vw;
+}
+
+@media (max-width: 900px) {
+    .pipeline-flow {
+        gap: 0.5vw;
+    }
+    
+    .pipeline-circle {
+        min-width: 80px;
+        min-height: 80px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pipeline-circle {
+        min-width: 60px;
+        min-height: 60px;
+        font-size: 9px;
     }
 }

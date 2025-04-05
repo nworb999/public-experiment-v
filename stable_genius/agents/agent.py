@@ -1,6 +1,5 @@
 from stable_genius.models.psyche import Psyche
-from stable_genius.core.decision import DecisionPipeline
-from stable_genius.core.components import IntentClassifierComponent, TensionClassifierComponent
+from stable_genius.core.cognitive_pipeline import CognitivePipeline
 from stable_genius.utils.llm import OllamaLLM
 
 class Agent:
@@ -12,7 +11,7 @@ class Agent:
         self.llm = llm if llm else OllamaLLM()
         
         # Create pipeline - optionally use custom components
-        self.pipeline = DecisionPipeline(personality, llm=self.llm, components=custom_pipeline)
+        self.pipeline = CognitivePipeline(personality, llm=self.llm, components=custom_pipeline)
         
         # Load or initialize the psyche
         psyche = Psyche.load(name)
@@ -36,26 +35,6 @@ class Agent:
         """Add a component to the pipeline"""
         self.pipeline.add_component(component, position)
     
-    @classmethod
-    def create_with_tension_classifier(cls, name, personality="neutral", llm=None, initial_stressors=None):
-        """Factory method to create an agent with tension classification"""
-        agent = cls(name, personality, llm)
-        # Add tension classifier after observation but before planning
-        agent.add_component(TensionClassifierComponent("tension_classifier", 
-                                                     default_stressors=initial_stressors), 
-                          position=1)
-        return agent
-    
-    @classmethod
-    def create_full_pipeline(cls, name, personality="neutral", llm=None, initial_stressors=None):
-        """Factory method to create an agent with tension classifier"""
-        agent = cls(name, personality, llm)
-        # Add tension classifier
-        agent.add_component(TensionClassifierComponent("tension_classifier", 
-                                                     default_stressors=initial_stressors), 
-                          position=1)
-        return agent
-    
     async def receive_message(self, message: str, sender: str = None):
         """Process a message from another agent or the environment"""
         # Load current psyche state
@@ -68,7 +47,7 @@ class Agent:
         # TODO this is where the environment events are processed
         observation = f"{sender + ': ' if sender else ''}{message}"
         
-        # Process through decision pipeline
+        # Process through cognitive pipeline
         response = await self.pipeline.process(observation, psyche)
         
         # Increase familiarity with sender

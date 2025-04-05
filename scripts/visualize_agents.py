@@ -63,10 +63,16 @@ def receive_update():
     
     if event_type == 'config':
         socketio.emit('config', update_data.get('config', {}))
+    elif event_type == 'initialize_agents':
+        # Send initialization data for agents
+        socketio.emit('initialize_agents', {
+            'agents': update_data.get('agents', [])
+        })
     elif event_type == 'llm_interaction':
         socketio.emit('llm_interaction', {
             'prompt': update_data.get('prompt', ''),
-            'response': update_data.get('response', '')
+            'response': update_data.get('response', ''),
+            'elapsed_time': f"{update_data.get('elapsed_time', '--')}s" if update_data.get('elapsed_time') not in [None, '--'] else '--'
         })
     elif event_type == 'message':
         socketio.emit('add_message', {

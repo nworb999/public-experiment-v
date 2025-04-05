@@ -89,6 +89,28 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'memories': agent_psyche.memories
         }, visualizer_url)
 
+async def send_agent_initialization(agents, visualizer_url):
+    """Send initial static agent information to visualizer"""
+    agents_data = []
+    
+    for i, agent in enumerate(agents):
+        agent_psyche = agent.get_psyche()
+        # Get component names from the agent's pipeline
+        component_names = [component.name for component in agent.pipeline.components]
+        agents_data.append({
+            'agent_id': i,
+            'name': agent.name,
+            'personality': agent.personality,
+            'tension': agent_psyche.tension_level,
+            'current_goal': agent_psyche.current_goal,
+            'components': component_names  # Include component names
+        })
+    
+    send_to_visualizer({
+        'event_type': 'initialize_agents',
+        'agents': agents_data
+    }, visualizer_url)
+
 async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualizer_url):
     """Setup the agent's pipeline with appropriate callbacks"""
     # Clear existing callbacks to prevent accumulation
@@ -112,6 +134,7 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
                 'event_type': 'llm_interaction',
                 'prompt': data.get('prompt', ''),
                 'response': data.get('response', ''),
+                'elapsed_time': data.get('elapsed_time', '--'),
                 'agent': agent.name,
                 'turn': turn
             }, visualizer_url)
@@ -189,6 +212,11 @@ async def initialize_conversation(conversation_id, config, visualizer_url, llm_s
     
     # Create and initialize agents
     agent1, agent2 = await create_agents(agents_config, llm_service)
+    
+    # Send initialization data for static properties
+    await send_agent_initialization([agent1, agent2], visualizer_url)
+    
+    # Send regular agent data updates
     await send_agent_data_to_visualizer([agent1, agent2], visualizer_url)
     
     # Log start of conversation
