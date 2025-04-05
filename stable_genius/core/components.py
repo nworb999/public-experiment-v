@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
 
 from stable_genius.models.psyche import Psyche
-from stable_genius.core.prompt import PromptFormatter
+from stable_genius.utils.prompt import PromptFormatter
 from stable_genius.utils.llm import OllamaLLM
 from stable_genius.core.plan_processor import PlanProcessor
 from stable_genius.core.action_processor import ActionProcessor
@@ -99,7 +99,7 @@ class PlanComponent(PipelineComponent):
             "prompt": plan_prompt,
             "response": raw_plan_response,
             "timestamp": timestamp,
-            "elapsed_time": f"{elapsed_time:.2f}s"
+            "elapsed_time": f"{elapsed_time:.2f}"
         })
         
         # Process the plan response
@@ -158,7 +158,7 @@ class ActionComponent(PipelineComponent):
             "prompt": action_prompt,
             "response": raw_action_response,
             "timestamp": timestamp,
-            "elapsed_time": f"{elapsed_time:.2f}s"
+            "elapsed_time": f"{elapsed_time:.2f}"
         })
         
         action_response = self.action_processor.process(raw_action_response)
@@ -190,6 +190,7 @@ class ReflectComponent(PipelineComponent):
         action_type = action.get("action", "say")
         
         # Update tension based on action
+        # TODO don't update tension here, update it in the tension classifier component
         self._update_tension(psyche, action_type)
         
         # Add to memories
@@ -270,7 +271,7 @@ class IntentClassifierComponent(PipelineComponent):
             "prompt": prompt,
             "response": raw_response,
             "timestamp": timestamp,
-            "elapsed_time": f"{elapsed_time:.2f}s"
+            "elapsed_time": f"{elapsed_time:.2f}"
         })
         
         try:
@@ -414,15 +415,28 @@ class TensionClassifierComponent(PipelineComponent):
     
     def _classify_text(self, model, text):
         """Classify text using the fastText model"""
-        # Return tuple (label, probability)
-        prediction = model.predict(text)
-        label = prediction[0][0].replace('__label__', '')
-        probability = prediction[1][0]
-        
-        # If normal, return inverted probability
-        if label == 'normal':
-            return ('stress', 1.0 - probability)
-        return ('stress', probability)
+        # Ensure text is a string and preprocess it
+        text = str(text).strip()
+        if not text:
+            return ('stress', 0.0)  # Return no stress for empty text
+            
+        try:
+            # Return tuple (label, probability)
+            prediction = model.predict(text)
+            label = prediction[0][0].replace('__label__', '')
+            probability = prediction[1][0]
+            
+            # If normal, return inverted probability
+            if label == 'normal':
+                return ('stress', 1.0 - probability)
+            return ('stress', probability)
+        except ValueError as ve:
+            # Handle numpy array copy issues
+            logger.warning(f"NumPy array handling issue in text classification: {ve}")
+            return ('stress', 0.0)
+        except Exception as e:
+            logger.error(f"Unexpected error in text classification for text '{text[:100]}...': {e}")
+            return ('stress', 0.0)  # Return no stress on error
     
     def _learn_new_stressors(self, observation, psyche):
         """Learn new stressful phrases from observation"""

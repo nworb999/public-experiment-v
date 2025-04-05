@@ -2,16 +2,23 @@ import json
 import logging
 from typing import List, Dict, Any, Callable, Optional
 from stable_genius.models.psyche import Psyche
-from stable_genius.core.components import PipelineComponent
+from stable_genius.core.components import (
+    PipelineComponent,
+    TensionClassifierComponent,
+    ObserveComponent, 
+    PlanComponent, 
+    ActionComponent, 
+    ReflectComponent
+)
 from stable_genius.utils.llm import OllamaLLM
 from stable_genius.utils.logger import logger
 
-class DecisionPipeline:
-    """Manages the agent's decision-making process using composable components"""
+class CognitivePipeline:
+    """Manages the agent's cognitive-making process using composable components"""
     
     def __init__(self, personality: str = "neutral", llm=None, components: Optional[List[PipelineComponent]] = None):
         """
-        Initialize the decision pipeline
+        Initialize the cognitive pipeline
         
         Args:
             personality: The agent's personality trait
@@ -21,18 +28,20 @@ class DecisionPipeline:
         self.personality = personality
         self.llm = llm if llm else OllamaLLM()
         self.callbacks = []
-        self.components = components or self._create_default_pipeline()
         
-    def _create_default_pipeline(self) -> List[PipelineComponent]:
-        """Create the default pipeline components when none are provided"""
-        from stable_genius.core.components import ObserveComponent, PlanComponent, ActionComponent, ReflectComponent
-        
-        return [
-            ObserveComponent("observe"),
-            PlanComponent("plan", self.personality, self.llm),
-            ActionComponent("action", self.llm),
-            ReflectComponent("reflect")
-        ]
+        if components is None:
+            logger.info("Creating default pipeline components")
+            components = [
+                TensionClassifierComponent("tension_classifier"),
+                ObserveComponent("observe"),
+                PlanComponent("plan", self.personality, self.llm),
+                ActionComponent("action", self.llm),
+                ReflectComponent("reflect")
+            ]
+            for component in components:
+                logger.info(f"Added component: {component.name}")
+                
+        self.components = components
     
     def add_component(self, component: PipelineComponent, position: Optional[int] = None) -> None:
         """
@@ -56,6 +65,7 @@ class DecisionPipeline:
     
     def notify_callbacks(self, stage: str, data: Dict[str, Any]) -> None:
         """Notify all registered callbacks with pipeline stage updates"""
+        logger.info(f"Pipeline stage: {stage}")
         for callback in self.callbacks:
             try:
                 callback(stage, data)
@@ -75,6 +85,7 @@ class DecisionPipeline:
         """
         # Initialize context with observation
         context = {"input": observation, "personality": self.personality}
+        logger.info(f"Starting pipeline processing for {psyche.name}")
         
         # Process through each component
         for component in self.components:
@@ -110,26 +121,8 @@ class DecisionPipeline:
                 context[f"{component.name}_error"] = str(e)
         
         # Notify complete cycle
+        logger.info(f"Pipeline processing complete for {psyche.name}")
         self.notify_callbacks("complete", {"result": context})
         
         return context
     
-    async def react_cycle(self, observation: str, psyche: Psyche) -> Dict[str, Any]:
-        """
-        Legacy method for compatibility with existing code
-        
-        Args:
-            observation: Initial observation input
-            psyche: The agent's psyche state
-            
-        Returns:
-            Dictionary with legacy format results
-        """
-        result = await self.process(observation, psyche)
-        
-        # Format for backwards compatibility
-        return {
-            "speech": result.get("speech", "I don't know what to say."),
-            "plan": result.get("plan", {}),
-            "action": result.get("action", {"action": "say", "speech": "No action determined."})
-        } 
