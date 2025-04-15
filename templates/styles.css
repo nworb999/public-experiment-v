@@ -4,6 +4,27 @@
     box-sizing: border-box;
 }
 
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+    width: 18px;
+    height: 18px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #00FF00;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border-radius: 8px;
+}
+
+
 body {
     min-height: 100vh;
     display: flex;

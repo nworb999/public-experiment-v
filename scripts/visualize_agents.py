@@ -123,7 +123,7 @@ def start_conversation(api_url):
             json={
                 'visualizer_url': vis_url
             },
-            timeout=5
+            timeout=10
         )
         
         if response.status_code == 200:
