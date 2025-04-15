@@ -4,8 +4,8 @@ from typing import List, Dict, Any, Callable, Optional
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.components import (
     PipelineComponent,
-    TensionClassifierComponent,
-    ObserveComponent, 
+    TriggerComponent,
+    IntentClassifierComponent, 
     PlanComponent, 
     ActionComponent, 
     ReflectComponent
@@ -32,8 +32,8 @@ class CognitivePipeline:
         if components is None:
             logger.info("Creating default pipeline components")
             components = [
-                TensionClassifierComponent("tension_classifier"),
-                ObserveComponent("observe"),
+                TriggerComponent("trigger"),
+                IntentClassifierComponent("classify-intent"),
                 PlanComponent("plan", self.personality, self.llm),
                 ActionComponent("action", self.llm),
                 ReflectComponent("reflect")
@@ -104,7 +104,8 @@ class CognitivePipeline:
                         "response": context.get("response", ""),
                         "timestamp": context.get("timestamp", ""),
                         "component": component.name,
-                        "elapsed_time": context.get("elapsed_time", "")
+                        "elapsed_time": context.get("elapsed_time", ""),
+                        "step_title": context.get("step_title", "")
                     }
                     # Pass the data to callbacks for further processing
                     self.notify_callbacks("llm_call", llm_data)

@@ -1,11 +1,8 @@
 {
-  "memories": [
-    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> What brings you here today, Alice? I'm doing well, thanks for asking.",
-    "Alice: It's lovely to meet you, Bob! I'm doing great, thanks for sharing how you're doing. What's been the highlight of your day so far? -> What have you been up to today that's made it great for you so far?"
-  ],
+  "memories": [],
   "relationships": {
     "Alice": {
-      "familiarity": 64
+      "familiarity": 71
     }
   },
   "current_goal": "gather information",
@@ -16,7 +13,7 @@
     "confront",
     "cooperate"
   ],
-  "tension_level": 30,
+  "tension_level": 40,
   "personality": "analytical",
   "name": "Bob",
   "stressful_phrases": [

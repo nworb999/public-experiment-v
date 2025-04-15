@@ -72,7 +72,8 @@ def receive_update():
         socketio.emit('llm_interaction', {
             'prompt': update_data.get('prompt', ''),
             'response': update_data.get('response', ''),
-            'elapsed_time': f"{update_data.get('elapsed_time', '--')}s" if update_data.get('elapsed_time') not in [None, '--'] else '--'
+            'elapsed_time': f"{update_data.get('elapsed_time', '--')}s" if update_data.get('elapsed_time') not in [None, '--'] else '--',
+            'step_title': update_data.get('step_title', '')
         })
     elif event_type == 'message':
         socketio.emit('add_message', {
