@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import jsonify
 
 from stable_genius.agents.personalities import create_agent
+from stable_genius.core.components import TriggerComponent, IntentClassifierComponent
 from stable_genius.utils.logger import logger
 from stable_genius.models.psyche import Psyche
 
@@ -111,10 +112,19 @@ async def send_agent_initialization(agents, visualizer_url):
         'agents': agents_data
     }, visualizer_url)
 
-async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualizer_url):
+async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualizer_url, conversation_start=False):
     """Setup the agent's pipeline with appropriate callbacks"""
     # Clear existing callbacks to prevent accumulation
     agent.pipeline.callbacks = []
+    
+    # If conversation_start is True, temporarily remove the trigger and intent classification components
+    original_components = None
+    if conversation_start:
+        original_components = agent.pipeline.components.copy()
+        agent.pipeline.components = [
+            c for c in original_components 
+            if not isinstance(c, (TriggerComponent, IntentClassifierComponent))
+        ]
     
     # Define pipeline callback
     def pipeline_callback(stage, data):
@@ -136,7 +146,8 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
                 'response': data.get('response', ''),
                 'elapsed_time': data.get('elapsed_time', '--'),
                 'agent': agent.name,
-                'turn': turn
+                'turn': turn,
+                'step_title': data.get('step_title', '')
             }, visualizer_url)
         
         send_to_visualizer({
@@ -149,6 +160,13 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
     
     # Register pipeline callback
     agent.pipeline.register_callback(pipeline_callback)
+    
+    # Return a cleanup function to restore original components if needed
+    def cleanup():
+        if original_components is not None:
+            agent.pipeline.components = original_components
+    
+    return cleanup
 
 async def process_agent_turn(agent, other_agent_name, message, agent_id, visualizer_url, turn=0):
     """Process a single agent's turn in the conversation"""
@@ -248,8 +266,10 @@ async def execute_conversation_turn(i, conversation_id, agent1, agent2, message,
         'message': f'Agent {agent1.name} processing...'
     }, visualizer_url)
     
-    await setup_agent_pipeline(agent1, 0, conversation_id, i + 1, visualizer_url)
+    # Skip trigger and intent classification for first agent's first utterance
+    cleanup1 = await setup_agent_pipeline(agent1, 0, conversation_id, i + 1, visualizer_url, conversation_start=(i == 0))
     message1, _ = await process_agent_turn(agent1, agent2.name, message, 0, visualizer_url, i + 1)
+    cleanup1()  # Restore original components
     
     # Agent 2's turn
     send_to_visualizer({
@@ -258,8 +278,9 @@ async def execute_conversation_turn(i, conversation_id, agent1, agent2, message,
         'message': f'Agent {agent2.name} processing...'
     }, visualizer_url)
     
-    await setup_agent_pipeline(agent2, 1, conversation_id, i + 1, visualizer_url)
+    cleanup2 = await setup_agent_pipeline(agent2, 1, conversation_id, i + 1, visualizer_url)
     message2, _ = await process_agent_turn(agent2, agent1.name, message1, 1, visualizer_url, i + 1)
+    cleanup2()  # Restore original components
     
     return message2
 

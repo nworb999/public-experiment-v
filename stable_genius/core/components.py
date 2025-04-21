@@ -20,6 +20,8 @@ from stable_genius.utils.logger import logger
 class PipelineComponent(ABC):
     """Base class for all pipeline components"""
     
+    step_title: str = "Component"  # Default step title
+    
     def __init__(self, name: str):
         self.name = name
     
@@ -37,26 +39,15 @@ class PipelineComponent(ABC):
         """
         pass 
 
+    def _update_step_title(self, context: Dict[str, Any]) -> None:
+        """Update context with component's step title"""
+        context["step_title"] = self.step_title
 
-class ObserveComponent(PipelineComponent):
-    """Processes observations and prepares context for planning"""
-    
-    def __init__(self, name: str):
-        super().__init__(name)
-    
-    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
-        """Process observation and update the context with relevant information"""
-        # Extract and format observation
-        observation = context.get("input", "")
-        
-        # Update context with observation information
-        context["observation"] = observation
-        context["observation_processed"] = True
-        
-        return context
 
 class PlanComponent(PipelineComponent):
     """Plans based on observation and psyche state"""
+    
+    step_title = "Planning"
     
     def __init__(self, name: str, personality: str, llm: OllamaLLM = None):
         super().__init__(name)
@@ -99,7 +90,7 @@ class PlanComponent(PipelineComponent):
             "prompt": plan_prompt,
             "response": raw_plan_response,
             "timestamp": timestamp,
-            "elapsed_time": f"{elapsed_time:.2f}"
+            "elapsed_time": f"{elapsed_time:.2f}",
         })
         
         # Process the plan response
@@ -109,12 +100,17 @@ class PlanComponent(PipelineComponent):
         psyche.current_goal = plan.get('goal', 'understand the situation')
         
         # Update context with plan
-        context["plan"] = plan
+        context.update({
+            "plan": plan
+        })
         
+        self._update_step_title(context)
         return context
 
 class ActionComponent(PipelineComponent):
     """Determines action based on plan, observation, and psyche state"""
+    
+    step_title = "Action"
     
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
@@ -170,9 +166,12 @@ class ActionComponent(PipelineComponent):
             action_response['speech'] = "I'm not sure what to say right now."
         
         # Update context with action
-        context["action"] = action_response
-        context["speech"] = action_response.get("speech")
+        context.update({
+            "action": action_response,
+            "speech": action_response.get("speech")
+        })
         
+        self._update_step_title(context)
         return context
 
 class ReflectComponent(PipelineComponent):
@@ -189,9 +188,6 @@ class ReflectComponent(PipelineComponent):
         speech = action.get("speech", "")
         action_type = action.get("action", "say")
         
-        # Update tension based on action
-        # TODO don't update tension here, update it in the tension classifier component
-        self._update_tension(psyche, action_type)
         
         # Add to memories
         psyche.memories.append(f"{observation} -> {speech}")
@@ -204,18 +200,12 @@ class ReflectComponent(PipelineComponent):
         
         return context
         
-    def _update_tension(self, psyche: Psyche, action: str):
-        """Update tension meter based on action"""
-        if "confront" in action:
-            psyche.tension_level = min(psyche.tension_level + 20, 100)
-        elif "cooperate" in action or "say" in action:
-            psyche.tension_level = max(psyche.tension_level - 10, 0)
-        elif "ask" in action:
-            # Asking questions slightly reduces tension
-            psyche.tension_level = max(psyche.tension_level - 5, 0)
 
 class IntentClassifierComponent(PipelineComponent):
     """Classifies user intent from input text"""
+    # TODO put pre-composed plans here to choose from in plan
+    
+    step_title = "Intent Classification"
     
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
@@ -292,14 +282,17 @@ class IntentClassifierComponent(PipelineComponent):
         # Add to context
         context["intent"] = intent_data
         
+        self._update_step_title(context)
         return context 
 
-class TensionClassifierComponent(PipelineComponent):
+class TriggerComponent(PipelineComponent):
     """Classifies input text to detect stressful content using fastText"""
+    
+    step_title = "Trigger Analysis"
     
     def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None):
         """
-        Initialize the tension classifier component
+        Initialize the trigger component
         
         Args:
             name: Component name
@@ -359,6 +352,7 @@ class TensionClassifierComponent(PipelineComponent):
         # Save updated psyche
         psyche.save()
         
+        self._update_step_title(context)
         return context
     
     def _get_or_create_model(self, psyche):

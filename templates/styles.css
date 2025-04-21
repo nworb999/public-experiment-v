@@ -4,11 +4,33 @@
     box-sizing: border-box;
 }
 
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+    width: 18px;
+    height: 18px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #00FF00;
+    border: 6px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border-radius: 8px;
+}
+
+
 body {
     min-height: 100vh;
     display: flex;
     background: #000;
     overflow: hidden;
+    font-family: monospace;
 }
 
 .page-container {
@@ -25,7 +47,7 @@ body {
 .left-column {
     flex: 1;
     min-width: 0;
-    background: #FEF3E2;
+    background: #000;
 }
 
 .right-column {
@@ -42,39 +64,7 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
-}
-
-.background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-.ellipse {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(150px);
-    width: 40vw;
-    height: 40vw;
-}
-
-.ellipse-1 {
-    background: #FEF3E2;
-    top: 20%;
-    left: 20%;
-}
-
-.ellipse-2 {
-    background: #708871;
-    top: 40%;
-    left: 40%;
-}
-
-.ellipse-3 {
-    background: #606676;
-    top: 30%;
-    left: 60%;
+    background: #000;
 }
 
 .content {
@@ -120,25 +110,33 @@ body {
 .time-elapsed {
     font-family: monospace;
     font-size: clamp(10px, 1vw, 12px);
-    color: #606676;
+    color: #00FF00;
+    margin-bottom: 0.5vw;
+    opacity: 0.8;
+}
+
+.prompt-title {
+    font-family: monospace;
+    font-size: clamp(10px, 1vw, 12px);
+    color: #00FF00;
     margin-bottom: 0.5vw;
     opacity: 0.8;
 }
 
 .label {
-    font-family: 'Comic Neue', cursive;
+    font-family: monospace;
     font-weight: 700;
     font-size: clamp(16px, 2vw, 24px);
-    color: #606676;
+    color: #00FF00;
     text-align: center;
     margin-bottom: 1vw;
 }
 
 .title-text {
-    font-family: 'Comic Neue', cursive;
-    font-weight: 700;
+    font-family: monospace;
+    font-weight: 500;
     font-size: clamp(16px, 2vw, 24px);
-    color: #606676;
+    color: #00FF00;
     text-align: center;
     margin-bottom: 1vw;
 }
@@ -146,7 +144,7 @@ body {
 .box {
     width: 100%;
     height: clamp(150px, 25vh, 300px);
-    border: clamp(2px, 0.4vw, 6px) solid #606676;
+    border: clamp(2px, 0.4vw, 6px) solid #00FF00;
     border-radius: 4px;
     padding: clamp(8px, 1vw, 16px);
     overflow-y: auto;
@@ -154,8 +152,8 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #606676;
-    background: rgba(0, 0, 0, 0.6);
+    color: #00FF00;
+    background: rgba(0, 0, 0, 0.9);
 }
 
 .prompt-text {
@@ -163,7 +161,7 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #FEF3E2;
+    color: #00FF00;
 }
 
 .response-text {
@@ -171,7 +169,7 @@ body {
     word-wrap: break-word;
     font-family: monospace;
     font-size: clamp(10px, 1.2vw, 14px);
-    color: #FEF3E2;
+    color: #00FF00;
 }
 
 .box:nth-child(2) {
@@ -224,7 +222,7 @@ body {
 }
 
 .property-value {
-    color: #FFF;
+    color: #00FF00;
 }
 
 .terminal-content {
@@ -256,7 +254,7 @@ body {
     
     .right-column {
         border-left: none;
-        border-top: 2px solid #606676;
+        border-top: 2px solid #00FF00;
     }
 
     .conversation-flow {

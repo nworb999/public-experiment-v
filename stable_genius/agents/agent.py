@@ -44,7 +44,6 @@ class Agent:
         if sender and sender not in psyche.relationships:
             psyche.relationships[sender] = {"familiarity": 0}
             
-        # TODO this is where the environment events are processed
         observation = f"{sender + ': ' if sender else ''}{message}"
         
         # Process through cognitive pipeline

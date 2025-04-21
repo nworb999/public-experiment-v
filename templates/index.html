@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Conversation</title>
     <link rel="stylesheet" href="/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
@@ -23,16 +22,19 @@
                             <h2 class="title-text">Prompts</h2>
                             <div class="boxes-stack">
                                 <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-1">Step: --</div>
                                     <div class="box">
                                         <div class="prompt-text" id="prompt-box-1"></div>
                                     </div>
                                 </div>
                                 <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-2">Step: --</div>
                                     <div class="box">
                                         <div class="prompt-text" id="prompt-box-2"></div>
                                     </div>
                                 </div>
                                 <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-3">Step: --</div>
                                     <div class="box">
                                         <div class="prompt-text" id="prompt-box-3"></div>
                                     </div>
@@ -114,6 +116,11 @@
             document.getElementById('prompt-box-1'),
             document.getElementById('prompt-box-2'),
             document.getElementById('prompt-box-3')
+        ];
+        const promptTitles = [
+            document.getElementById('prompt-title-1'),
+            document.getElementById('prompt-title-2'),
+            document.getElementById('prompt-title-3')
         ];
         const responseBoxes = [
             document.getElementById('response-box-1'),
@@ -222,16 +229,19 @@
         socket.on('llm_interaction', (data) => {
             // Move content down to other boxes first
             promptBoxes[2].textContent = promptBoxes[1].textContent;
+            promptTitles[2].textContent = promptTitles[1].textContent;
             responseBoxes[2].textContent = responseBoxes[1].textContent;
             responseTimeDisplays[2].textContent = responseTimeDisplays[1].textContent;
             
             promptBoxes[1].textContent = promptBoxes[0].textContent;
+            promptTitles[1].textContent = promptTitles[0].textContent;
             responseBoxes[1].textContent = responseBoxes[0].textContent;
             responseTimeDisplays[1].textContent = responseTimeDisplays[0].textContent;
             
             // Add new content to first box
-            promptBoxes[0].textContent = data.prompt;
-            responseBoxes[0].textContent = data.response;
+            promptBoxes[0].textContent = data.prompt || '';
+            promptTitles[0].textContent = `Step: ${data.step_title || '--'}`;
+            responseBoxes[0].textContent = data.response || '';
             responseTimeDisplays[0].textContent = `Time elapsed: ${data.elapsed_time || '--'}`;
         });
 
