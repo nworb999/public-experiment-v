@@ -1,11 +1,13 @@
 {
-  "memories": [],
+  "memories": [
+    " -> Hi there, it's so lovely to meet you! How's your day going so far?"
+  ],
   "relationships": {
     "Bob": {
-      "familiarity": 102
+      "familiarity": 127
     }
   },
-  "current_goal": "build rapport",
+  "goal": "build rapport",
   "pending_actions": [
     "say",
     "ask",

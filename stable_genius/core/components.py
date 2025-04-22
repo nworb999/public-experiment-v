@@ -97,7 +97,7 @@ class PlanComponent(PipelineComponent):
         plan = self.plan_processor.process(raw_plan_response)
         
         # Update psyche with new goal
-        psyche.current_goal = plan.get('goal', 'understand the situation')
+        psyche.goal = plan.get('goal', 'understand the situation')
         
         # Update context with plan
         context.update({
