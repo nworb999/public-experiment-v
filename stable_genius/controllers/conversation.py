@@ -103,7 +103,7 @@ async def send_agent_initialization(agents, visualizer_url):
             'name': agent.name,
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
-            'current_goal': agent_psyche.current_goal,
+            'goal': agent_psyche.goal,
             'components': component_names  # Include component names
         })
     

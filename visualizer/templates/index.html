@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Conversation</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="page-container">
+        <div class="column left-column">
+            <div class="container">
+                <div class="background">
+                    <div class="ellipse ellipse-1"></div>
+                    <div class="ellipse ellipse-2"></div>
+                    <div class="ellipse ellipse-3"></div>
+                </div>
+                <div class="content">
+                    <div class="conversation-flow">
+                        <div class="conversation-column">
+                            <h2 class="title-text">Prompts</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-1">Step: --</div>
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-2">Step: --</div>
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="prompt-title" id="prompt-title-3">Step: --</div>
+                                    <div class="box">
+                                        <div class="prompt-text" id="prompt-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="conversation-column">
+                            <h2 class="title-text">Responses</h2>
+                            <div class="boxes-stack">
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-1">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-1"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-2">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-2"></div>
+                                    </div>
+                                </div>
+                                <div class="box-container">
+                                    <div class="time-elapsed" id="response-time-3">Time elapsed: --</div>
+                                    <div class="box">
+                                        <div class="response-text" id="response-box-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column right-column">
+            <div class="agent-container">
+                <div class="terminal-header" id="agent1-name">Waiting for agent...</div>
+                <div class="agent-properties" id="agent1-properties">
+                    <div class="property-item">
+                        <span class="property-label">Personality:</span>
+                        <span class="property-value" id="agent1-personality">--</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Tension Level:</span>
+                        <span class="property-value" id="agent1-tension">0</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Current Goal:</span>
+                        <span class="property-value" id="agent1-goal">--</span>
+                    </div>
+                </div>
+                <div id="agent1-pipeline"></div>
+            </div>
+            <div class="agent-container">
+                <div class="terminal-header" id="agent2-name">Waiting for agent...</div>
+                <div class="agent-properties" id="agent2-properties">
+                    <div class="property-item">
+                        <span class="property-label">Personality:</span>
+                        <span class="property-value" id="agent2-personality">--</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Tension Level:</span>
+                        <span class="property-value" id="agent2-tension">0</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Current Goal:</span>
+                        <span class="property-value" id="agent2-goal">--</span>
+                    </div>
+                </div>
+                <div id="agent2-pipeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>

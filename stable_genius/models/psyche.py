@@ -9,7 +9,7 @@ class Psyche(BaseModel):
     """Maintains agent's mental state and history"""
     memories: List[str] = []
     relationships: Dict[str, Dict] = {}  # Entity -> relationship metadata
-    current_goal: Optional[str] = None
+    goal: Optional[str] = None
     pending_actions: List[str] = []
     tension_level: int = 0  # 0-100 stress meter
     personality: str = "neutral"  # Default personality

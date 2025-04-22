@@ -2,10 +2,10 @@
   "memories": [],
   "relationships": {
     "Alice": {
-      "familiarity": 77
+      "familiarity": 93
     }
   },
-  "current_goal": "gather information",
+  "goal": "gather information",
   "pending_actions": [
     "say",
     "ask",
