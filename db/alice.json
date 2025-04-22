@@ -1,13 +1,19 @@
 {
   "memories": [
-    " -> Hi there, it's so lovely to meet you! How's your day going so far?"
+    "Bob: Hello there! -> I'm not sure what to say."
   ],
+  "conversation_memory": "No summary provided.",
   "relationships": {
     "Bob": {
-      "familiarity": 127
+      "familiarity": 128
     }
   },
   "goal": "build rapport",
+  "plan": [
+    "friendly conversation",
+    "show empathy"
+  ],
+  "active_tactic": "friendly conversation",
   "pending_actions": [
     "say",
     "ask",

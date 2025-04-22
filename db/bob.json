@@ -1,11 +1,17 @@
 {
   "memories": [],
+  "conversation_memory": "",
   "relationships": {
     "Alice": {
       "familiarity": 93
     }
   },
   "goal": "gather information",
+  "plan": [
+    "ask targeted questions",
+    "analyze responses"
+  ],
+  "active_tactic": "ask targeted questions",
   "pending_actions": [
     "say",
     "ask",

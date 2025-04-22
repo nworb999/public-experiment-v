@@ -187,6 +187,7 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
+            'conversation_memory': agent_psyche.conversation_memory,
             'plan': response.get('plan', {})
         }, visualizer_url)
         

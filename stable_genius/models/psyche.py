@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import json
 import os
 from pathlib import Path
@@ -8,8 +8,11 @@ from stable_genius.utils.logger import logger
 class Psyche(BaseModel):
     """Maintains agent's mental state and history"""
     memories: List[str] = []
+    conversation_memory: str = ""  # Summary of how the conversation is going
     relationships: Dict[str, Dict] = {}  # Entity -> relationship metadata
     goal: Optional[str] = None
+    plan: Optional[List[str]] = None  # Tactics list
+    active_tactic: Optional[str] = None  # Currently active tactic
     pending_actions: List[str] = []
     tension_level: int = 0  # 0-100 stress meter
     personality: str = "neutral"  # Default personality
@@ -30,7 +33,13 @@ class Psyche(BaseModel):
             try:
                 with open(filepath, 'r') as f:
                     data = json.load(f)
-                return cls(**data)
+                    
+                # If plan is present but not active_tactic, set first tactic as active
+                psyche = cls(**data)
+                if psyche.plan and len(psyche.plan) > 0 and not psyche.active_tactic:
+                    psyche.active_tactic = psyche.plan[0]
+                    
+                return psyche
             except (json.JSONDecodeError, IOError) as e:
                 logger.info(f"Error loading psyche for {agent_name}: {e}")
                 # Fall back to a new instance with the provided name
@@ -53,10 +62,27 @@ class Psyche(BaseModel):
                 f.write(self.model_dump_json(indent=2))
         except IOError as e:
             logger.info(f"Error saving psyche for {self.name}: {e}")
+    
+    def update_plan(self, goal: str, plan: List[str]):
+        """Update plan and goal, setting first tactic as active if not already set"""
+        self.goal = goal
+        self.plan = plan
+        
+        # Set first tactic as active if not set and we have tactics
+        if not self.active_tactic and plan and len(plan) > 0:
+            self.active_tactic = plan[0]
+        
+        return self
+    
+    def update_conversation_memory(self, summary: str):
+        """Update conversation memory with a new summary"""
+        self.conversation_memory = summary
+        return self
             
     def clear_memories(self):
         """Clear all memories from this psyche"""
         self.memories = []
+        self.conversation_memory = ""
         return self
     
     @classmethod
@@ -64,5 +90,6 @@ class Psyche(BaseModel):
         """Load psyche, clear memories, and save it back"""
         psyche = cls.load(agent_name)
         psyche.memories = []
+        psyche.conversation_memory = ""
         psyche.save()
         return psyche 

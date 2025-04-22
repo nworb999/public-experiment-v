@@ -57,7 +57,10 @@ class PlanComponent(PipelineComponent):
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Generate a plan based on observation and psyche state"""
-        # Generate planning prompt
+        # Check if psyche already has a plan
+        has_plan = psyche.plan is not None and len(psyche.plan) > 0
+        
+        # Generate appropriate prompt based on whether plan exists
         plan_prompt = PromptFormatter.plan_prompt(psyche)
         
         # Notify before LLM call
@@ -93,16 +96,31 @@ class PlanComponent(PipelineComponent):
             "elapsed_time": f"{elapsed_time:.2f}",
         })
         
-        # Process the plan response
-        plan = self.plan_processor.process(raw_plan_response)
+        # Process the plan response based on whether plan exists
+        plan_result = self.plan_processor.process(raw_plan_response, has_plan)
         
-        # Update psyche with new goal
-        psyche.goal = plan.get('goal', 'understand the situation')
-        
-        # Update context with plan
-        context.update({
-            "plan": plan
-        })
+        if has_plan:
+            # If plan exists, we're just updating the active tactic
+            if "active_tactic" in plan_result:
+                psyche.active_tactic = plan_result["active_tactic"]
+                context.update({
+                    "active_tactic": plan_result["active_tactic"]
+                })
+        else:
+            # If no plan exists, update psyche with new goal and plan
+            if "goal" in plan_result:
+                psyche.goal = plan_result["goal"]
+            
+            if "plan" in plan_result:
+                psyche.plan = plan_result["plan"]
+                
+            if "active_tactic" in plan_result:
+                psyche.active_tactic = plan_result["active_tactic"]
+            
+            # Update context with full plan
+            context.update({
+                "plan": plan_result
+            })
         
         self._update_step_title(context)
         return context
@@ -120,7 +138,10 @@ class ActionComponent(PipelineComponent):
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Generate an action based on the plan and observation"""
         # Extract observation from context
-        observation = context.get("observation", "")
+        observation = context.get("input", context.get("observation", ""))
+        
+        # Store observation in context for later components
+        context["observation"] = observation
         
         # Generate action prompt
         action_prompt = PromptFormatter.act_prompt(psyche, observation)
@@ -165,6 +186,10 @@ class ActionComponent(PipelineComponent):
         if 'speech' not in action_response:
             action_response['speech'] = "I'm not sure what to say right now."
         
+        # Update psyche with conversation summary if provided
+        if 'conversation_summary' in action_response:
+            psyche.update_conversation_memory(action_response['conversation_summary'])
+        
         # Update context with action
         context.update({
             "action": action_response,
@@ -188,14 +213,18 @@ class ReflectComponent(PipelineComponent):
         speech = action.get("speech", "")
         action_type = action.get("action", "say")
         
-        
         # Add to memories
         psyche.memories.append(f"{observation} -> {speech}")
+        
+        # If action contains a conversation_summary, update the psyche's conversation_memory
+        if action.get("conversation_summary"):
+            psyche.update_conversation_memory(action.get("conversation_summary"))
         
         # Update context with reflection results
         context["reflection"] = {
             "tension_level": psyche.tension_level,
-            "memory_added": f"{observation} -> {speech}"
+            "memory_added": f"{observation} -> {speech}",
+            "conversation_memory": psyche.conversation_memory
         }
         
         return context

@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from stable_genius.utils.response_processor import extract_json_from_text
 
 def process_planning_response(raw_response: str, personality: str = "neutral") -> Dict[str, Any]:
@@ -10,14 +10,25 @@ def process_planning_response(raw_response: str, personality: str = "neutral") -
     if parsed_result:
         if 'goal' not in parsed_result:
             parsed_result['goal'] = default_goal(personality)
-        if 'tactic' not in parsed_result:
-            parsed_result['tactic'] = default_tactic(personality)
+        
+        if "plan" not in parsed_result:
+            parsed_result["plan"] = default_plan(personality)
+        elif not isinstance(parsed_result["plan"], list):
+            # If plan exists but is not a list, convert it
+            parsed_result["plan"] = [parsed_result["plan"]]
+            
+        # Set active_tactic if missing
+        if "active_tactic" not in parsed_result and parsed_result["plan"]:
+            parsed_result["active_tactic"] = parsed_result["plan"][0]
+            
         return parsed_result
         
     # If parsing fails, return default response
+    default_tactics = default_plan(personality)
     return {
         "goal": default_goal(personality),
-        "tactic": default_tactic(personality)
+        "plan": default_tactics,
+        "active_tactic": default_tactics[0] if default_tactics else None
     }
 
 def process_action_response(raw_response: str) -> Dict[str, Any]:
@@ -31,12 +42,15 @@ def process_action_response(raw_response: str) -> Dict[str, Any]:
             parsed_response["action"] = "say"
         if "speech" not in parsed_response:
             parsed_response["speech"] = raw_response
+        if "conversation_summary" not in parsed_response:
+            parsed_response["conversation_summary"] = "No summary provided."
         return parsed_response
             
     # Fallback to constructing a response
     return {
         "action": "say",
-        "speech": raw_response
+        "speech": raw_response,
+        "conversation_summary": "Processing the conversation."
     }
 
 def default_goal(personality: str) -> str:
@@ -48,11 +62,11 @@ def default_goal(personality: str) -> str:
     else:
         return "maintain conversation"
         
-def default_tactic(personality: str) -> str:
-    """Return a default tactic based on personality"""
+def default_plan(personality: str) -> List[str]:
+    """Return a default plan based on personality"""
     if "friendly" in personality:
-        return "friendly conversation"
+        return ["friendly conversation", "show empathy"]
     elif "analytical" in personality:
-        return "ask targeted questions"
+        return ["ask targeted questions", "analyze responses"]
     else:
-        return "balanced dialogue" 
+        return ["balanced dialogue"] 
