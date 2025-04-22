@@ -1,10 +1,10 @@
 {
   "memories": [
-    " -> Hi there! I'm so glad we met. How's your day going so far?"
+    " -> Hi there, it's so lovely to meet you! How's your day going so far?"
   ],
   "relationships": {
     "Bob": {
-      "familiarity": 126
+      "familiarity": 127
     }
   },
   "goal": "build rapport",
