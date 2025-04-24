@@ -1,13 +1,20 @@
 {
   "memories": [
-    " -> Hi there, it's so lovely to meet you! How's your day going so far?"
+    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
+    "Bob: That's nice of you to say, Alice. What brings you here today and what are your goals for our conversation? -> I'm so glad we're talking, Bob! I'm here today because I wanted to get to know you better and see if we can help each other out in some way. I love making new connections and learning about people's interests."
   ],
+  "conversation_memory": "We're building a nice rapport and the conversation is flowing easily, with a friendly tone.",
   "relationships": {
     "Bob": {
-      "familiarity": 127
+      "familiarity": 152
     }
   },
   "goal": "build rapport",
+  "plan": [
+    "friendly conversation",
+    "show empathy"
+  ],
+  "active_tactic": "friendly conversation",
   "pending_actions": [
     "say",
     "ask",

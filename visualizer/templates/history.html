@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt History</title>
+    <link rel="stylesheet" href="/static/history_styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        .message-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .date-time {
+            margin-left: auto;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="background">
+            <div class="ellipse ellipse-1"></div>
+            <div class="ellipse ellipse-2"></div>
+            <div class="ellipse ellipse-3"></div>
+        </div>
+        <h1 class="title">Prompt History</h1>
+        <div class="messages-container" id="messages-container">
+            <!-- Conversation messages will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const socket = io();
+            const messagesContainer = document.getElementById('messages-container');
+            let conversationHistory = [];
+            
+            // Function to sort history items by step or timestamp
+            function sortHistoryItems(items) {
+                return items.sort((a, b) => {
+                    // First try to sort by step number
+                    const stepA = parseInt(a.step) || 0;
+                    const stepB = parseInt(b.step) || 0;
+                    
+                    if (stepA !== stepB) {
+                        return stepB - stepA; // Descending order (newest first)
+                    }
+                    
+                    // If steps are equal or not present, sort by timestamp
+                    const timeA = a.timestamp || 0;
+                    const timeB = b.timestamp || 0;
+                    return timeB - timeA; // Descending order (newest first)
+                });
+            }
+            
+            // Handle new interactions
+            socket.on('llm_interaction', function(data) {
+                // Add to conversation history
+                conversationHistory.unshift(data);
+                
+                // Sort the history - though it should already be in order as we're adding to the beginning
+                conversationHistory = sortHistoryItems(conversationHistory);
+                
+                // Create and add the row
+                const messageRow = createMessageRow(data);
+                messagesContainer.prepend(messageRow);
+            });
+            
+            // Handle connection and restore history
+            socket.on('restore_state', function(data) {
+                const history = data.conversation_history || [];
+                
+                // Process history items - filter and convert to consistent format
+                conversationHistory = history
+                    .filter(item => item.event_type === 'llm_interaction')
+                    .map(item => {
+                        // Parse timestamps from any format the server might provide
+                        return {
+                            ...item,
+                            step: item.step || '',
+                            prompt: item.prompt || '',
+                            response: item.response || '',
+                            time_elapsed: item.time_elapsed || item.elapsed_time || '--',
+                            timestamp: item.timestamp || Date.now()
+                        };
+                    });
+                
+                // Sort history
+                conversationHistory = sortHistoryItems(conversationHistory);
+                
+                // Clear existing messages
+                messagesContainer.innerHTML = '';
+                
+                // Add messages in sorted order
+                conversationHistory.forEach(item => {
+                    const messageRow = createMessageRow(item);
+                    messagesContainer.appendChild(messageRow);
+                });
+            });
+            
+            function createMessageRow(data) {
+                const messageRow = document.createElement('div');
+                messageRow.className = 'message-row';
+                
+                // Create prompt box
+                const promptBox = document.createElement('div');
+                promptBox.className = 'message-box prompt-box';
+                
+                const promptTitle = document.createElement('div');
+                promptTitle.className = 'message-title';
+                promptTitle.textContent = `Step: ${data.step || data.step_title || '--'}`;
+                
+                const promptContent = document.createElement('div');
+                promptContent.className = 'message-content';
+                promptContent.textContent = data.prompt || '';
+                
+                promptBox.appendChild(promptTitle);
+                promptBox.appendChild(promptContent);
+                
+                // Create response box
+                const responseBox = document.createElement('div');
+                responseBox.className = 'message-box response-box';
+                
+                const responseTitle = document.createElement('div');
+                responseTitle.className = 'message-title';
+                
+                // Create a span for the time elapsed
+                const timeElapsedSpan = document.createElement('span');
+                timeElapsedSpan.textContent = `Time elapsed: ${data.time_elapsed || data.elapsed_time || '--'}s`;
+                
+                // Create a span for the date time with right alignment
+                const dateTimeSpan = document.createElement('span');
+                dateTimeSpan.className = 'date-time';
+                
+                // Format and display the timestamp or current time
+                const timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
+                dateTimeSpan.textContent = timestamp.toLocaleString();
+                
+                // Add both spans to the title
+                responseTitle.appendChild(timeElapsedSpan);
+                responseTitle.appendChild(dateTimeSpan);
+                
+                const responseContent = document.createElement('div');
+                responseContent.className = 'message-content';
+                responseContent.textContent = data.response || '';
+                
+                responseBox.appendChild(responseTitle);
+                responseBox.appendChild(responseContent);
+                
+                // Add boxes to row
+                messageRow.appendChild(promptBox);
+                messageRow.appendChild(responseBox);
+                
+                return messageRow;
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,11 +1,19 @@
 {
-  "memories": [],
+  "memories": [
+    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> That's nice of you to say, Alice. What brings you here today and what are your goals for our conversation?"
+  ],
+  "conversation_memory": "The conversation has begun with an exchange of greetings, now I'm seeking to understand Alice's intentions and objectives.",
   "relationships": {
     "Alice": {
-      "familiarity": 93
+      "familiarity": 113
     }
   },
   "goal": "gather information",
+  "plan": [
+    "ask targeted questions",
+    "analyze responses"
+  ],
+  "active_tactic": "ask targeted questions",
   "pending_actions": [
     "say",
     "ask",

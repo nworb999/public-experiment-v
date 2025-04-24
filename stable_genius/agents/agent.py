@@ -23,6 +23,19 @@ class Agent:
         # Ensure actions are set
         if not psyche.pending_actions:
             psyche.pending_actions = ["say", "ask", "express", "confront", "cooperate"]
+        
+        # Initialize plan and active tactic if missing
+        if not psyche.plan:
+            if "friendly" in personality:
+                psyche.plan = ["friendly conversation", "show empathy"]
+            elif "analytical" in personality:
+                psyche.plan = ["ask targeted questions", "analyze responses"]
+            else:
+                psyche.plan = ["balanced dialogue"]
+                
+            # Set first tactic as active
+            if psyche.plan and not psyche.active_tactic:
+                psyche.active_tactic = psyche.plan[0]
             
         # Save any changes
         psyche.save()
@@ -34,6 +47,19 @@ class Agent:
     def add_component(self, component, position=None):
         """Add a component to the pipeline"""
         self.pipeline.add_component(component, position)
+    
+    def update_active_tactic(self, new_tactic):
+        """Update the active tactic for this agent"""
+        psyche = Psyche.load(self.name)
+        
+        # Check if tactic is in plan
+        if psyche.plan and new_tactic in psyche.plan:
+            psyche.active_tactic = new_tactic
+            psyche.save()
+            return True
+        
+        # If tactic is not in plan, don't update
+        return False
     
     async def receive_message(self, message: str, sender: str = None):
         """Process a message from another agent or the environment"""

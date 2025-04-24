@@ -5,6 +5,9 @@
 
 // DOM Elements
 const UI = {
+    // Conversation container
+    conversationMessages: document.getElementById('conversation-messages'),
+    
     // Prompt and response elements
     promptBoxes: [
         document.getElementById('prompt-box-1'),
@@ -49,7 +52,69 @@ const UI = {
 // Application state
 const State = {
     conversationActive: false,
-    currentConversationId: null
+    currentConversationId: null,
+    agents: {
+        0: { name: 'Agent 1' },
+        1: { name: 'Agent 2' }
+    }
+};
+
+// Chat message management
+const ChatManager = {
+    /**
+     * Adds a message to the conversation chat
+     * @param {string} sender - Name of the message sender
+     * @param {string} message - The message content
+     * @param {number} [senderId] - The sender ID (0 or 1) for agents
+     */
+    addMessage(sender, message, senderId) {
+        if (!UI.conversationMessages) return;
+        
+        // Skip System messages
+        if (sender === 'System') return;
+        
+        const messageElement = document.createElement('div');
+        
+        // Determine message type
+        let messageClass = 'message';
+        if (sender === 'Error') {
+            messageClass += ' message-error';
+        } else if (senderId === 0) {
+            messageClass += ' message-left';
+        } else if (senderId === 1) {
+            messageClass += ' message-right';
+        } else {
+            messageClass += ' message-system';
+        }
+        
+        messageElement.className = messageClass;
+        
+        // Add sender name
+        const senderElement = document.createElement('div');
+        senderElement.className = 'message-sender';
+        senderElement.textContent = sender;
+        messageElement.appendChild(senderElement);
+        
+        // Add message content
+        const contentElement = document.createElement('div');
+        contentElement.textContent = message;
+        messageElement.appendChild(contentElement);
+        
+        // Add to conversation
+        UI.conversationMessages.appendChild(messageElement);
+        
+        // Scroll to bottom
+        UI.conversationMessages.scrollTop = UI.conversationMessages.scrollHeight;
+    },
+    
+    /**
+     * Clears all messages from the conversation
+     */
+    clearMessages() {
+        if (UI.conversationMessages) {
+            UI.conversationMessages.innerHTML = '';
+        }
+    }
 };
 
 // Conversation control functions
@@ -63,6 +128,9 @@ const ConversationController = {
             return;
         }
 
+        // Clear previous messages
+        ChatManager.clearMessages();
+        
         // Emit event to server to start conversation
         socket.emit('start_conversation');
     }
@@ -248,48 +316,62 @@ socket.on('connect', () => {
     console.log('Connected to server');
     
     // Request to start a conversation (if auto-start is enabled)
-    // This will be handled by the server according to its AUTO_START configuration
     socket.emit('request_autostart');
 });
 
-// Handle state restoration
+// Restore state event
 socket.on('restore_state', (data) => {
-    const { agent_states, conversation_history } = data;
+    console.log('Restoring state from server');
+    
+    // Clear existing messages
+    ChatManager.clearMessages();
     
     // Restore agent states
-    if (agent_states) {
-        AgentManager.restoreAgent(agent_states[0], 0);
-        AgentManager.restoreAgent(agent_states[1], 1);
+    if (data.agent_states) {
+        if (data.agent_states[0]) {
+            AgentManager.restoreAgent(data.agent_states[0], 0);
+            if (data.agent_states[0].name) {
+                State.agents[0].name = data.agent_states[0].name;
+            }
+        }
+        if (data.agent_states[1]) {
+            AgentManager.restoreAgent(data.agent_states[1], 1);
+            if (data.agent_states[1].name) {
+                State.agents[1].name = data.agent_states[1].name;
+            }
+        }
     }
     
     // Restore conversation history
-    ConversationManager.restoreConversationHistory(conversation_history);
+    if (data.conversation_history) {
+        ConversationManager.restoreConversationHistory(data.conversation_history);
+    }
+    
+    // Restore conversation messages if present
+    if (data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach(msg => {
+            ChatManager.addMessage(msg.sender, msg.message, msg.sender_id);
+        });
+    }
 });
 
 socket.on('initialize_agents', (data) => {
-    if (data.agents && data.agents.length >= 2) {
-        // Initialize agent 1
-        if (data.agents[0]) {
-            UI.agent1.name.textContent = data.agents[0].name || 'Agent 1';
-            UI.agent1.personality.textContent = data.agents[0].personality || '--';
-            UI.agent1.tension.textContent = data.agents[0].tension || 0;
-            UI.agent1.goal.textContent = data.agents[0].goal || '--';
-            if (data.agents[0].components && Array.isArray(data.agents[0].components)) {
-                PipelineManager.createPipelineFlow(0, data.agents[0].components);
-            }
+    console.log('Initializing agents:', data);
+    
+    data.agents.forEach(agent => {
+        // Update agent state
+        AgentManager.updateAgentInfo(agent.agent_id, agent);
+        
+        // Create pipeline visualization if components exist
+        if (agent.components && agent.components.length > 0) {
+            PipelineManager.createPipelineFlow(agent.agent_id, agent.components);
         }
         
-        // Initialize agent 2
-        if (data.agents[1]) {
-            UI.agent2.name.textContent = data.agents[1].name || 'Agent 2';
-            UI.agent2.personality.textContent = data.agents[1].personality || '--';
-            UI.agent2.tension.textContent = data.agents[1].tension || 0;
-            UI.agent2.goal.textContent = data.agents[1].goal || '--';
-            if (data.agents[1].components && Array.isArray(data.agents[1].components)) {
-                PipelineManager.createPipelineFlow(1, data.agents[1].components);
-            }
-        }
-    }
+        // Store agent name in state
+        State.agents[agent.agent_id] = {
+            name: agent.name
+        };
+    });
 });
 
 socket.on('config', (data) => {
@@ -305,21 +387,15 @@ socket.on('llm_interaction', (data) => {
     ConversationManager.updateConversation(data);
 });
 
+// Handle agent messages
 socket.on('message', (data) => {
-    if (data.sender_id === 0 || data.sender_id === 1) {
-        AgentManager.addMessage(data.sender_id, data.message);
-    }
+    console.log('Received message:', data);
+    ChatManager.addMessage(data.sender, data.message, data.sender_id);
 });
 
 socket.on('add_message', (data) => {
-    if (data.sender_id === 0 || data.sender_id === 1) {
-        AgentManager.addMessage(data.sender_id, data.message);
-    } else {
-        // System message - show in both terminals
-        const message = `[${data.sender}] ${data.message}`;
-        AgentManager.addMessage(0, message);
-        AgentManager.addMessage(1, message);
-    }
+    console.log('Received add_message:', data);
+    ChatManager.addMessage(data.sender, data.message, data.sender_id);
 });
 
 socket.on('conversation_status', (data) => {
@@ -327,10 +403,9 @@ socket.on('conversation_status', (data) => {
     State.conversationActive = data.active;
     State.currentConversationId = data.conversation_id;
     
-    // Add message to UI
+    // Add message to UI if status changed
     const message = `Conversation status: ${data.status}`;
-    AgentManager.addMessage(0, message);
-    AgentManager.addMessage(1, message);
+    ChatManager.addMessage('System', message);
 });
 
 // Listen for agent updates
@@ -356,7 +431,30 @@ socket.on('pipeline_update', (data) => {
     }
 });
 
+// Agent update handler - store agent names in state
+socket.on('agent_update', (data) => {
+    console.log('Agent update:', data);
+    AgentManager.updateAgentInfo(data.agent_id, data);
+    
+    // Store agent name in state for message handling
+    if (data.name) {
+        State.agents[data.agent_id] = { 
+            name: data.name,
+            ...State.agents[data.agent_id]
+        };
+    }
+});
+
 // Initialize the UI after the document has loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Auto-start is handled by the server configuration
+    // Debug check for conversation container
+    console.log('DOMContentLoaded event fired');
+    const conversationContainer = document.getElementById('conversation-messages');
+    if (conversationContainer) {
+        console.log('Conversation container found:', conversationContainer);
+        // Add a test message to verify container is working
+        ChatManager.addMessage('Debug', 'Container initialized successfully', null);
+    } else {
+        console.error('Conversation container not found! Check your HTML.');
+    }
 }); 

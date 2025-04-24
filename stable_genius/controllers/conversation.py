@@ -187,11 +187,12 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
+            'conversation_memory': agent_psyche.conversation_memory,
             'plan': response.get('plan', {})
         }, visualizer_url)
         
         send_to_visualizer({
-            'event_type': 'message',
+            'event_type': 'add_message',
             'sender': agent.name,
             'sender_id': agent_id,
             'message': message_out
@@ -201,7 +202,7 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
     except Exception as e:
         logger.error(f"Error during agent turn: {str(e)}")
         send_to_visualizer({
-            'event_type': 'message',
+            'event_type': 'add_message',
             'sender': 'Error',
             'message': f'Error during agent turn: {str(e)}'
         }, visualizer_url)
@@ -223,7 +224,7 @@ async def initialize_conversation(conversation_id, config, visualizer_url, llm_s
     }, visualizer_url)
     
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'System',
         'message': f'Starting conversation {conversation_id}...'
     }, visualizer_url)
@@ -254,14 +255,14 @@ async def execute_conversation_turn(i, conversation_id, agent1, agent2, message,
     logger.debug(f"\n\n---------- Turn {i+1} ----------\n")
     
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'System',
         'message': f'Turn {i+1}'
     }, visualizer_url)
     
     # Agent 1's turn
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'System',
         'message': f'Agent {agent1.name} processing...'
     }, visualizer_url)
@@ -273,7 +274,7 @@ async def execute_conversation_turn(i, conversation_id, agent1, agent2, message,
     
     # Agent 2's turn
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'System',
         'message': f'Agent {agent2.name} processing...'
     }, visualizer_url)
@@ -291,7 +292,7 @@ async def finalize_conversation(conversation_id, agent1, agent2, visualizer_url)
     
     # Notify visualizer
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'System',
         'message': 'Conversation ended'
     }, visualizer_url)
@@ -306,7 +307,7 @@ async def handle_conversation_error(conversation_id, error, visualizer_url):
     
     # Notify visualizer of error
     send_to_visualizer({
-        'event_type': 'message',
+        'event_type': 'add_message',
         'sender': 'Error',
         'message': f'An unexpected error occurred: {error_message}'
     }, visualizer_url)

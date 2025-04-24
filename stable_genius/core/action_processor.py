@@ -17,7 +17,7 @@ class ActionProcessor:
             raw_response: Raw text response from the LLM
             
         Returns:
-            Dictionary with 'action' and 'speech' keys
+            Dictionary with 'action', 'speech' and 'conversation_summary' keys
         """
         # Check if this is an error response
         if raw_response.startswith("Error:"):
@@ -25,7 +25,8 @@ class ActionProcessor:
             # Return a default action if there's an error
             return {
                 "action": "say",
-                "speech": f"I'm having trouble with my connection. {raw_response}"
+                "speech": f"I'm having trouble with my connection. {raw_response}",
+                "conversation_summary": "There was an error in processing."
             }
             
         try:
@@ -45,14 +46,16 @@ class ActionProcessor:
                         logger.info(f"Failed to parse JSON from action response: {raw_response}")
                         action = {
                             "action": "say",
-                            "speech": "I'm having trouble understanding. Let's try again."
+                            "speech": "I'm having trouble understanding. Let's try again.",
+                            "conversation_summary": "Having difficulties understanding the conversation."
                         }
                 else:
                     # Fallback to default action
                     logger.info(f"No JSON found in action response: {raw_response}")
                     action = {
                         "action": "say",
-                        "speech": "I'm not sure what to say right now."
+                        "speech": "I'm not sure what to say right now.",
+                        "conversation_summary": "Struggling to formulate a response."
                     }
             
             # Validate required fields
@@ -60,6 +63,8 @@ class ActionProcessor:
                 action["action"] = "say"
             if "speech" not in action:
                 action["speech"] = "I'm not sure what to say."
+            if "conversation_summary" not in action:
+                action["conversation_summary"] = "No summary provided."
                 
             return action
             
@@ -68,5 +73,6 @@ class ActionProcessor:
             # Fallback to default action
             return {
                 "action": "say",
-                "speech": f"I encountered an error in my thinking: {str(e)}"
+                "speech": f"I encountered an error in my thinking: {str(e)}",
+                "conversation_summary": "Encountered an error in processing."
             } 

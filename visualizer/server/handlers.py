@@ -2,6 +2,8 @@
 Event and route handlers for the visualization server
 """
 from flask import request, jsonify, render_template
+import requests
+import time
 from .config import VALID_AGENT_IDS
 from stable_genius.utils.logger import logger
 
@@ -45,8 +47,10 @@ class Handlers:
             self._handle_initialize_agents(update_data)
         elif event_type == 'llm_interaction':
             self._handle_llm_interaction(update_data)
-        elif event_type == 'message':
-            self._handle_message(update_data)
+        # elif event_type == 'message':
+        #     self._handle_message(update_data)
+        elif event_type == 'add_message':
+            self._handle_message(update_data)  # Reuse message handler for add_message events
         elif event_type == 'agent_update':
             self._handle_agent_update(update_data)
         elif event_type == 'pipeline_update':
@@ -73,38 +77,104 @@ class Handlers:
     
     def _handle_llm_interaction(self, update_data):
         """Handle LLM interaction event"""
-        self.history.add_interaction(
-            update_data.get('prompt', ''),
-            update_data.get('response', ''),
-            update_data.get('step_title', ''),
-            update_data.get('elapsed_time', '--')
-        )
+        # Ensure we're getting the prompt and response properly
+        prompt = update_data.get('prompt', '')
+        response = update_data.get('response', '')
+        step_title = update_data.get('step_title', '')
+        elapsed_time = update_data.get('elapsed_time', '--')
+        
+        # Log the data we received for debugging
+        logger.debug(f"LLM interaction received - Title: {step_title}")
+        logger.debug(f"Prompt length: {len(prompt)}, Response length: {len(response)}")
+        
+        # Store in history
+        self.history.add_interaction(prompt, response, step_title, elapsed_time)
         
         # Format elapsed time
-        elapsed_time = update_data.get('elapsed_time', '--')
         formatted_time = f"{elapsed_time}s" if elapsed_time not in [None, '--'] else '--'
         
-        self.socketio.emit('llm_interaction', {
-            'prompt': update_data.get('prompt', ''),
-            'response': update_data.get('response', ''),
+        # Ensure we're explicitly including the prompt and response in the emit
+        event_data = {
+            'prompt': prompt,
+            'response': response,
             'elapsed_time': formatted_time,
-            'step_title': update_data.get('step_title', '')
-        })
+            'step_title': step_title
+        }
+        
+        # Emit the event with the complete data
+        self.socketio.emit('llm_interaction', event_data)
+        
+        # Forward to history server if configured
+        self._forward_to_history_server(update_data)
+    
+    def _forward_to_history_server(self, update_data):
+        """Forward LLM interactions to the history server"""
+        history_server_url = self.app.config.get('HISTORY_SERVER_URL')
+        if history_server_url:
+            try:
+                # Ensure we have a properly formatted event type
+                forwarded_data = {
+                    'event_type': 'llm_interaction',
+                    'prompt': update_data.get('prompt', ''),
+                    'response': update_data.get('response', ''),
+                    'step_title': update_data.get('step_title', ''),
+                    'elapsed_time': update_data.get('elapsed_time', '--'),
+                    'timestamp': update_data.get('timestamp', time.time())
+                }
+                
+                # Log what we're forwarding for debugging
+                logger.debug(f"Forwarding LLM interaction to history server: {forwarded_data['step_title']}")
+                
+                requests.post(
+                    f"{history_server_url}/api/update",
+                    json=forwarded_data,
+                    timeout=1
+                )
+            except requests.RequestException as e:
+                logger.debug(f"Error forwarding to history server: {e}")
     
     def _handle_message(self, update_data):
         """Handle message event"""
         sender_id = update_data.get('sender_id')
+        sender = update_data.get('sender', 'System')
         message = update_data.get('message', '')
+        
+        # Store message in conversation state
+        self.history.add_message(sender, message, sender_id)
         
         # Update agent state if message is from an agent
         if sender_id in VALID_AGENT_IDS:
             self.agent_state.add_message(sender_id, message)
             
-        self.socketio.emit('add_message', {
-            'sender': update_data.get('sender', 'System'),
-            'sender_id': sender_id,
-            'message': message
-        })
+        # Skip system messages - don't emit them to the client
+        if sender != 'System':
+            self.socketio.emit('add_message', {
+                'sender': sender,
+                'sender_id': sender_id,
+                'message': message
+            })
+        
+        # Forward to history server
+        history_server_url = self.app.config.get('HISTORY_SERVER_URL')
+        if history_server_url:
+            try:
+                forwarded_data = {
+                    'event_type': 'add_message',
+                    'sender': sender,
+                    'sender_id': sender_id,
+                    'message': message,
+                    'timestamp': time.time()
+                }
+                
+                logger.debug(f"Forwarding message to history server: {sender}: {message[:50]}...")
+                
+                requests.post(
+                    f"{history_server_url}/api/update",
+                    json=forwarded_data,
+                    timeout=1
+                )
+            except requests.RequestException as e:
+                logger.debug(f"Error forwarding message to history server: {e}")
     
     def _handle_agent_update(self, update_data):
         """Handle agent update event"""
@@ -164,15 +234,16 @@ class Handlers:
     def handle_connect(self):
         """Handle client connection"""
         logger.info('Client connected')
-        self.socketio.emit('add_message', {
-            'sender': 'System', 
-            'message': 'Connected to server successfully!'
-        })
+        
+        # Get messages and filter out system messages
+        all_messages = self.history.get_messages()
+        filtered_messages = [msg for msg in all_messages if msg.get('sender') != 'System']
         
         # Send current state to the client
         self.socketio.emit('restore_state', {
             'agent_states': self.agent_state.states,
-            'conversation_history': self.history.get_history()
+            'conversation_history': self.history.get_history(),
+            'messages': filtered_messages
         })
         
         # Send current conversation status

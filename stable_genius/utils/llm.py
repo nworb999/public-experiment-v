@@ -4,10 +4,12 @@ import sys
 import time
 from stable_genius.utils.logger import logger
 
+MODEL_NAME = "llama3.3:70b-instruct-q2_K"
+
 class OllamaLLM:
     """Interface to the Ollama API for LLM generation"""
     
-    def __init__(self, model="llama3.3:latest", max_retries=5, retry_delay=2):
+    def __init__(self, model=MODEL_NAME, max_retries=10, retry_delay=2):
         self.base_url = "http://localhost:11434"
         self.model = model
         self.max_retries = max_retries
@@ -58,7 +60,7 @@ class OllamaLLM:
         
         # Log the request with a truncated prompt (for privacy/readability)
         truncated_prompt = prompt[:100] + "..." if len(prompt) > 100 else prompt
-        logger.debug(f"Sending request to Ollama model: {self.model}")
+        logger.info(f"🔄 LLM REQUEST STARTED: Model={self.model}")
         logger.debug(f"Prompt: {truncated_prompt}")
         
         start_time = time.time()
@@ -77,7 +79,6 @@ class OllamaLLM:
                 )
                 
                 elapsed_time = time.time() - start_time
-                logger.debug(f"Request completed in {elapsed_time:.2f} seconds")
                 
                 # Retry specifically on 404 errors
                 if response.status_code == 404:
@@ -94,15 +95,19 @@ class OllamaLLM:
                     response_text = response.json().get("response", "")
                     # Record interaction with context if provided
                     self._record_interaction(prompt, response_text, timestamp, elapsed_time, context)
+                    logger.info(f"✅ LLM RESPONSE RECEIVED: Time={elapsed_time:.2f}s")
                     return response_text
                 else:
                     error_msg = f"Error connecting to Ollama service: {response.status_code} {response.reason}"
+                    logger.info(f"❌ LLM REQUEST FAILED: Status={response.status_code}, Time={elapsed_time:.2f}s")
                     logger.info(error_msg)
                     
-                    # Return a JSON formatted error that can be processed by the system
+                    # Return the failed prompt with the error message
                     error_response = f"Error: {response.status_code} {response.reason}"
                     if "JSON" in prompt.upper():
-                        error_response = json.dumps({"error": error_response})
+                        error_response = json.dumps({"error": error_response, "prompt": prompt})
+                    else:
+                        error_response = f"{error_response}\nFailed prompt: {prompt}"
                     
                     # Record the error interaction
                     self._record_interaction(prompt, error_response, timestamp, elapsed_time, context)
@@ -117,14 +122,15 @@ class OllamaLLM:
                     backoff *= 1.5
                 else:
                     error_msg = "Error: Maximum retries reached for request timeout"
-                    logger.debug(error_msg)
                     elapsed_time = time.time() - start_time
-                    logger.debug(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
+                    logger.info(f"❌ LLM REQUEST FAILED: Maximum retries reached, Time={elapsed_time:.2f}s")
+                    logger.debug(error_msg)
                     
-                    # Return a JSON formatted error that can be processed by the system
-                    error_response = error_msg
+                    # Return the failed prompt with the error message
                     if "JSON" in prompt.upper():
-                        error_response = json.dumps({"error": error_msg})
+                        error_response = json.dumps({"error": error_msg, "prompt": prompt})
+                    else:
+                        error_response = f"{error_msg}\nFailed prompt: {prompt}"
                     
                     # Record the error interaction
                     self._record_interaction(prompt, error_response, timestamp, elapsed_time, context)
@@ -132,14 +138,15 @@ class OllamaLLM:
                     
             except requests.exceptions.RequestException as e:
                 error_msg = f"Error connecting to Ollama service: {str(e)}"
-                logger.debug(error_msg)
                 elapsed_time = time.time() - start_time
-                logger.debug(f"Request failed after {elapsed_time:.2f} seconds")
+                logger.info(f"❌ LLM REQUEST FAILED: {str(e)}, Time={elapsed_time:.2f}s")
+                logger.debug(error_msg)
                 
-                # Return a JSON formatted error that can be processed by the system
-                error_response = f"Error: {str(e)}"
+                # Return the failed prompt with the error message
                 if "JSON" in prompt.upper():
-                    error_response = json.dumps({"error": f"Error: {str(e)}"})
+                    error_response = json.dumps({"error": f"Error: {str(e)}", "prompt": prompt})
+                else:
+                    error_response = f"Error: {str(e)}\nFailed prompt: {prompt}"
                 
                 # Record the error interaction
                 self._record_interaction(prompt, error_response, timestamp, elapsed_time, context)
@@ -147,14 +154,15 @@ class OllamaLLM:
 
         # Return an error if we've exhausted all retries
         error_msg = "Error: Maximum retries reached"
-        logger.debug(error_msg)
         elapsed_time = time.time() - start_time
-        logger.debug(f"Request failed after {elapsed_time:.2f} seconds and {retries} retries")
+        logger.info(f"❌ LLM REQUEST FAILED: Maximum retries reached, Time={elapsed_time:.2f}s")
+        logger.debug(error_msg)
         
-        # Return a JSON formatted error that can be processed by the system
-        error_response = error_msg
+        # Return the failed prompt with the error message
         if "JSON" in prompt.upper():
-            error_response = json.dumps({"error": error_msg})
+            error_response = json.dumps({"error": error_msg, "prompt": prompt})
+        else:
+            error_response = f"{error_msg}\nFailed prompt: {prompt}"
         
         # Record the error interaction
         self._record_interaction(prompt, error_response, timestamp, elapsed_time, context)
