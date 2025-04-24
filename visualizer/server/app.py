@@ -13,7 +13,7 @@ from .config import (
     load_config
 )
 from .agent_state import AgentState
-from .conversation import ConversationHistory, ConversationManager
+from .conversation_manager import ConversationHistory, ConversationManager
 from .handlers import Handlers
 from stable_genius.utils.logger import logger
 

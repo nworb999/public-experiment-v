@@ -20,4 +20,4 @@ python_full_version = "3.11"
 [scripts]
 start = "python main.py"
 test-ollama = "python scripts/test_ollama.py"
-visualize = "python visualizer/visualize_agents.py"
+visualize = "python visualizer/visualize.py"

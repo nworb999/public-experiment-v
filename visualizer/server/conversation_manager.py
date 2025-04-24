@@ -4,6 +4,7 @@ Conversation management for the visualization server
 import requests
 from .config import MAX_HISTORY_ITEMS, DEFAULT_API_URL
 from stable_genius.utils.logger import logger
+import time
 
 class ConversationHistory:
     """Class to manage conversation history"""
@@ -15,6 +16,8 @@ class ConversationHistory:
             'titles': [],
             'times': []
         }
+        # Storage for conversation messages
+        self.messages = []
     
     def add_interaction(self, prompt, response, title, elapsed_time):
         """Add a new interaction to history"""
@@ -30,6 +33,23 @@ class ConversationHistory:
     def get_history(self):
         """Get current history"""
         return self.history
+        
+    def add_message(self, sender, message, sender_id=None):
+        """Add a message to the conversation history"""
+        self.messages.append({
+            'sender': sender,
+            'message': message,
+            'sender_id': sender_id,
+            'timestamp': time.time()
+        })
+        
+        # Keep only the most recent 100 messages
+        if len(self.messages) > 100:
+            self.messages = self.messages[-100:]
+    
+    def get_messages(self):
+        """Get all conversation messages"""
+        return self.messages
 
 class ConversationManager:
     """Class to manage conversations with the API server"""

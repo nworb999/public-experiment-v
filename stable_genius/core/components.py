@@ -245,21 +245,7 @@ class IntentClassifierComponent(PipelineComponent):
         observation = context.get("observation", "")
         
         # Generate intent classification prompt
-        prompt = f"""
-        Classify the intent of the following message into one of these categories:
-        - question
-        - statement
-        - command
-        - greeting
-        - farewell
-        - small_talk
-        - other
-        
-        Message: "{observation}"
-        
-        Respond with a JSON object containing:
-        {{"intent": "category", "confidence": 0-100}}
-        """
+        prompt = PromptFormatter.intent_classification_prompt(observation)
         
         # Notify before LLM call
         context.update({
@@ -312,7 +298,7 @@ class IntentClassifierComponent(PipelineComponent):
         context["intent"] = intent_data
         
         self._update_step_title(context)
-        return context 
+        return context
 
 class TriggerComponent(PipelineComponent):
     """Classifies input text to detect stressful content using fastText"""

@@ -1,11 +1,12 @@
 {
   "memories": [
-    "Bob: Hello there! -> I'm not sure what to say."
+    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?",
+    "Bob: That's nice of you to say, Alice. What brings you here today and what are your goals for our conversation? -> I'm so glad we're talking, Bob! I'm here today because I wanted to get to know you better and see if we can help each other out in some way. I love making new connections and learning about people's interests."
   ],
-  "conversation_memory": "No summary provided.",
+  "conversation_memory": "We're building a nice rapport and the conversation is flowing easily, with a friendly tone.",
   "relationships": {
     "Bob": {
-      "familiarity": 128
+      "familiarity": 152
     }
   },
   "goal": "build rapport",

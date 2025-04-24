@@ -4,6 +4,7 @@ import requests
 import json
 import sys
 import signal
+import logging
 from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO
@@ -136,6 +137,10 @@ def main():
     parser.add_argument("--host", default="0.0.0.0", help="Host to run the Flask server on")
     parser.add_argument("--debug", action="store_true", help="Run Flask in debug mode")
     args = parser.parse_args()
+    
+    # Disable Werkzeug access logs
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     
     logger.info(f"Starting conversation server on http://{args.host}:{args.port}")
     logger.info("Press Ctrl+C to exit")

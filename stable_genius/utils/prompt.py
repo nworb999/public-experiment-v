@@ -56,3 +56,20 @@ How should you respond? Use your active tactic to guide your response.
 IMPORTANT: Respond ONLY with valid JSON containing 'action', 'speech', and 'conversation_summary' keys.
 'conversation_summary' should be a brief 1-2 sentence update of how you perceive the conversation is going.
 Example response: {{"action": "say", "speech": "Hello, how are you doing today?", "conversation_summary": "The conversation just started with a greeting. I need to build rapport."}}"""
+
+    @staticmethod
+    def intent_classification_prompt(observation: str) -> str:
+        """Format prompt for intent classification"""
+        return f"""Classify the intent of the following message into one of these categories:
+- question
+- statement
+- command
+- greeting
+- farewell
+- small_talk
+- other
+
+Message: "{observation}"
+
+Respond with a JSON object containing:
+{{"intent": "category", "confidence": 0-100}}"""

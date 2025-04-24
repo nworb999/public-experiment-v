@@ -10,61 +10,10 @@
 <body>
     <div class="page-container">
         <div class="column left-column">
-            <div class="container">
-                <div class="background">
-                    <div class="ellipse ellipse-1"></div>
-                    <div class="ellipse ellipse-2"></div>
-                    <div class="ellipse ellipse-3"></div>
-                </div>
-                <div class="content">
-                    <div class="conversation-flow">
-                        <div class="conversation-column">
-                            <h2 class="title-text">Prompts</h2>
-                            <div class="boxes-stack">
-                                <div class="box-container">
-                                    <div class="prompt-title" id="prompt-title-1">Step: --</div>
-                                    <div class="box">
-                                        <div class="prompt-text" id="prompt-box-1"></div>
-                                    </div>
-                                </div>
-                                <div class="box-container">
-                                    <div class="prompt-title" id="prompt-title-2">Step: --</div>
-                                    <div class="box">
-                                        <div class="prompt-text" id="prompt-box-2"></div>
-                                    </div>
-                                </div>
-                                <div class="box-container">
-                                    <div class="prompt-title" id="prompt-title-3">Step: --</div>
-                                    <div class="box">
-                                        <div class="prompt-text" id="prompt-box-3"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="conversation-column">
-                            <h2 class="title-text">Responses</h2>
-                            <div class="boxes-stack">
-                                <div class="box-container">
-                                    <div class="time-elapsed" id="response-time-1">Time elapsed: --</div>
-                                    <div class="box">
-                                        <div class="response-text" id="response-box-1"></div>
-                                    </div>
-                                </div>
-                                <div class="box-container">
-                                    <div class="time-elapsed" id="response-time-2">Time elapsed: --</div>
-                                    <div class="box">
-                                        <div class="response-text" id="response-box-2"></div>
-                                    </div>
-                                </div>
-                                <div class="box-container">
-                                    <div class="time-elapsed" id="response-time-3">Time elapsed: --</div>
-                                    <div class="box">
-                                        <div class="response-text" id="response-box-3"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="conversation-container">
+                <div class="conversation-header">Conversation</div>
+                <div class="conversation-messages" id="conversation-messages">
+                    <!-- Messages will be added here dynamically -->
                 </div>
             </div>
         </div>
