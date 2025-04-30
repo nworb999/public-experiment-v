@@ -36,7 +36,9 @@ const UI = {
         pipeline: document.getElementById('agent1-pipeline'),
         personality: document.getElementById('agent1-personality'),
         tension: document.getElementById('agent1-tension'),
-        goal: document.getElementById('agent1-goal')
+        goal: document.getElementById('agent1-goal'),
+        tactic: document.getElementById('agent1-tactic'),
+        plan: document.getElementById('agent1-plan')
     },
     
     // Agent 2 elements
@@ -45,7 +47,9 @@ const UI = {
         pipeline: document.getElementById('agent2-pipeline'),
         personality: document.getElementById('agent2-personality'),
         tension: document.getElementById('agent2-tension'),
-        goal: document.getElementById('agent2-goal')
+        goal: document.getElementById('agent2-goal'),
+        tactic: document.getElementById('agent2-tactic'),
+        plan: document.getElementById('agent2-plan')
     }
 };
 
@@ -227,6 +231,14 @@ const AgentManager = {
         } else if (data.plan?.goal) {
             agent.goal.textContent = data.plan.goal;
         }
+        // Handle tactic
+        if (data.tactic) {
+            agent.tactic.textContent = data.tactic;
+        }
+        // Handle plan
+        if (data.plan?.steps) {
+            agent.plan.textContent = data.plan.steps.join(', ');
+        }
     },
     
     /**
@@ -315,8 +327,10 @@ const socket = io();
 socket.on('connect', () => {
     console.log('Connected to server');
     
-    // Request to start a conversation (if auto-start is enabled)
-    socket.emit('request_autostart');
+    // Only request autostart if no conversation is active
+    if (!State.conversationActive) {
+        socket.emit('request_autostart');
+    }
 });
 
 // Restore state event
