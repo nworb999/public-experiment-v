@@ -219,22 +219,28 @@ body {
     color: #00FF00;
     border-bottom: 1px solid rgba(0, 255, 0, 0.3);
     background: rgba(0, 255, 0, 0.05);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 0.4vw;
 }
 
 .property-item {
-    margin-bottom: 0.4vw;
     display: flex;
+    flex-direction: row;
     align-items: baseline;
+    gap: 0.5vw;
 }
 
 .property-label {
     font-weight: bold;
-    margin-right: 0.5vw;
-    min-width: 35%;
+    white-space: nowrap;
 }
 
 .property-value {
     color: #00FF00;
+    word-break: break-word;
+    flex: 1;
 }
 
 @media (max-width: 1200px) {
@@ -273,10 +279,7 @@ body {
     
     .agent-properties {
         padding: 1vw;
-    }
-    
-    .property-item {
-        margin-bottom: 0.6vw;
+        gap: 0.6vw;
     }
 }
 
@@ -291,15 +294,8 @@ body {
     
     .agent-properties {
         padding: 2vw;
-    }
-    
-    .property-label {
-        min-width: 40%;
-    }
-
-    .pipeline-circle {
-        font-size: 8px;
-        padding: 2px 4px;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, auto);
     }
 }
 
