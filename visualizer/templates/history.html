@@ -39,6 +39,26 @@
             const messagesContainer = document.getElementById('messages-container');
             let conversationHistory = [];
             
+            // Function to save history to local storage
+            function saveHistoryToStorage() {
+                localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+            }
+            
+            // Function to load history from local storage
+            function loadHistoryFromStorage() {
+                const savedHistory = localStorage.getItem('conversationHistory');
+                if (savedHistory) {
+                    conversationHistory = JSON.parse(savedHistory);
+                    // Clear existing messages
+                    messagesContainer.innerHTML = '';
+                    // Add messages in sorted order
+                    conversationHistory.forEach(item => {
+                        const messageRow = createMessageRow(item);
+                        messagesContainer.appendChild(messageRow);
+                    });
+                }
+            }
+            
             // Function to sort history items by step or timestamp
             function sortHistoryItems(items) {
                 return items.sort((a, b) => {
@@ -68,6 +88,9 @@
                 // Create and add the row
                 const messageRow = createMessageRow(data);
                 messagesContainer.prepend(messageRow);
+                
+                // Save to local storage
+                saveHistoryToStorage();
             });
             
             // Handle connection and restore history
@@ -100,7 +123,23 @@
                     const messageRow = createMessageRow(item);
                     messagesContainer.appendChild(messageRow);
                 });
+                
+                // Save to local storage
+                saveHistoryToStorage();
             });
+            
+            // Load history from local storage on page load only if we haven't received server state
+            socket.on('connect', function() {
+                // Only load from local storage if we haven't received server state yet
+                if (conversationHistory.length === 0) {
+                    loadHistoryFromStorage();
+                }
+            });
+            
+            // If we're already connected, try loading from local storage
+            if (socket.connected && conversationHistory.length === 0) {
+                loadHistoryFromStorage();
+            }
             
             function createMessageRow(data) {
                 const messageRow = document.createElement('div');

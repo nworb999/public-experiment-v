@@ -63,6 +63,13 @@ const State = {
     }
 };
 
+// Logging helper
+const Logger = {
+    log(message, data) {
+        console.log(`[DEBUG] ${message}`, data);
+    }
+};
+
 // Chat message management
 const ChatManager = {
     /**
@@ -216,6 +223,8 @@ const AgentManager = {
     updateAgentInfo(agentId, data) {
         const agent = agentId === 0 ? UI.agent1 : UI.agent2;
         
+        Logger.log(`Updating agent ${agentId} with data:`, data);
+        
         if (data.name) {
             agent.name.textContent = data.name;
         }
@@ -225,19 +234,30 @@ const AgentManager = {
         if (data.tension !== undefined) {
             agent.tension.textContent = data.tension;
         }
+        
         // Handle goal directly or from plan object
         if (data.goal) {
+            Logger.log(`Setting goal for agent ${agentId}:`, data.goal);
             agent.goal.textContent = data.goal;
         } else if (data.plan?.goal) {
+            Logger.log(`Setting goal from plan for agent ${agentId}:`, data.plan.goal);
             agent.goal.textContent = data.plan.goal;
         }
-        // Handle tactic
-        if (data.tactic) {
-            agent.tactic.textContent = data.tactic;
+        
+        // Handle active tactic from plan
+        if (data.plan?.active_tactic) {
+            Logger.log(`Setting active tactic for agent ${agentId}:`, data.plan.active_tactic);
+            agent.tactic.textContent = data.plan.active_tactic;
+        } else {
+            Logger.log(`No active tactic found for agent ${agentId}`, data.plan);
         }
-        // Handle plan
-        if (data.plan?.steps) {
-            agent.plan.textContent = data.plan.steps.join(', ');
+        
+        // Handle plan tactics
+        if (data.plan?.tactics) {
+            Logger.log(`Setting tactics for agent ${agentId}:`, data.plan.tactics);
+            agent.plan.textContent = data.plan.tactics.join(', ');
+        } else {
+            Logger.log(`No tactics found for agent ${agentId}`, data.plan);
         }
     },
     
@@ -260,12 +280,30 @@ const AgentManager = {
     restoreAgent(agentState, agentId) {
         if (!agentState) return;
         
+        Logger.log(`Restoring agent ${agentId} from state:`, agentState);
+        
         const agent = agentId === 0 ? UI.agent1 : UI.agent2;
         
         agent.name.textContent = agentState.name;
         agent.personality.textContent = agentState.personality;
         agent.tension.textContent = agentState.tension;
         agent.goal.textContent = agentState.goal;
+        
+        // Log and restore active tactic if exists
+        if (agentState.plan && agentState.plan.active_tactic) {
+            Logger.log(`Restoring active tactic for agent ${agentId}:`, agentState.plan.active_tactic);
+            agent.tactic.textContent = agentState.plan.active_tactic;
+        } else {
+            Logger.log(`No active tactic to restore for agent ${agentId}`, agentState.plan);
+        }
+        
+        // Log and restore tactics if they exist
+        if (agentState.plan && agentState.plan.tactics) {
+            Logger.log(`Restoring tactics for agent ${agentId}:`, agentState.plan.tactics);
+            agent.plan.textContent = agentState.plan.tactics.join(', ');
+        } else {
+            Logger.log(`No tactics to restore for agent ${agentId}`, agentState.plan);
+        }
         
         // Restore pipeline if it exists
         if (agentState.pipeline && agentState.pipeline.components) {
@@ -373,6 +411,18 @@ socket.on('initialize_agents', (data) => {
     console.log('Initializing agents:', data);
     
     data.agents.forEach(agent => {
+        // Log the agent data
+        Logger.log(`Initializing agent ${agent.agent_id} with data:`, agent);
+        
+        // Log plan data specifically
+        if (agent.plan) {
+            Logger.log(`Agent ${agent.agent_id} plan data:`, agent.plan);
+            Logger.log(`Agent ${agent.agent_id} tactics:`, agent.plan.tactics);
+            Logger.log(`Agent ${agent.agent_id} active tactic:`, agent.plan.active_tactic);
+        } else {
+            Logger.log(`Agent ${agent.agent_id} has no plan data`);
+        }
+        
         // Update agent state
         AgentManager.updateAgentInfo(agent.agent_id, agent);
         
@@ -424,10 +474,32 @@ socket.on('conversation_status', (data) => {
 
 // Listen for agent updates
 socket.on('update_agent1', (data) => {
+    Logger.log('Received update_agent1 event with data:', data);
+    
+    // Log plan data specifically
+    if (data.plan) {
+        Logger.log('Plan data for agent 1:', data.plan);
+        Logger.log('Plan tactics for agent 1:', data.plan.tactics);
+        Logger.log('Plan active tactic for agent 1:', data.plan.active_tactic);
+    } else {
+        Logger.log('No plan data in update_agent1 event');
+    }
+    
     AgentManager.updateAgentInfo(0, data);
 });
 
 socket.on('update_agent2', (data) => {
+    Logger.log('Received update_agent2 event with data:', data);
+    
+    // Log plan data specifically
+    if (data.plan) {
+        Logger.log('Plan data for agent 2:', data.plan);
+        Logger.log('Plan tactics for agent 2:', data.plan.tactics);
+        Logger.log('Plan active tactic for agent 2:', data.plan.active_tactic);
+    } else {
+        Logger.log('No plan data in update_agent2 event');
+    }
+    
     AgentManager.updateAgentInfo(1, data);
 });
 
@@ -447,7 +519,17 @@ socket.on('pipeline_update', (data) => {
 
 // Agent update handler - store agent names in state
 socket.on('agent_update', (data) => {
-    console.log('Agent update:', data);
+    Logger.log('Agent update received:', data);
+    
+    // Log plan data specifically
+    if (data.plan) {
+        Logger.log(`Plan data for agent ${data.agent_id}:`, data.plan);
+        Logger.log(`Tactics for agent ${data.agent_id}:`, data.plan.tactics);
+        Logger.log(`Active tactic for agent ${data.agent_id}:`, data.plan.active_tactic);
+    } else {
+        Logger.log(`No plan data in update for agent ${data.agent_id}`);
+    }
+    
     AgentManager.updateAgentInfo(data.agent_id, data);
     
     // Store agent name in state for message handling

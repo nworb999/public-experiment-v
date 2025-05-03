@@ -18,6 +18,18 @@ CONFIG_FILE = config_dir / "agents_config.json"
 
 def send_to_visualizer(data, visualizer_url="http://localhost:5000/api/update"):
     """Send data to visualization server"""
+    # Log data being sent to visualizer
+    if 'event_type' in data:
+        if data['event_type'] == 'agent_update' and 'plan' in data:
+            logger.debug(f"Sending agent_update to visualizer for agent {data.get('agent_id')}")
+            logger.debug(f"Plan data: {data['plan']}")
+            
+        elif data['event_type'] == 'initialize_agents' and 'agents' in data:
+            logger.debug(f"Sending initialize_agents to visualizer with {len(data['agents'])} agents")
+            for i, agent in enumerate(data['agents']):
+                logger.debug(f"Agent {i} data: name={agent.get('name')}, plan={agent.get('plan')}")
+    
+    # Send data to visualizer
     try:
         response = requests.post(visualizer_url, json=data, timeout=1)
         return response.status_code == 200
@@ -81,22 +93,33 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
     """Send initial agent information to visualizer"""
     for i, agent in enumerate(agents):
         agent_psyche = agent.get_psyche()
+        logger.debug(f"send_agent_data_to_visualizer: agent {i} plan={agent_psyche.plan}, active_tactic={agent_psyche.active_tactic}")
+        plan_payload = {
+            "tactics": agent_psyche.plan or [],
+            "active_tactic": agent_psyche.active_tactic
+        }
+        logger.debug(f"send_agent_data_to_visualizer: sending plan payload: {plan_payload}")
         send_to_visualizer({
             'event_type': 'agent_update',
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
-            'memories': agent_psyche.memories
+            'memories': agent_psyche.memories,
+            'plan': plan_payload
         }, visualizer_url)
 
 async def send_agent_initialization(agents, visualizer_url):
     """Send initial static agent information to visualizer"""
     agents_data = []
-    
     for i, agent in enumerate(agents):
         agent_psyche = agent.get_psyche()
-        # Get component names from the agent's pipeline
+        logger.debug(f"send_agent_initialization: agent {i} plan={agent_psyche.plan}, active_tactic={agent_psyche.active_tactic}")
+        plan_payload = {
+            "tactics": agent_psyche.plan or [],
+            "active_tactic": agent_psyche.active_tactic
+        }
+        logger.debug(f"send_agent_initialization: sending plan payload: {plan_payload}")
         component_names = [component.name for component in agent.pipeline.components]
         agents_data.append({
             'agent_id': i,
@@ -104,9 +127,10 @@ async def send_agent_initialization(agents, visualizer_url):
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
+            'plan': plan_payload,
             'components': component_names  # Include component names
         })
-    
+    logger.debug(f"Sending initialize_agents event with data: {agents_data}")
     send_to_visualizer({
         'event_type': 'initialize_agents',
         'agents': agents_data
@@ -173,12 +197,16 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
     try:
         response = await agent.receive_message(message, other_agent_name)
         message_out = response['speech']
-        
         # Get current psyche state
         agent_psyche = agent.get_psyche()
+        logger.debug(f"process_agent_turn: agent {agent_id} plan={agent_psyche.plan}, active_tactic={agent_psyche.active_tactic}")
+        plan_payload = {
+            "tactics": agent_psyche.plan or [],
+            "active_tactic": agent_psyche.active_tactic
+        }
+        logger.debug(f"process_agent_turn: sending plan payload: {plan_payload}")
         logger.info(f"{agent.name} ({agent_psyche.tension_level}/100 tension):")
         logger.info(f"  \"{message_out}\"\n")
-        
         # Send agent update to visualizer
         send_to_visualizer({
             'event_type': 'agent_update',
@@ -188,16 +216,14 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
-            'plan': response.get('plan', {})
+            'plan': plan_payload
         }, visualizer_url)
-        
         send_to_visualizer({
             'event_type': 'add_message',
             'sender': agent.name,
             'sender_id': agent_id,
             'message': message_out
         }, visualizer_url)
-        
         return message_out, response
     except Exception as e:
         logger.error(f"Error during agent turn: {str(e)}")
@@ -206,7 +232,6 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'sender': 'Error',
             'message': f'Error during agent turn: {str(e)}'
         }, visualizer_url)
-        
         return "I'm not sure I understood that. Can you try again?", None
 
 async def initialize_conversation(conversation_id, config, visualizer_url, llm_service):
