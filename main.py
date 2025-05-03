@@ -23,6 +23,11 @@ from stable_genius.controllers.conversation import (
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='threading')
 
+# Configure additional logging
+logging.basicConfig(level=logging.DEBUG)
+socketio_logger = logging.getLogger('socketio')
+socketio_logger.setLevel(logging.DEBUG)
+
 # Config directory and file
 config_dir = Path(__file__).parent / "config"
 config_dir.mkdir(exist_ok=True)
@@ -50,6 +55,9 @@ def load_config():
 
 def send_to_visualizer(data, visualizer_url="http://localhost:5000/api/update"):
     """Send data to visualization server"""
+    # Log the data being sent
+    logger.debug(f"Sending data to visualizer: {data}")
+    
     try:
         response = requests.post(visualizer_url, json=data, timeout=1)
         return response.status_code == 200
@@ -138,9 +146,15 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Run Flask in debug mode")
     args = parser.parse_args()
     
-    # Disable Werkzeug access logs
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
+    # Enable debug logging if in debug mode
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+        socketio_logger = logging.getLogger('socketio')
+        socketio_logger.setLevel(logging.DEBUG)
+    else:
+        # Disable Werkzeug access logs in non-debug mode
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
     
     logger.info(f"Starting conversation server on http://{args.host}:{args.port}")
     logger.info("Press Ctrl+C to exit")

@@ -180,8 +180,12 @@ class Handlers:
         """Handle agent update event"""
         agent_id = update_data.get('agent_id', 0)
         
+        logger.debug(f"Handling agent_update for agent {agent_id}")
+        logger.debug(f"Received update data: {update_data}")
+        
         # Store original state before update to access cached values if needed
         cached_state = self.agent_state.states.get(agent_id, {})
+        logger.debug(f"Cached state before update: {cached_state}")
         
         # Update agent info with new data
         self.agent_state.update_agent_info(agent_id, update_data)
@@ -193,22 +197,36 @@ class Handlers:
             plan = update_data.get('plan', {})
             if plan and 'goal' in plan:
                 goal = plan.get('goal')
+                logger.debug(f"Using goal from plan: {goal}")
             else:
                 # Use cached goal from existing state
                 cached_plan = cached_state.get('plan', {})
                 goal = cached_state.get('goal') or cached_plan.get('goal', None)
+                logger.debug(f"Using cached goal: {goal}")
+        else:
+            logger.debug(f"Using goal from update_data: {goal}")
         
         # Get plan from update data or use cached plan
         plan = update_data.get('plan', cached_state.get('plan', {}))
+        logger.debug(f"Using plan: {plan}")
         
-        # Fixed emit to match what client is expecting
-        self.socketio.emit(f'update_agent{agent_id+1}', {
+        # Log plan details specifically
+        if isinstance(plan, dict):
+            logger.debug(f"Plan tactics: {plan.get('tactics')}")
+            logger.debug(f"Plan active tactic: {plan.get('active_tactic')}")
+        
+        # Build the payload to emit
+        payload = {
             'name': update_data.get('name', cached_state.get('name', '')),
             'personality': update_data.get('personality', cached_state.get('personality', '')),
             'tension': update_data.get('tension', cached_state.get('tension', 0)),
             'goal': goal,
             'plan': plan
-        })
+        }
+        logger.debug(f"Emitting update_agent{agent_id+1} with payload: {payload}")
+        
+        # Fixed emit to match what client is expecting
+        self.socketio.emit(f'update_agent{agent_id+1}', payload)
     
     def _handle_pipeline_update(self, update_data):
         """Handle pipeline update event"""

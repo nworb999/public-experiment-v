@@ -1,11 +1,9 @@
 {
-  "memories": [
-    "Bob: Hello there! -> Hi Bob, it's lovely to meet you! How's your day going so far?"
-  ],
-  "conversation_memory": "We've exchanged greetings and are starting to build a friendly rapport.",
+  "memories": [],
+  "conversation_memory": "",
   "relationships": {
     "Bob": {
-      "familiarity": 154
+      "familiarity": 184
     }
   },
   "goal": "build rapport",
