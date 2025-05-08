@@ -1,2 +1,2 @@
-# stable-genius
+# conflictors
 cognitive architecture public experiment
