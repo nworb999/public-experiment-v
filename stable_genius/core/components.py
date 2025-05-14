@@ -39,9 +39,12 @@ class PipelineComponent(ABC):
         """
         pass 
 
-    def _update_step_title(self, context: Dict[str, Any]) -> None:
-        """Update context with component's step title"""
+    def _update_step_details(self, context: Dict[str, Any]) -> None:
+        """Update context with component's step title and summary"""
         context["step_title"] = self.step_title
+
+        if "summary" in context:
+            context["pipeline_summary"] = context["summary"]
 
 
 class PlanComponent(PipelineComponent):
@@ -53,7 +56,7 @@ class PlanComponent(PipelineComponent):
         super().__init__(name)
         self.llm = llm if llm else OllamaLLM()
         self.personality = personality
-        self.plan_processor = PlanProcessor(personality)
+        self.processor = PlanProcessor(personality)
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Generate a plan based on observation and psyche state"""
@@ -97,14 +100,15 @@ class PlanComponent(PipelineComponent):
         })
         
         # Process the plan response based on whether plan exists
-        plan_result = self.plan_processor.process(raw_plan_response, has_plan)
+        plan_result = self.processor.process(raw_plan_response, has_plan)
         
         if has_plan:
             # If plan exists, we're just updating the active tactic
             if "active_tactic" in plan_result:
                 psyche.active_tactic = plan_result["active_tactic"]
                 context.update({
-                    "active_tactic": plan_result["active_tactic"]
+                    "active_tactic": plan_result["active_tactic"],
+                    "summary": plan_result.get("summary", "No summary provided for tactic selection")
                 })
         else:
             # If no plan exists, update psyche with new goal and plan
@@ -119,10 +123,11 @@ class PlanComponent(PipelineComponent):
             
             # Update context with full plan
             context.update({
-                "plan": plan_result
+                "plan": plan_result,
+                "summary": plan_result.get("summary", "No summary provided for plan creation")
             })
         
-        self._update_step_title(context)
+        self._update_step_details(context)
         return context
 
 class ActionComponent(PipelineComponent):
@@ -133,7 +138,7 @@ class ActionComponent(PipelineComponent):
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
         self.llm = llm if llm else OllamaLLM()
-        self.action_processor = ActionProcessor()
+        self.processor = ActionProcessor()
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Generate an action based on the plan and observation"""
@@ -178,7 +183,7 @@ class ActionComponent(PipelineComponent):
             "elapsed_time": f"{elapsed_time:.2f}"
         })
         
-        action_response = self.action_processor.process(raw_action_response)
+        action_response = self.processor.process(raw_action_response)
         
         # Ensure action_response has required keys
         if 'action' not in action_response:
@@ -196,7 +201,7 @@ class ActionComponent(PipelineComponent):
             "speech": action_response.get("speech")
         })
         
-        self._update_step_title(context)
+        self._update_step_details(context)
         return context
 
 class ReflectComponent(PipelineComponent):
@@ -208,13 +213,15 @@ class ReflectComponent(PipelineComponent):
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Update psyche based on the planning and action results"""
         # Extract data from context
-        observation = context.get("observation", "")
+        input_message = context.get("input", "")
+        if not input_message:
+            input_message = context.get("observation", "")
         action = context.get("action", {})
         speech = action.get("speech", "")
         action_type = action.get("action", "say")
         
         # Add to memories
-        psyche.memories.append(f"{observation} -> {speech}")
+        psyche.memories.append(f"{input_message} -> {speech}")
         
         # If action contains a conversation_summary, update the psyche's conversation_memory
         if action.get("conversation_summary"):
@@ -223,9 +230,15 @@ class ReflectComponent(PipelineComponent):
         # Update context with reflection results
         context["reflection"] = {
             "tension_level": psyche.tension_level,
-            "memory_added": f"{observation} -> {speech}",
+            "memory_added": f"{input_message} -> {speech}",
             "conversation_memory": psyche.conversation_memory
         }
+
+        # Add cognitive process summary
+        context["summary"] = "Reflected on the conversation and updated memories and tension level."
+
+        # Make sure step title and summary are updated in context
+        self._update_step_details(context)
         
         return context
         
@@ -242,10 +255,12 @@ class IntentClassifierComponent(PipelineComponent):
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Classify intent of the input and add to context"""
-        observation = context.get("observation", "")
+        last_message = context.get("input", "")
         
+        conversation_history = psyche.memories[-10:] if psyche.memories else []
+
         # Generate intent classification prompt
-        prompt = PromptFormatter.intent_classification_prompt(observation)
+        prompt = PromptFormatter.intent_classification_prompt(last_message, conversation_history)
         
         # Notify before LLM call
         context.update({
@@ -297,7 +312,7 @@ class IntentClassifierComponent(PipelineComponent):
         # Add to context
         context["intent"] = intent_data
         
-        self._update_step_title(context)
+        self._update_step_details(context)
         return context
 
 class TriggerComponent(PipelineComponent):
@@ -367,7 +382,7 @@ class TriggerComponent(PipelineComponent):
         # Save updated psyche
         psyche.save()
         
-        self._update_step_title(context)
+        self._update_step_details(context)
         return context
     
     def _get_or_create_model(self, psyche):

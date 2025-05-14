@@ -241,6 +241,7 @@ class Handlers:
         # Update stage if provided
         if 'stage' in update_data:
             self.agent_state.update_pipeline_stage(agent_id, update_data['stage'])
+        
             
         self.socketio.emit('pipeline_update', {
             'agent_id': agent_id,

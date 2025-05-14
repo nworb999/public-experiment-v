@@ -179,7 +179,8 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
             'agent_id': agent_id,
             'agent_name': agent.name,
             'stage': stage,
-            'data': data
+            'data': data,
+            'summary': data.get('summary', '')
         }, visualizer_url)
     
     # Register pipeline callback

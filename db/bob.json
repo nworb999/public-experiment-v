@@ -1,9 +1,12 @@
 {
-  "memories": [],
-  "conversation_memory": "",
+  "memories": [
+    "Alice: Hi Bob, it's lovely to meet you! How's your day going so far? -> That's nice of you to say, Alice. What brings you here today and what are your goals or expectations from our conversation?",
+    "Alice: I'm not sure what to say. -> What's on your mind, is there something specific you're trying to figure out?"
+  ],
+  "conversation_memory": "Alice seems uncertain, I need to clarify her thoughts to understand her objectives.",
   "relationships": {
     "Alice": {
-      "familiarity": 136
+      "familiarity": 138
     }
   },
   "goal": "gather information",

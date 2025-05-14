@@ -38,8 +38,7 @@ class Psyche(BaseModel):
                 psyche = cls(**data)
                 if psyche.plan and len(psyche.plan) > 0 and not psyche.active_tactic:
                     psyche.active_tactic = psyche.plan[0]
-                    print(f"[DEBUG] Psyche.load: Set active_tactic to {psyche.active_tactic} from plan {psyche.plan}")
-                print(f"[DEBUG] Psyche.load: Loaded plan={psyche.plan}, active_tactic={psyche.active_tactic} for {agent_name}")
+
                 return psyche
             except (json.JSONDecodeError, IOError) as e:
                 logger.info(f"Error loading psyche for {agent_name}: {e}")
@@ -47,7 +46,6 @@ class Psyche(BaseModel):
                 return cls(name=agent_name)
         else:
             # Create a new psyche if no file exists
-            print(f"[DEBUG] Psyche.load: No file for {agent_name}, initializing new psyche with empty plan and active_tactic")
             return cls(name=agent_name)
     
     def save(self):
@@ -73,9 +71,7 @@ class Psyche(BaseModel):
         # Set first tactic as active if not set and we have tactics
         if not self.active_tactic and plan and len(plan) > 0:
             self.active_tactic = plan[0]
-            print(f"[DEBUG] Psyche.update_plan: Set active_tactic to {self.active_tactic} from plan {plan}")
         
-        print(f"[DEBUG] Psyche.update_plan: Updated plan={self.plan}, active_tactic={self.active_tactic}")
         return self
     
     def update_conversation_memory(self, summary: str):

@@ -24,9 +24,9 @@ app = Flask(__name__)
 socketio = SocketIO(app, async_mode='threading')
 
 # Configure additional logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 socketio_logger = logging.getLogger('socketio')
-socketio_logger.setLevel(logging.DEBUG)
+socketio_logger.setLevel(logging.INFO)
 
 # Config directory and file
 config_dir = Path(__file__).parent / "config"
