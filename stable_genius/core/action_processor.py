@@ -17,7 +17,7 @@ class ActionProcessor:
             raw_response: Raw text response from the LLM
             
         Returns:
-            Dictionary with 'action', 'speech' and 'conversation_summary' keys
+            Dictionary with 'action', 'speech', 'conversation_summary', and 'summary' keys
         """
         # Check if this is an error response
         if raw_response.startswith("Error:"):
@@ -26,7 +26,8 @@ class ActionProcessor:
             return {
                 "action": "say",
                 "speech": f"I'm having trouble with my connection. {raw_response}",
-                "conversation_summary": "There was an error in processing."
+                "conversation_summary": "There was an error in processing.",
+                "summary": "Error encountered during action processing, returning error message."
             }
             
         try:
@@ -47,7 +48,8 @@ class ActionProcessor:
                         action = {
                             "action": "say",
                             "speech": "I'm having trouble understanding. Let's try again.",
-                            "conversation_summary": "Having difficulties understanding the conversation."
+                            "conversation_summary": "Having difficulties understanding the conversation.",
+                            "summary": "Failed to parse JSON from response, using fallback response."
                         }
                 else:
                     # Fallback to default action
@@ -55,7 +57,8 @@ class ActionProcessor:
                     action = {
                         "action": "say",
                         "speech": "I'm not sure what to say right now.",
-                        "conversation_summary": "Struggling to formulate a response."
+                        "conversation_summary": "Struggling to formulate a response.",
+                        "summary": "No JSON structure found in response, using default response."
                     }
             
             # Validate required fields
@@ -65,6 +68,8 @@ class ActionProcessor:
                 action["speech"] = "I'm not sure what to say."
             if "conversation_summary" not in action:
                 action["conversation_summary"] = "No summary provided."
+            if "summary" not in action:
+                action["summary"] = "Determined response based on current context and active tactic."
                 
             return action
             
@@ -74,5 +79,6 @@ class ActionProcessor:
             return {
                 "action": "say",
                 "speech": f"I encountered an error in my thinking: {str(e)}",
-                "conversation_summary": "Encountered an error in processing."
+                "conversation_summary": "Encountered an error in processing.",
+                "summary": f"Exception occurred during action processing: {str(e)}"
             } 

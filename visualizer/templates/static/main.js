@@ -164,11 +164,25 @@ const PipelineManager = {
         pipelineContainer.className = 'pipeline-flow';
 
         components.forEach((component, index) => {
+            // Create a step container for each component
+            const stepContainer = document.createElement('div');
+            stepContainer.className = 'pipeline-step';
+            
+            // Create circle for the component
             const circle = document.createElement('div');
             circle.className = 'pipeline-circle';
             circle.id = `${agentId}-${component}`;
             circle.textContent = component;
-            pipelineContainer.appendChild(circle);
+            stepContainer.appendChild(circle);
+            
+            // Create summary element
+            const summary = document.createElement('div');
+            summary.className = 'pipeline-summary';
+            summary.id = `${agentId}-${component}-summary`;
+            stepContainer.appendChild(summary);
+            
+            // Add the step to the pipeline
+            pipelineContainer.appendChild(stepContainer);
 
             if (index < components.length - 1) {
                 const arrow = document.createElement('div');
@@ -192,8 +206,9 @@ const PipelineManager = {
      * Updates the active stage in a pipeline visualization
      * @param {number} agentId - The ID of the agent (0 or 1)
      * @param {string} stage - The active stage name
+     * @param {Object} data - The pipeline data including summary
      */
-    updatePipelineStage(agentId, stage) {
+    updatePipelineStage(agentId, stage, data = {}) {
         if (!stage) {
             console.warn(`Cannot update pipeline stage: No stage provided for agent ${agentId}`);
             return;
@@ -207,6 +222,12 @@ const PipelineManager = {
         const currentCircle = document.getElementById(`${agentId}-${stage}`);
         if (currentCircle) {
             currentCircle.classList.add('active');
+            
+            // Update summary if available
+            const summary = document.getElementById(`${agentId}-${stage}-summary`);
+            if (summary && data.summary) {
+                summary.textContent = data.summary;
+            }
         } else {
             console.warn(`Pipeline stage element not found: ${agentId}-${stage}`);
         }
@@ -503,17 +524,17 @@ socket.on('update_agent2', (data) => {
     AgentManager.updateAgentInfo(1, data);
 });
 
+// Handle pipeline update event
 socket.on('pipeline_update', (data) => {
-    const { agent_id, stage, data: pipelineData } = data;
+    console.log('Pipeline update:', data);
     
-    // If we receive components data, recreate the pipeline
-    if (pipelineData && pipelineData.components && Array.isArray(pipelineData.components)) {
-        PipelineManager.createPipelineFlow(agent_id, pipelineData.components);
-    }
+    const agentId = data.agent_id;
+    const stage = data.stage;
+    const pipelineData = data.data || {};
     
-    // Only update on non-start events
-    if (stage && !stage.endsWith('_start')) {
-        PipelineManager.updatePipelineStage(agent_id, stage);
+    // Update pipeline stage if provided
+    if (stage) {
+        PipelineManager.updatePipelineStage(agentId, stage, pipelineData);
     }
 });
 

@@ -152,18 +152,12 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
     
     # Define pipeline callback
     def pipeline_callback(stage, data):
-        if stage == "llm_call":
-            # Add context to the interaction data
-            interaction_context = {
-                'conversation_id': conversation_id,
-                'turn': turn,
-                'agent': agent.name
-            }
-            
-            # Update LLM data with context
-            data.update(interaction_context)
-            
-            # Send LLM interaction to visualizer
+        """Callback function for pipeline progress"""
+        logger.debug(f"Pipeline update for agent {agent_id}: {stage}")
+        
+        # Check if this is an LLM interaction (indicated by llm_call flag)
+        if data and data.get('llm_call') is True:
+            # When we have an LLM interaction, send it to the visualizer
             send_to_visualizer({
                 'event_type': 'llm_interaction',
                 'prompt': data.get('prompt', ''),
@@ -174,12 +168,17 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
                 'step_title': data.get('step_title', '')
             }, visualizer_url)
         
+        # Extract summary if available to send with pipeline update
+        pipeline_data = data.copy() if data else {}
+        summary = data.get('summary', data.get('pipeline_summary', ''))
+        
         send_to_visualizer({
             'event_type': 'pipeline_update',
             'agent_id': agent_id,
             'agent_name': agent.name,
             'stage': stage,
-            'data': data
+            'data': pipeline_data,
+            'summary': summary  # Include summary directly in the update
         }, visualizer_url)
     
     # Register pipeline callback

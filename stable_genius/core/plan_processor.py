@@ -26,14 +26,18 @@ class PlanProcessor:
             logger.info(f"Planning error encountered: {raw_response}")
             if has_plan:
                 # For tactic selection errors, return default active tactic
-                return {"active_tactic": self._get_first_tactic_from_default_plan()}
+                return {
+                    "active_tactic": self._get_first_tactic_from_default_plan(),
+                    "summary": "Error in processing, defaulting to first tactic."
+                }
             else:
                 # For plan generation errors, return default plan
                 plan = self._default_plan()
                 return {
                     "goal": self._default_goal(),
                     "plan": plan,
-                    "active_tactic": plan[0] if plan else None
+                    "active_tactic": plan[0] if plan else None,
+                    "summary": "Error in planning, using default plan based on personality."
                 }
             
         try:
@@ -51,25 +55,33 @@ class PlanProcessor:
                     except json.JSONDecodeError:
                         logger.info(f"Failed to parse JSON from response: {raw_response}")
                         if has_plan:
-                            return {"active_tactic": self._get_first_tactic_from_default_plan()}
+                            return {
+                                "active_tactic": self._get_first_tactic_from_default_plan(),
+                                "summary": "Failed to parse response, defaulting to first tactic."
+                            }
                         else:
                             default_plan = self._default_plan()
                             return {
                                 "goal": self._default_goal(),
                                 "plan": default_plan,
-                                "active_tactic": default_plan[0] if default_plan else None
+                                "active_tactic": default_plan[0] if default_plan else None,
+                                "summary": "Failed to parse response, using default plan based on personality."
                             }
                 else:
                     # Fallback to default
                     logger.info(f"No JSON found in response: {raw_response}")
                     if has_plan:
-                        return {"active_tactic": self._get_first_tactic_from_default_plan()}
+                        return {
+                            "active_tactic": self._get_first_tactic_from_default_plan(),
+                            "summary": "No valid JSON found, defaulting to first tactic."
+                        }
                     else:
                         default_plan = self._default_plan()
                         return {
                             "goal": self._default_goal(),
                             "plan": default_plan,
-                            "active_tactic": default_plan[0] if default_plan else None
+                            "active_tactic": default_plan[0] if default_plan else None,
+                            "summary": "No valid JSON found, using default plan based on personality."
                         }
             
             # Process based on whether we're selecting a tactic or generating a plan
@@ -77,7 +89,12 @@ class PlanProcessor:
                 # For tactic selection, we only need active_tactic
                 if "active_tactic" not in json_data:
                     json_data["active_tactic"] = self._get_first_tactic_from_default_plan()
-                return {"active_tactic": json_data["active_tactic"]}
+                if "summary" not in json_data:
+                    json_data["summary"] = "Selected tactic based on current conversation state."
+                return {
+                    "active_tactic": json_data["active_tactic"],
+                    "summary": json_data.get("summary")
+                }
             else:
                 # For plan generation
                 if "goal" not in json_data:
@@ -91,6 +108,10 @@ class PlanProcessor:
                     
                 # Set active_tactic to first tactic in plan
                 json_data["active_tactic"] = json_data["plan"][0] if json_data["plan"] else None
+                
+                # Add summary if missing
+                if "summary" not in json_data:
+                    json_data["summary"] = "Generated plan based on personality and current state."
                     
                 return json_data
             
@@ -98,13 +119,17 @@ class PlanProcessor:
             logger.info(f"Error processing plan: {str(e)}")
             # Fallback based on context
             if has_plan:
-                return {"active_tactic": self._get_first_tactic_from_default_plan()}
+                return {
+                    "active_tactic": self._get_first_tactic_from_default_plan(),
+                    "summary": f"Exception occurred: {str(e)}. Defaulting to first tactic."
+                }
             else:
                 default_plan = self._default_plan()
                 return {
                     "goal": self._default_goal(), 
                     "plan": default_plan,
-                    "active_tactic": default_plan[0] if default_plan else None
+                    "active_tactic": default_plan[0] if default_plan else None,
+                    "summary": f"Exception occurred: {str(e)}. Using default plan."
                 }
     
     def _default_goal(self) -> str:

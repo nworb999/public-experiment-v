@@ -87,11 +87,19 @@ class Handlers:
         logger.debug(f"LLM interaction received - Title: {step_title}")
         logger.debug(f"Prompt length: {len(prompt)}, Response length: {len(response)}")
         
-        # Store in history
+        # Add additional debug logging
+        if not prompt or not response:
+            logger.warning(f"Empty prompt or response detected in LLM interaction for {step_title}")
+            logger.warning(f"Full update data: {update_data}")
+        
+        # Store in history - this populates the history stack
         self.history.add_interaction(prompt, response, step_title, elapsed_time)
         
         # Format elapsed time
         formatted_time = f"{elapsed_time}s" if elapsed_time not in [None, '--'] else '--'
+        
+        # Log details of what we're sending to the client
+        logger.debug(f"Emitting llm_interaction event with: step_title={step_title}, prompt_len={len(prompt)}, response_len={len(response)}")
         
         # Ensure we're explicitly including the prompt and response in the emit
         event_data = {
@@ -242,11 +250,18 @@ class Handlers:
         if 'stage' in update_data:
             self.agent_state.update_pipeline_stage(agent_id, update_data['stage'])
             
+        # Extract summary if available
+        pipeline_data = update_data.get('data', {})
+        
+        # If summary is directly in the update data, add it to pipeline data
+        if 'summary' in update_data:
+            pipeline_data['summary'] = update_data['summary']
+            
         self.socketio.emit('pipeline_update', {
             'agent_id': agent_id,
             'agent_name': update_data.get('agent_name', ''),
             'stage': update_data.get('stage', ''),
-            'data': update_data.get('data', {})
+            'data': pipeline_data
         })
     
     def handle_connect(self):
