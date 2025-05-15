@@ -18,6 +18,15 @@ const PipelineManager = {
         const pipelineContainer = document.createElement('div');
         pipelineContainer.className = 'pipeline-flow';
 
+        // New: create a row for summaries
+        const summaryRow = document.createElement('div');
+        summaryRow.className = 'pipeline-summary-row';
+        summaryRow.style.display = 'flex';
+        summaryRow.style.flexDirection = 'row';
+        summaryRow.style.justifyContent = 'space-between';
+        summaryRow.style.width = '100%';
+        summaryRow.style.marginTop = '8px';
+
         components.forEach((component, index) => {
             const stepContainer = document.createElement('div');
             stepContainer.className = 'pipeline-step';
@@ -28,10 +37,11 @@ const PipelineManager = {
             circle.textContent = component;
             stepContainer.appendChild(circle);
 
+            // Move summary to summary row instead of inside step
             const summary = document.createElement('div');
             summary.className = 'pipeline-summary';
             summary.id = `${agentId}-${component}-summary`;
-            stepContainer.appendChild(summary);
+            summaryRow.appendChild(summary);
 
             // Add the step to the pipeline
             pipelineContainer.appendChild(stepContainer);
@@ -52,8 +62,9 @@ const PipelineManager = {
         // Clear entire pipeline content
         pipelineElement.innerHTML = ''; 
         
-        // Append the new pipeline
+        // Append the new pipeline and summary row
         pipelineElement.appendChild(pipelineContainer);
+        pipelineElement.appendChild(summaryRow);
     },
 
     /**
@@ -74,11 +85,11 @@ const PipelineManager = {
         
         // Add active class to current stage
         const currentCircle = document.getElementById(`${agentId}-${stage}`);
-        
-        // TODO why 0-pipeline?
+
         if (currentCircle) {
             currentCircle.classList.add('active');
 
+            // Update summary in the summary row
             const summary = document.getElementById(`${agentId}-${stage}-summary`);
             if (summary && data.summary) {
                 summary.textContent = data.summary;

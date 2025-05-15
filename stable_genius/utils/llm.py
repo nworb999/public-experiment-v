@@ -4,7 +4,8 @@ import sys
 import time
 from stable_genius.utils.logger import logger
 
-MODEL_NAME = "llama3.3:70b-instruct-q2_K"
+# MODEL_NAME = "llama3.3:70b-instruct-q2_K"
+MODEL_NAME = "llama3:8b"
 
 class OllamaLLM:
     """Interface to the Ollama API for LLM generation"""

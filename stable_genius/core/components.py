@@ -245,8 +245,7 @@ class ReflectComponent(PipelineComponent):
 
 class IntentClassifierComponent(PipelineComponent):
     """Classifies user intent from input text"""
-    # TODO put pre-composed plans here to choose from in plan
-    
+
     step_title = "Intent Classification"
     
     def __init__(self, name: str, llm: OllamaLLM = None):
