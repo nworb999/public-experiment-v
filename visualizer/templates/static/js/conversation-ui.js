@@ -12,6 +12,7 @@ const ConversationManager = {
      */
     updateConversation(data) {
         // Move content down to other boxes first
+        // TODO add null check
         UI.promptBoxes[2].textContent = UI.promptBoxes[1].textContent;
         UI.promptTitles[2].textContent = UI.promptTitles[1].textContent;
         UI.responseBoxes[2].textContent = UI.responseBoxes[1].textContent;

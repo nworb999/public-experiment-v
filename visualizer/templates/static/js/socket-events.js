@@ -165,17 +165,15 @@ function initializeSocketEvents(io) {
         AgentManager.updateAgentInfo(1, data);
     });
 
-    socket.on('pipeline_update', (data) => {
-        const { agent_id, stage, data: pipelineData } = data;
+    socket.on('pipeline_update', (data) => {  
+        console.log('Pipeline update:', data);      
+        const agentId = data.agent_id;
+        const stage = data.stage;
+        const pipelineData = data.data || {};
         
-        // If we receive components data, recreate the pipeline
-        if (pipelineData && pipelineData.components && Array.isArray(pipelineData.components)) {
-            PipelineManager.createPipelineFlow(agent_id, pipelineData.components);
-        }
-        
-        // Only update on non-start events
-        if (stage && !stage.endsWith('_start')) {
-            PipelineManager.updatePipelineStage(agent_id, stage);
+        // Update pipeline stage if provided
+        if (stage) {
+            PipelineManager.updatePipelineStage(agentId, stage, pipelineData);
         }
     });
 
