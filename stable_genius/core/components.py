@@ -237,6 +237,12 @@ class ReflectComponent(PipelineComponent):
         # Add cognitive process summary
         context["summary"] = "Reflected on the conversation and updated memories and tension level."
 
+        # Update psyche.interior['summary'] with the reflection summary
+        if not hasattr(psyche, "interior") or not isinstance(psyche.interior, dict):
+            psyche.interior = {"summary": "", "principles": ""}
+        psyche.interior["summary"] = context["summary"]
+        psyche.save()
+
         # Make sure step title and summary are updated in context
         self._update_step_details(context)
         

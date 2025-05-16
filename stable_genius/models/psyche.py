@@ -18,6 +18,7 @@ class Psyche(BaseModel):
     personality: str = "neutral"  # Default personality
     name: str = "Agent"  # Agent name
     stressful_phrases: List[str] = []  # Personalized list of stressful phrases
+    interior: Dict[str, Any] = {"summary": "", "principles": ""}  # New aspect for agent's interior
     
     @classmethod
     def load(cls, agent_name: str):
