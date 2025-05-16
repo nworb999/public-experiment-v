@@ -310,7 +310,8 @@ class IntentClassifierComponent(PipelineComponent):
             
         # Add to context
         context["intent"] = intent_data
-        
+        context["summary"] = f"Classified intent as {intent_data['intent']} with confidence {intent_data['confidence']}%"
+
         self._update_step_details(context)
         return context
 
@@ -377,6 +378,8 @@ class TriggerComponent(PipelineComponent):
             "tension_after": psyche.tension_level,
             "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
         }
+
+        context["summary"] = f"Analyzed tension level based on stress score {stress_score}, known stressful phrases {psyche.stressful_phrases[:5]}"
         
         # Save updated psyche
         psyche.save()

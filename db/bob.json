@@ -2,10 +2,10 @@
   "memories": [
     "Alice: Hello, how are you doing today? -> What brings you here today?"
   ],
-  "conversation_memory": "We've exchanged greetings, now it's time to dig deeper and understand Alice's motivations.",
+  "conversation_memory": "We've exchanged greetings, now it's time to dig deeper into the purpose of our meeting.",
   "relationships": {
     "Alice": {
-      "familiarity": 152
+      "familiarity": 158
     }
   },
   "goal": "gather information",

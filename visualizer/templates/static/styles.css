@@ -341,7 +341,7 @@ body {
     font-size: 10px;
     color: #00FF00;
     margin-top: 8px;
-    text-align: center;
+    text-align: left;
     max-width: 160px;
     opacity: 0.8;
     flex: 1 1 0;
@@ -453,8 +453,9 @@ body {
 
 .message-left {
     align-self: flex-start;
-    background: rgba(0, 255, 0, 0.1);
-    border-left: 3px solid #00FF00;
+    background: rgba(255, 140, 0, 0.1);
+    border-left: 3px solid #FF8C00;
+    color: #FF8C00;
 }
 
 .message-right {
@@ -487,4 +488,13 @@ body {
     justify-content: space-between;
     width: 100%;
     margin-top: 8px;
+    gap: 0.1vw;
+}
+
+.pipeline-summary-row .pipeline-summary:first-child {
+    padding-left: 1vw;
+}
+
+.pipeline-summary-row .pipeline-summary:last-child {
+    padding-right: 1vw;
 }
