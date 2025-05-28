@@ -20,7 +20,8 @@ const AgentManager = {
             tension: document.getElementById(`${agentName}-tension`),
             goal: document.getElementById(`${agentName}-goal`),
             tactic: document.getElementById(`${agentName}-tactic`),
-            plan: document.getElementById(`${agentName}-plan`)
+            plan: document.getElementById(`${agentName}-plan`),
+            interior: document.getElementById(`${agentName}-interior`)
         };
         
         Logger.log(`Updating agent ${agentId} with data:`, data);
@@ -58,6 +59,19 @@ const AgentManager = {
             agent.plan.textContent = data.plan.tactics.join(', ');
         } else {
             Logger.log(`No tactics found for agent ${agentId}`, data.plan);
+        }
+        
+        // Handle interior
+        if (data.interior) {
+            Logger.log(`Setting interior for agent ${agentId}:`, data.interior);
+            if (typeof data.interior === 'object') {
+                // Display principles specifically, fallback to summary if no principles
+                const interiorText = data.interior.principles || '--';
+                agent.interior.textContent = interiorText;
+            } else {
+                // If interior is a string, display it directly
+                agent.interior.textContent = data.interior;
+            }
         }
     },
     

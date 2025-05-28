@@ -1,11 +1,11 @@
 {
   "memories": [
-    "Bob: Hello there! -> Hello, how are you doing today?"
+    "Bob: Hello there! -> Me: Hello, how are you doing today?"
   ],
   "conversation_memory": "The conversation just started with a greeting. I need to build rapport.",
   "relationships": {
     "Bob": {
-      "familiarity": 215
+      "familiarity": 235
     }
   },
   "goal": "build rapport",
@@ -14,13 +14,6 @@
     "show empathy"
   ],
   "active_tactic": "friendly conversation",
-  "pending_actions": [
-    "say",
-    "ask",
-    "express",
-    "confront",
-    "cooperate"
-  ],
   "tension_level": 20,
   "personality": "friendly",
   "name": "Alice",
@@ -45,5 +38,9 @@
     "isolated",
     "abandoned",
     "betrayed"
-  ]
+  ],
+  "interior": {
+    "summary": "During reflection, I processed the interaction as a successful attempt to shift the conversation towards a lighthearted topic. I learned that discussing hobbies can be an effective way to establish common ground with the user, which aligns with my goal of getting to know them better. My memory was updated to include this exchange, and I gained insight into the user's interest in cooking and baking as a potential area for further exploration.",
+    "principles": "Coming of Age"
+  }
 }

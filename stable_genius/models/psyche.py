@@ -13,7 +13,6 @@ class Psyche(BaseModel):
     goal: Optional[str] = None
     plan: Optional[List[str]] = None  # Tactics list
     active_tactic: Optional[str] = None  # Currently active tactic
-    pending_actions: List[str] = []
     tension_level: int = 0  # 0-100 stress meter
     personality: str = "neutral"  # Default personality
     name: str = "Agent"  # Agent name
@@ -79,7 +78,45 @@ class Psyche(BaseModel):
         """Update conversation memory with a new summary"""
         self.conversation_memory = summary
         return self
-            
+    
+    def update_interior_summary(self, summary: str):
+        """Update the interior summary (personal narrative)"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        self.interior["summary"] = summary
+        return self
+    
+    def update_interior_principles(self, principles: str):
+        """Update the interior principles"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        self.interior["principles"] = principles
+        return self
+    
+    def get_interior_summary(self) -> str:
+        """Get the current interior summary"""
+        if hasattr(self, "interior") and isinstance(self.interior, dict):
+            return self.interior.get("summary", "")
+        return ""
+    
+    def get_interior_principles(self) -> str:
+        """Get the current interior principles"""
+        if hasattr(self, "interior") and isinstance(self.interior, dict):
+            return self.interior.get("principles", "")
+        return ""
+    
+    def update_interior(self, summary: str = None, principles: str = None):
+        """Update interior state with summary and/or principles"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        
+        if summary is not None:
+            self.interior["summary"] = summary
+        if principles is not None:
+            self.interior["principles"] = principles
+        
+        return self
+    
     def clear_memories(self):
         """Clear all memories from this psyche"""
         self.memories = []

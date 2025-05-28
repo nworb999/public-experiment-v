@@ -106,7 +106,8 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
-            'plan': plan_payload
+            'plan': plan_payload,
+            'interior': agent_psyche.interior
         }, visualizer_url)
 
 async def send_agent_initialization(agents, visualizer_url):
@@ -128,7 +129,8 @@ async def send_agent_initialization(agents, visualizer_url):
             'tension': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'plan': plan_payload,
-            'components': component_names  # Include component names
+            'components': component_names,  # Include component names
+            'interior': agent_psyche.interior
         })
     logger.debug(f"Sending initialize_agents event with data: {agents_data}")
     send_to_visualizer({
@@ -217,7 +219,8 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
-            'plan': plan_payload
+            'plan': plan_payload,
+            'interior': agent_psyche.interior
         }, visualizer_url)
         send_to_visualizer({
             'event_type': 'add_message',

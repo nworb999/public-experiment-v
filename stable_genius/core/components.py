@@ -207,8 +207,11 @@ class ActionComponent(PipelineComponent):
 class ReflectComponent(PipelineComponent):
     """Updates the psyche based on plan, action, and observation"""
     
-    def __init__(self, name: str):
+    step_title = "Reflection"
+    
+    def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
+        self.llm = llm if llm else OllamaLLM()
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Update psyche based on the planning and action results"""
@@ -218,29 +221,79 @@ class ReflectComponent(PipelineComponent):
             input_message = context.get("observation", "")
         action = context.get("action", {})
         speech = action.get("speech", "")
-        action_type = action.get("action", "say")
         
         # Add to memories
-        psyche.memories.append(f"{input_message} -> {speech}")
+        psyche.memories.append(f"{input_message} -> Me: {speech}")
         
         # If action contains a conversation_summary, update the psyche's conversation_memory
+        conversation_summary = None
         if action.get("conversation_summary"):
             psyche.update_conversation_memory(action.get("conversation_summary"))
+            conversation_summary = action.get("conversation_summary")
+        
+        # Generate reflection prompt
+        reflection_prompt = PromptFormatter.reflection_prompt(
+            psyche, input_message, action, psyche.tension_level, conversation_summary
+        )
+        
+        # Notify before LLM call
+        context.update({
+            "llm_call_start": True,
+            "prompt": reflection_prompt
+        })
+        
+        # Generate reflection summary
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": self.name
+        }
+        
+        # Start time tracking
+        start_time = time.time()
+        
+        raw_reflection_response = self.llm.generate(reflection_prompt, agent_context)
+        
+        # Calculate elapsed time
+        elapsed_time = time.time() - start_time
+        
+        # Notify after LLM call with prompt and response
+        context.update({
+            "llm_call": True,
+            "prompt": reflection_prompt,
+            "response": raw_reflection_response,
+            "timestamp": timestamp,
+            "elapsed_time": f"{elapsed_time:.2f}"
+        })
+        
+        # Process reflection response
+        try:
+            import json
+            start = raw_reflection_response.find('{')
+            end = raw_reflection_response.rfind('}') + 1
+            
+            if start >= 0 and end > 0:
+                reflection_data = json.loads(raw_reflection_response[start:end])
+                principles_insight = reflection_data.get("principles_insight", "")
+                reflection_summary = principles_insight if principles_insight else "Applied principles to guide response."
+            else:
+                reflection_summary = "Applied principles to guide response."
+                
+        except Exception as e:
+            logger.error(f"Error processing reflection response: {e}")
+            reflection_summary = "Applied principles to guide response."
         
         # Update context with reflection results
         context["reflection"] = {
             "tension_level": psyche.tension_level,
-            "memory_added": f"{input_message} -> {speech}",
+            "memory_added": f"{input_message} -> Me: {speech}",
             "conversation_memory": psyche.conversation_memory
         }
 
-        # Add cognitive process summary
-        context["summary"] = "Reflected on the conversation and updated memories and tension level."
-
-        # Update psyche.interior['summary'] with the reflection summary
-        if not hasattr(psyche, "interior") or not isinstance(psyche.interior, dict):
-            psyche.interior = {"summary": "", "principles": ""}
-        psyche.interior["summary"] = context["summary"]
+        # Add principles insight as the summary
+        context["summary"] = reflection_summary
         psyche.save()
 
         # Make sure step title and summary are updated in context

@@ -215,13 +215,17 @@ class Handlers:
             logger.debug(f"Plan tactics: {plan.get('tactics')}")
             logger.debug(f"Plan active tactic: {plan.get('active_tactic')}")
         
+        # Get interior from update data or use cached interior
+        interior = update_data.get('interior', cached_state.get('interior', {}))
+        
         # Build the payload to emit
         payload = {
             'name': update_data.get('name', cached_state.get('name', '')),
             'personality': update_data.get('personality', cached_state.get('personality', '')),
             'tension': update_data.get('tension', cached_state.get('tension', 0)),
             'goal': goal,
-            'plan': plan
+            'plan': plan,
+            'interior': interior
         }
         logger.debug(f"Emitting update_agent{agent_id+1} with payload: {payload}")
         

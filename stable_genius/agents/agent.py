@@ -43,10 +43,7 @@ class Agent:
         # Update personality if different
         if psyche.personality != personality:
             psyche.personality = personality
-            
-        # Ensure actions are set
-        if not psyche.pending_actions:
-            psyche.pending_actions = ["say", "ask", "express", "confront", "cooperate"]
+        
         
         # Initialize plan and active tactic if missing
         if not psyche.plan:

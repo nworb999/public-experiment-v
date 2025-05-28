@@ -31,6 +31,10 @@ class AgentState:
             'pipeline': {
                 'components': [],
                 'stage': ''
+            },
+            'interior': {
+                'summary': '',
+                'principles': ''
             }
         }
     
@@ -51,8 +55,8 @@ class AgentState:
             
         logger.debug(f"Updating agent {agent_id} with data: {update_data}")
             
-        # Update name, personality, tension and conversation_memory if present
-        for key in ['name', 'personality', 'tension', 'conversation_memory']:
+        # Update name, personality, tension, conversation_memory and interior if present
+        for key in ['name', 'personality', 'tension', 'conversation_memory', 'interior']:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
         
