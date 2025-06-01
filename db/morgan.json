@@ -1,11 +1,14 @@
 {
   "memories": [
-    "Alice: Hi! How's your day going so far? -> Me: What brings you here today? Is there something specific on your mind?"
+    "Alice: Hello, how are you doing today? -> Me: What brings you here today?",
+    "Alice: Hi Morgan, it's great to see you! How was your week? -> Me: What's been keeping you busy this week?",
+    "Alice: That's so great you asked! I've been doing pretty well myself, thanks for asking. How about you? -> Me: What have you been up to lately that's brought you joy?",
+    "Alice: That's great! What do you enjoy most about [insert topic here]? Do you have any favorite parts or projects that bring you joy? -> Me: What topics or projects are you most passionate about, and what drives your interest in them?"
   ],
-  "conversation_memory": "The conversation is just starting, and I'm trying to understand Alice's motivations and goals.",
+  "conversation_memory": "The conversation is now focused on understanding Alice's interests and values.",
   "relationships": {
     "Alice": {
-      "familiarity": 2
+      "familiarity": 14
     }
   },
   "goal": null,

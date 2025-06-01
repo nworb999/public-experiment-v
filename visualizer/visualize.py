@@ -38,7 +38,7 @@ history_server_url = None
 class MainVisualizerApp:
     """Main visualizer application class"""
     
-    def __init__(self):
+    def __init__(self, auto_restart=True):
         # Create directories if they don't exist
         CONFIG_DIR.mkdir(exist_ok=True)
         TEMPLATE_DIR.mkdir(exist_ok=True)
@@ -55,6 +55,9 @@ class MainVisualizerApp:
         self.agent_state = AgentState()
         self.history = ConversationHistory()
         self.conversation = ConversationManager(self.socketio)
+        
+        # Set auto-restart preference
+        self.conversation.set_auto_restart(auto_restart)
         
         # Initialize config
         self.config = load_config()
@@ -175,13 +178,13 @@ class HistoryVisualizerApp:
         self.socketio.run(self.app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
 
 
-def run_main_server(port, api_url, auto_start, history_port, server_ready_event):
+def run_main_server(port, api_url, auto_start, history_port, auto_restart, server_ready_event):
     """Run the main visualization server in a thread"""
     global history_server_url
     history_server_url = f"http://localhost:{history_port}"
     
     logger.info(f"Starting main visualization server on http://localhost:{port}")
-    app = MainVisualizerApp()
+    app = MainVisualizerApp(auto_restart=auto_restart)
     server_ready_event.set()  # Signal that server is ready
     app.run(port=port, api_url=api_url, auto_start=auto_start)
 
@@ -218,6 +221,7 @@ def main():
     parser.add_argument("--history-port", type=int, default=HISTORY_PORT, help="Port to run the history visualization server on")
     parser.add_argument("--api-url", default=DEFAULT_API_URL, help="URL of the conversation API server")
     parser.add_argument("--no-auto-start", action="store_true", help="Disable auto-starting a conversation on connect")
+    parser.add_argument("--no-auto-restart", action="store_true", help="Disable auto-restarting conversations when they end")
     parser.add_argument("--main-only", action="store_true", help="Run only the main visualization server")
     parser.add_argument("--history-only", action="store_true", help="Run only the history visualization server")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -233,6 +237,7 @@ def main():
     history_port = args.history_port
     api_url = args.api_url
     auto_start = not args.no_auto_start
+    auto_restart = not args.no_auto_restart
     
     # Log server information
     if not args.history_only:
@@ -246,6 +251,9 @@ def main():
     if auto_start and not args.history_only:
         logger.info("Will auto-start conversation when client connects to main server")
     
+    if auto_restart and not args.history_only:
+        logger.info("Will auto-restart conversations when they end (creating infinite loop)")
+    
     logger.info("Press Ctrl+C to exit")
     
     # Events to signal when servers are ready
@@ -258,7 +266,7 @@ def main():
     if not args.history_only:
         main_thread = threading.Thread(
             target=run_main_server,
-            args=(main_port, api_url, auto_start, history_port, main_server_ready),
+            args=(main_port, api_url, auto_start, history_port, auto_restart, main_server_ready),
             daemon=True
         )
         main_thread.start()

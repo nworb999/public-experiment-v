@@ -4,17 +4,25 @@ from stable_genius.models.psyche import Psyche
 
 class PromptFormatter:
     @staticmethod
+    def _format_psyche_context(psyche: Psyche) -> str:
+        """Helper method to format consistent psyche context"""
+        return f"""You are {psyche.name} with a {psyche.personality} personality.
+Current state: {psyche.tension_level}/100 tension
+Recent history: {psyche.memories[-3:] if psyche.memories else 'No memories yet'}
+Relationships: {list(psyche.relationships.keys())}
+Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
+Current goal: {psyche.goal or 'No goal set'}
+Current plan: {psyche.plan or 'No plan set'}
+Active tactic: {psyche.active_tactic or 'None'}"""
+
+    @staticmethod
     def plan_prompt(psyche: Psyche) -> str:
         """Format psyche into planning prompt"""
         if psyche.plan:
             # If a plan exists, direct to tactic_selection_prompt instead
             return PromptFormatter.tactic_selection_prompt(psyche)
             
-        return f"""You are {psyche.name} with a {psyche.personality} personality.
-Current state: {psyche.tension_level}/100 tension
-Recent history: {psyche.memories[-3:] if psyche.memories else 'No memories yet'}
-Relationships: {list(psyche.relationships.keys())}
-Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
 
 What should be your goal and plan in this conversation?
 
@@ -26,14 +34,7 @@ Example response: {{"goal": "convince them to buy your product", "plan": ["ask q
     @staticmethod
     def tactic_selection_prompt(psyche: Psyche) -> str:
         """Format psyche into tactic selection prompt"""
-        return f"""You are {psyche.name} with a {psyche.personality} personality.
-Current state: {psyche.tension_level}/100 tension
-Recent history: {psyche.memories[-3:] if psyche.memories else 'No memories yet'}
-Relationships: {list(psyche.relationships.keys())}
-Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
-Current goal: {psyche.goal or 'No goal set'}
-Current plan: {psyche.plan}
-Active tactic: {psyche.active_tactic or 'None'}
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
 
 Given the current state of the conversation, should you:
 1. Keep using the current tactic "{psyche.active_tactic}" because it's working or not yet complete
@@ -46,11 +47,9 @@ Example response: {{"active_tactic": "show empathy", "summary": "The conversatio
     @staticmethod
     def act_prompt(psyche: Psyche, observation: str) -> str:
         """Format psyche into action prompt"""
-        return f"""You are {psyche.name} with a {psyche.personality} personality.
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
+
 {observation}
-Current goal: {psyche.goal or 'None'}
-Active tactic: {psyche.active_tactic or 'None'}
-Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
 
 How should you respond? Use your active tactic to guide your response.
 
@@ -110,7 +109,7 @@ Respond with a JSON object containing:
         if interior_principles:
             interior_context += f"Your guiding principles: {interior_principles}\n"
         
-        return f"""You are {psyche.name} with a {psyche.personality} personality.
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
 
 {interior_context}
 You just processed this interaction:

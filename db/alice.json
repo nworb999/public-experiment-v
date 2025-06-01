@@ -1,11 +1,14 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Hi! How's your day going so far?"
+    "Morgan: Hello there! -> Me: Hello, how are you doing today?",
+    "Morgan: What brings you here today? -> Me: Hi Morgan, it's great to see you! How was your week?",
+    "Morgan: What's been keeping you busy this week? -> Me: That's so great you asked! I've been doing pretty well myself, thanks for asking. How about you?",
+    "Morgan: What have you been up to lately that's brought you joy? -> Me: That's great! What do you enjoy most about [insert topic here]? Do you have any favorite parts or projects that bring you joy?"
   ],
-  "conversation_memory": "The conversation has started, and we're exchanging pleasantries. I'll keep it light and casual.",
+  "conversation_memory": "The conversation is off to a friendly start with Morgan sharing what they've been up to. I'm building on the rapport by showing genuine interest and curiosity.",
   "relationships": {
     "Morgan": {
-      "familiarity": 2
+      "familiarity": 16
     }
   },
   "goal": null,
