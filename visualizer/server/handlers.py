@@ -25,6 +25,7 @@ class Handlers:
     def _setup_routes(self):
         """Set up Flask routes"""
         self.app.route('/')(self.index)
+        self.app.route('/conversation')(self.conversation_page)
         self.app.route('/api/update', methods=['POST'])(self.receive_update)
     
     def _setup_socketio_handlers(self):
@@ -36,6 +37,10 @@ class Handlers:
     def index(self):
         """Handle root route"""
         return render_template('index.html')
+    
+    def conversation_page(self):
+        """Handle conversation route"""
+        return render_template('conversation.html')
     
     def receive_update(self):
         """Receive updates from the conversation API server"""

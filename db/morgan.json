@@ -1,0 +1,51 @@
+{
+  "memories": [
+    "Alice: Hi! How's your day going so far? -> Me: What brings you here today? Is there something specific on your mind?"
+  ],
+  "conversation_memory": "The conversation is just starting, and I'm trying to understand Alice's motivations and goals.",
+  "relationships": {
+    "Alice": {
+      "familiarity": 2
+    }
+  },
+  "goal": null,
+  "plan": [
+    "ask targeted questions",
+    "analyze responses"
+  ],
+  "active_tactic": "ask targeted questions",
+  "tension_level": 40,
+  "personality": "analytical",
+  "name": "Morgan",
+  "stressful_phrases": [
+    "uncertain",
+    "unclear",
+    "ambiguous",
+    "imprecise",
+    "approximate",
+    "error",
+    "mistake",
+    "incorrect",
+    "flawed",
+    "bug",
+    "problem",
+    "lacking data",
+    "insufficient",
+    "unverified",
+    "unreliable",
+    "inconsistent",
+    "illogical",
+    "irrational",
+    "failure",
+    "deadline",
+    "incomplete",
+    "inefficient",
+    "complex",
+    "chaotic",
+    "unpredictable"
+  ],
+  "interior": {
+    "summary": "",
+    "principles": "Unlikely Friendship"
+  }
+}

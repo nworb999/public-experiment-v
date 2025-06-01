@@ -1,22 +1,28 @@
+from dotenv import load_dotenv
 import json
 import requests
 import sys
 import time
 from stable_genius.utils.logger import logger
+import os
+
+load_dotenv()
 
 # MODEL_NAME = "llama3.3:70b-instruct-q2_K"
 MODEL_NAME = "llama3:8b"
+ANTHROPIC_KEY = os.getenv('ANTHROPIC_KEY')
 
 class OllamaLLM:
     """Interface to the Ollama API for LLM generation"""
     
-    def __init__(self, model=MODEL_NAME, max_retries=10, retry_delay=2):
-        self.base_url = "http://localhost:11434"
+    def __init__(self, model=MODEL_NAME, max_retries=10, retry_delay=2, use_local=True):
+        self.base_url = "http://localhost:11434" if use_local else "https://api.ollama.com"
         self.model = model
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.anthropic_key = ANTHROPIC_KEY if not use_local else None
         # Verify connection on initialization - exit if Ollama is not available
-        if not self._verify_connection():
+        if not use_local and not self._verify_connection():
             logger.info("ERROR: Cannot continue without Ollama connection. Please start Ollama and try again.")
             sys.exit(1)
         
@@ -74,7 +80,8 @@ class OllamaLLM:
                     json={
                         "model": self.model,
                         "prompt": prompt,
-                        "stream": False
+                        "stream": False,
+                        "anthropic_key": self.anthropic_key
                     },
                     timeout=30  # Add a timeout to prevent hanging
                 )
@@ -192,4 +199,3 @@ class OllamaLLM:
     def clear_interactions(self):
         """Clear all recorded interactions"""
         self.interactions = []
-

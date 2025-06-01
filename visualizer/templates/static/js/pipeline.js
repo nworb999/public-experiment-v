@@ -18,34 +18,35 @@ const PipelineManager = {
         const pipelineContainer = document.createElement('div');
         pipelineContainer.className = 'pipeline-flow';
 
-        // New: create a row for summaries
-        const summaryRow = document.createElement('div');
-        summaryRow.className = 'pipeline-summary-row';
-        summaryRow.style.display = 'flex';
-        summaryRow.style.flexDirection = 'row';
-        summaryRow.style.justifyContent = 'space-between';
-        summaryRow.style.width = '100%';
-        summaryRow.style.marginTop = '8px';
-
         components.forEach((component, index) => {
+            // Create a column that contains both title and summary
+            const columnContainer = document.createElement('div');
+            columnContainer.className = 'pipeline-column';
+
+            // Create the step container for the title
             const stepContainer = document.createElement('div');
             stepContainer.className = 'pipeline-step';
 
-            const circle = document.createElement('div');
-            circle.className = 'pipeline-circle';
-            circle.id = `${agentId}-${component}`;
-            circle.textContent = component;
-            stepContainer.appendChild(circle);
+            // Create the title element
+            const title = document.createElement('div');
+            title.className = 'pipeline-title';
+            title.id = `${agentId}-${component}-title`;
+            title.textContent = component;
+            stepContainer.appendChild(title);
 
-            // Move summary to summary row instead of inside step
+            // Create the summary for this column
             const summary = document.createElement('div');
             summary.className = 'pipeline-summary';
             summary.id = `${agentId}-${component}-summary`;
-            summaryRow.appendChild(summary);
 
-            // Add the step to the pipeline
-            pipelineContainer.appendChild(stepContainer);
+            // Add both to the column
+            columnContainer.appendChild(stepContainer);
+            columnContainer.appendChild(summary);
 
+            // Add the column to the pipeline
+            pipelineContainer.appendChild(columnContainer);
+
+            // Add arrow between columns (not taking flex space)
             if (index < components.length - 1) {
                 const arrow = document.createElement('div');
                 arrow.className = 'pipeline-arrow';
@@ -62,9 +63,8 @@ const PipelineManager = {
         // Clear entire pipeline content
         pipelineElement.innerHTML = ''; 
         
-        // Append the new pipeline and summary row
+        // Append the new pipeline structure
         pipelineElement.appendChild(pipelineContainer);
-        pipelineElement.appendChild(summaryRow);
     },
 
     /**
@@ -79,23 +79,22 @@ const PipelineManager = {
             return;
         }
         
-        // Remove active class from all circles for this agent
-        const circles = document.querySelectorAll(`.pipeline-circle[id^="${agentId}-"]`);
-        circles.forEach(circle => circle.classList.remove('active'));
+        // Remove active class from all summaries for this agent
+        const summaries = document.querySelectorAll(`.pipeline-summary[id^="${agentId}-"]`);
+        summaries.forEach(summary => summary.classList.remove('active'));
         
-        // Add active class to current stage
-        const currentCircle = document.getElementById(`${agentId}-${stage}`);
+        // Add active class to current stage summary
+        const currentSummary = document.getElementById(`${agentId}-${stage}-summary`);
 
-        if (currentCircle) {
-            currentCircle.classList.add('active');
+        if (currentSummary) {
+            currentSummary.classList.add('active');
 
-            // Update summary in the summary row
-            const summary = document.getElementById(`${agentId}-${stage}-summary`);
-            if (summary && data.summary) {
-                summary.textContent = data.summary;
+            // Update summary content
+            if (data.summary) {
+                currentSummary.textContent = data.summary;
             }
         } else {
-            console.warn(`Pipeline stage element not found: ${agentId}-${stage}`);
+            console.warn(`Pipeline stage element not found: ${agentId}-${stage}-summary`);
         }
     }
 };

@@ -1,11 +1,15 @@
 {
   "memories": [
-    "Alice: Hello, how are you doing today? -> Me: How's your day going so far?"
+    "Alice: Hello, how are you doing today? -> Me: What brings you here today?",
+    "Alice: Hi there, it's great to see you! How has your day been so far? -> Me: What brings you here today? Is there something on your mind that you'd like to talk about?",
+    "Alice: So, what's new with you? How was your week? -> Me: What brings you here today? Is there something on your mind that you'd like to discuss?",
+    "Alice: That's really great, Bob! How did you get into that field/interest? I'm always curious about what drives people's passions. -> Me: What made you interested in that field?",
+    "Alice: That's really interesting! I've always been fascinated by how that field can have such a big impact on people's lives. What drew you in specifically? -> Me: What specific aspects of that field interest you most?"
   ],
-  "conversation_memory": "The conversation just started, and I've introduced myself. Now it's Alice's turn.",
+  "conversation_memory": "We've started discussing Alice's fascination with the field, now I'm trying to drill down into her motivations.",
   "relationships": {
     "Alice": {
-      "familiarity": 176
+      "familiarity": 214
     }
   },
   "goal": "gather information",

@@ -1,14 +1,14 @@
 {
   "memories": [
-    "Bob: Hello there! -> Me: Hello, how are you doing today?"
+    "Morgan: Hello there! -> Me: Hi! How's your day going so far?"
   ],
-  "conversation_memory": "The conversation just started with a greeting. I need to build rapport.",
+  "conversation_memory": "The conversation has started, and we're exchanging pleasantries. I'll keep it light and casual.",
   "relationships": {
-    "Bob": {
-      "familiarity": 235
+    "Morgan": {
+      "familiarity": 2
     }
   },
-  "goal": "build rapport",
+  "goal": null,
   "plan": [
     "friendly conversation",
     "show empathy"
@@ -40,7 +40,7 @@
     "betrayed"
   ],
   "interior": {
-    "summary": "During reflection, I processed the interaction as a successful attempt to shift the conversation towards a lighthearted topic. I learned that discussing hobbies can be an effective way to establish common ground with the user, which aligns with my goal of getting to know them better. My memory was updated to include this exchange, and I gained insight into the user's interest in cooking and baking as a potential area for further exploration.",
-    "principles": "Coming of Age"
+    "summary": "",
+    "principles": "Rags to Riches"
   }
 }

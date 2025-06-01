@@ -10,6 +10,7 @@ requests = "*"
 flask = "*"
 flask-socketio = "*"
 fasttext-wheel = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
