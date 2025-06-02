@@ -6,9 +6,18 @@ class PromptFormatter:
     @staticmethod
     def _format_psyche_context(psyche: Psyche) -> str:
         """Helper method to format consistent psyche context"""
+        # Build interior context
+        interior_summary = psyche.get_interior_summary()
+        interior_principles = psyche.get_interior_principles()
+        interior_context = ""
+        if interior_summary:
+            interior_context += f"Personal narrative: {interior_summary}\n"
+        if interior_principles:
+            interior_context += f"Guiding principles: {interior_principles}\n"
+        
         return f"""You are {psyche.name} with a {psyche.personality} personality.
-Current state: {psyche.tension_level}/100 tension
-Recent history: {psyche.memories[-3:] if psyche.memories else 'No memories yet'}
+{interior_context}Current state: {psyche.tension_level}/100 tension
+Recent history: {psyche.memories[-10:] if psyche.memories else 'No memories yet'}
 Relationships: {list(psyche.relationships.keys())}
 Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
 Current goal: {psyche.goal or 'No goal set'}
@@ -28,8 +37,8 @@ What should be your goal and plan in this conversation?
 
 IMPORTANT: Respond ONLY with valid JSON containing 'goal', 'plan', and 'summary' keys.
 The 'plan' should be an ordered array of tactics to achieve your goal.
-The 'summary' should be a brief description of your cognitive process in making this plan.
-Example response: {{"goal": "convince them to buy your product", "plan": ["ask questions to show interest", "provide a demo", "ask for the sale"], "summary": "I'm formulating a sales approach with gradual engagement to avoid being pushy while maintaining focus on the product."}}"""
+The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
+Example response: {{"goal": "convince them to buy your product", "plan": ["ask questions to show interest", "provide a demo", "ask for the sale"], "summary": "Hmm, I need to be strategic here. If I come on too strong, they'll shut down. Let me start by showing genuine interest in their needs, then demonstrate value, and only then go for the close."}}"""
 
     @staticmethod
     def tactic_selection_prompt(psyche: Psyche) -> str:
@@ -41,8 +50,8 @@ Given the current state of the conversation, should you:
 2. Switch to a different tactic from your plan
 
 IMPORTANT: Respond ONLY with valid JSON containing 'active_tactic' and 'summary' keys.
-The 'summary' should explain your reasoning for keeping or changing tactics.
-Example response: {{"active_tactic": "show empathy", "summary": "The conversation is becoming emotional, so I'm switching to an empathetic approach rather than continuing with information gathering."}}"""
+The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
+Example response: {{"active_tactic": "show empathy", "summary": "I can sense the tension building here. My information gathering isn't working - they're getting defensive. Time to shift gears and show I actually care about what they're going through."}}"""
     
     @staticmethod
     def act_prompt(psyche: Psyche, observation: str) -> str:
@@ -55,8 +64,8 @@ How should you respond? Use your active tactic to guide your response.
 
 IMPORTANT: Respond ONLY with valid JSON containing 'action', 'speech', 'conversation_summary', and 'summary' keys.
 'conversation_summary' should be a brief 1-2 sentence update of how you perceive the conversation is going.
-'summary' should explain your cognitive process for choosing this response.
-Example response: {{"action": "say", "speech": "Hello, how are you doing today?", "conversation_summary": "The conversation just started with a greeting. I need to build rapport.", "summary": "I'm opening with a friendly greeting to establish rapport and create a positive atmosphere for the conversation."}}"""
+The 'summary' should be the agent's utterance in quotes.
+Example response: {{"action": "say", "speech": "Hello, how are you doing today?", "conversation_summary": "The conversation just started with a greeting. I need to build rapport.", "summary": "\"Hello, how are you doing today?\""}}"""
 
     @staticmethod
     def intent_classification_prompt(last_message: str, conversation_history: list = None) -> str:
@@ -82,7 +91,7 @@ Example response: {{"action": "say", "speech": "Hello, how are you doing today?"
 {conversation_context}Last message to classify: "{last_message}"
 
 Respond with a JSON object containing:
-{{"intent": "category", "confidence": 0-100, "summary": "Reasoning behind this classification."}}"""
+{{"intent": "category", "confidence": 0-100, "summary": "The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*"}}"""
 
     @staticmethod
     def reflection_prompt(psyche: Psyche, input_message: str, action: dict, tension: int, conversation_summary: str = None) -> str:
@@ -125,8 +134,8 @@ Reflection details:
 Reflect on this cognitive process and summarize what happened in your mind during this reflection step. Consider how this interaction relates to your personal narrative and guiding principles. Update your understanding of yourself and the situation.
 
 IMPORTANT: Respond ONLY with valid JSON containing 'summary', 'interior_update', and 'principles_insight' keys.
-- 'summary': Describe your internal cognitive process during reflection - what you learned, how you updated your understanding, and any insights gained.
+- The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
 - 'interior_update': Update to your personal narrative based on this interaction (can be empty string if no update needed).
 - 'principles_insight': Any insights about how your principles applied or evolved in this interaction (can be empty string if no insight).
 
-Example response: {{"summary": "I reflected on the conversation flow and updated my memory with this exchange. The slight tension increase suggests I'm becoming more engaged, and I'm building a clearer picture of the user's communication style through our ongoing dialogue.", "interior_update": "I'm becoming more confident in casual conversations and learning to read social cues better.", "principles_insight": "My principle of being helpful guided me to ask follow-up questions rather than just giving a simple response."}}"""
+Example response: {{"summary": "That exchange felt natural... I'm getting better at reading between the lines. The slight tension spike tells me I'm more invested in this conversation than I initially thought. I'm actually learning something about how I process social cues.", "interior_update": "I'm becoming more confident in casual conversations and learning to read social cues better.", "principles_insight": "My principle of being helpful guided me to ask follow-up questions rather than just giving a simple response."}}"""

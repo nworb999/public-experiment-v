@@ -11,6 +11,7 @@ flask = "*"
 flask-socketio = "*"
 fasttext-wheel = "*"
 python-dotenv = "*"
+anthropic = "*"
 
 [dev-packages]
 

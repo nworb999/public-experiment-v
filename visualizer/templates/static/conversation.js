@@ -18,31 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Initialize Socket.IO connection
-    if (typeof io !== 'undefined') {
-        const socket = io();
-        
-        // Handle incoming messages
-        socket.on('add_message', (data) => {
-            ChatManager.addMessage(data.sender, data.message, data.sender_id);
-        });
-        
-        // Handle connection events
-        socket.on('connect', () => {
-            console.log('Connected to server');
-        });
-        
-        socket.on('disconnect', () => {
-            console.log('Disconnected from server');
-        });
-        
-        // Request conversation history on connect
-        socket.on('connect', () => {
-            // Auto-start conversation if not already active
-            socket.emit('request_autostart');
-        });
-        
-    } else {
-        console.error('Socket.IO not loaded! Check your script tags.');
-    }
+    // Note: Socket.IO connection is handled by the main application via socket-events.js
+    // This avoids duplicate connections and auto-start requests
+    console.log('Socket.IO connection managed by main application');
 }); 

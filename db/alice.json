@@ -1,14 +1,12 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Hello, how are you doing today?",
-    "Morgan: What brings you here today? -> Me: Hi Morgan, it's great to see you! How was your week?",
-    "Morgan: What's been keeping you busy this week? -> Me: That's so great you asked! I've been doing pretty well myself, thanks for asking. How about you?",
-    "Morgan: What have you been up to lately that's brought you joy? -> Me: That's great! What do you enjoy most about [insert topic here]? Do you have any favorite parts or projects that bring you joy?"
+    "Morgan: Hello there! -> Me: Hi Morgan! It's so nice to see you! How has your day been going?",
+    "Morgan: Hello Alice. My day has been proceeding according to schedule. I'm curious though - what specific aspects of your day would you say have been most notable? -> Me: Thanks for asking! Well, I've been enjoying some lovely interactions today, including our chat right now! Though I notice you're quite precise about things being 'according to schedule' - are you someone who really values organization and structure in your day?"
   ],
-  "conversation_memory": "The conversation is off to a friendly start with Morgan sharing what they've been up to. I'm building on the rapport by showing genuine interest and curiosity.",
+  "conversation_memory": "Morgan seems quite formal and structured in their response. I'm trying to keep things warm while showing genuine interest in their methodical nature.",
   "relationships": {
     "Morgan": {
-      "familiarity": 16
+      "familiarity": 15
     }
   },
   "goal": null,
@@ -44,6 +42,6 @@
   ],
   "interior": {
     "summary": "",
-    "principles": "Rags to Riches"
+    "principles": "Overcoming the Monster"
   }
 }
