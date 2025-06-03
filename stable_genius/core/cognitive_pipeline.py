@@ -33,10 +33,10 @@ class CognitivePipeline:
             logger.info("Creating default pipeline components")
             components = [
                 TriggerComponent("trigger"),
-                IntentClassifierComponent("classify-intent"),
+                IntentClassifierComponent("classify-intent", self.llm),
                 PlanComponent("plan", self.personality, self.llm),
                 ActionComponent("action", self.llm),
-                ReflectComponent("reflect")
+                ReflectComponent("reflect", self.llm)
             ]
             for component in components:
                 logger.info(f"Added component: {component.name}")

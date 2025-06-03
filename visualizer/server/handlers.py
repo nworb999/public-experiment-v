@@ -25,6 +25,7 @@ class Handlers:
     def _setup_routes(self):
         """Set up Flask routes"""
         self.app.route('/')(self.index)
+        self.app.route('/conversation')(self.conversation_page)
         self.app.route('/api/update', methods=['POST'])(self.receive_update)
     
     def _setup_socketio_handlers(self):
@@ -36,6 +37,10 @@ class Handlers:
     def index(self):
         """Handle root route"""
         return render_template('index.html')
+    
+    def conversation_page(self):
+        """Handle conversation route"""
+        return render_template('conversation.html')
     
     def receive_update(self):
         """Receive updates from the conversation API server"""
@@ -215,13 +220,17 @@ class Handlers:
             logger.debug(f"Plan tactics: {plan.get('tactics')}")
             logger.debug(f"Plan active tactic: {plan.get('active_tactic')}")
         
+        # Get interior from update data or use cached interior
+        interior = update_data.get('interior', cached_state.get('interior', {}))
+        
         # Build the payload to emit
         payload = {
             'name': update_data.get('name', cached_state.get('name', '')),
             'personality': update_data.get('personality', cached_state.get('personality', '')),
             'tension': update_data.get('tension', cached_state.get('tension', 0)),
             'goal': goal,
-            'plan': plan
+            'plan': plan,
+            'interior': interior
         }
         logger.debug(f"Emitting update_agent{agent_id+1} with payload: {payload}")
         

@@ -13,11 +13,12 @@ class Psyche(BaseModel):
     goal: Optional[str] = None
     plan: Optional[List[str]] = None  # Tactics list
     active_tactic: Optional[str] = None  # Currently active tactic
-    pending_actions: List[str] = []
     tension_level: int = 0  # 0-100 stress meter
+    tension_interpretation: Optional[str] = None  # LLM-generated description of tension
     personality: str = "neutral"  # Default personality
     name: str = "Agent"  # Agent name
     stressful_phrases: List[str] = []  # Personalized list of stressful phrases
+    interior: Dict[str, Any] = {"summary": "", "principles": ""}  # New aspect for agent's interior
     
     @classmethod
     def load(cls, agent_name: str):
@@ -78,7 +79,45 @@ class Psyche(BaseModel):
         """Update conversation memory with a new summary"""
         self.conversation_memory = summary
         return self
-            
+    
+    def update_interior_summary(self, summary: str):
+        """Update the interior summary (personal narrative)"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        self.interior["summary"] = summary
+        return self
+    
+    def update_interior_principles(self, principles: str):
+        """Update the interior principles"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        self.interior["principles"] = principles
+        return self
+    
+    def get_interior_summary(self) -> str:
+        """Get the current interior summary"""
+        if hasattr(self, "interior") and isinstance(self.interior, dict):
+            return self.interior.get("summary", "")
+        return ""
+    
+    def get_interior_principles(self) -> str:
+        """Get the current interior principles"""
+        if hasattr(self, "interior") and isinstance(self.interior, dict):
+            return self.interior.get("principles", "")
+        return ""
+    
+    def update_interior(self, summary: str = None, principles: str = None):
+        """Update interior state with summary and/or principles"""
+        if not hasattr(self, "interior") or not isinstance(self.interior, dict):
+            self.interior = {"summary": "", "principles": ""}
+        
+        if summary is not None:
+            self.interior["summary"] = summary
+        if principles is not None:
+            self.interior["principles"] = principles
+        
+        return self
+    
     def clear_memories(self):
         """Clear all memories from this psyche"""
         self.memories = []
@@ -92,4 +131,9 @@ class Psyche(BaseModel):
         psyche.memories = []
         psyche.conversation_memory = ""
         psyche.save()
-        return psyche 
+        return psyche
+    
+    def update_tension_interpretation(self, interpretation: str):
+        """Update the tension interpretation"""
+        self.tension_interpretation = interpretation
+        return self 

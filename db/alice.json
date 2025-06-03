@@ -1,25 +1,21 @@
 {
-  "memories": [],
-  "conversation_memory": "",
+  "memories": [
+    "Morgan: Hello there! -> Me: Oh my god, hiiii Morgan! Like, I literally cannot believe we're finally meeting! I'm Alice, and honestly? I'm just SO excited to get to know you better! How are you feeling today? Because I'm totally getting such good vibes from you already!"
+  ],
+  "conversation_memory": "Morgan initiated with a friendly greeting. I'm responding warmly and showing empathy by asking about their feelings.",
   "relationships": {
-    "Bob": {
-      "familiarity": 188
+    "Morgan": {
+      "familiarity": 52
     }
   },
-  "goal": "build rapport",
+  "goal": null,
   "plan": [
     "friendly conversation",
     "show empathy"
   ],
-  "active_tactic": "friendly conversation",
-  "pending_actions": [
-    "say",
-    "ask",
-    "express",
-    "confront",
-    "cooperate"
-  ],
+  "active_tactic": "show empathy",
   "tension_level": 20,
+  "tension_interpretation": "Cheerfully ready for adventure",
   "personality": "friendly",
   "name": "Alice",
   "stressful_phrases": [
@@ -43,5 +39,9 @@
     "isolated",
     "abandoned",
     "betrayed"
-  ]
+  ],
+  "interior": {
+    "summary": "",
+    "principles": "Overcoming the Monster"
+  }
 }

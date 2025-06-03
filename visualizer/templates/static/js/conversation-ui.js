@@ -11,23 +11,26 @@ const ConversationManager = {
      * @param {Object} data - The data containing prompt and response information
      */
     updateConversation(data) {
+        if (!data) return;
+        
         // Move content down to other boxes first
-        // TODO add null check
-        UI.promptBoxes[2].textContent = UI.promptBoxes[1].textContent;
-        UI.promptTitles[2].textContent = UI.promptTitles[1].textContent;
-        UI.responseBoxes[2].textContent = UI.responseBoxes[1].textContent;
-        UI.responseTimeDisplays[2].textContent = UI.responseTimeDisplays[1].textContent;
-        
-        UI.promptBoxes[1].textContent = UI.promptBoxes[0].textContent;
-        UI.promptTitles[1].textContent = UI.promptTitles[0].textContent;
-        UI.responseBoxes[1].textContent = UI.responseBoxes[0].textContent;
-        UI.responseTimeDisplays[1].textContent = UI.responseTimeDisplays[0].textContent;
-        
-        // Add new content to first box
-        UI.promptBoxes[0].textContent = data.prompt;
-        UI.promptTitles[0].textContent = `Step: ${data.step_title || '--'}`;
-        UI.responseBoxes[0].textContent = data.response;
-        UI.responseTimeDisplays[0].textContent = `Time elapsed: ${data.elapsed_time || '--'}`;
+        if (UI.promptBoxes && UI.promptTitles && UI.responseBoxes && UI.responseTimeDisplays) {
+            UI.promptBoxes[2].textContent = UI.promptBoxes[1]?.textContent || '';
+            UI.promptTitles[2].textContent = UI.promptTitles[1]?.textContent || '';
+            UI.responseBoxes[2].textContent = UI.responseBoxes[1]?.textContent || '';
+            UI.responseTimeDisplays[2].textContent = UI.responseTimeDisplays[1]?.textContent || '';
+            
+            UI.promptBoxes[1].textContent = UI.promptBoxes[0]?.textContent || '';
+            UI.promptTitles[1].textContent = UI.promptTitles[0]?.textContent || '';
+            UI.responseBoxes[1].textContent = UI.responseBoxes[0]?.textContent || '';
+            UI.responseTimeDisplays[1].textContent = UI.responseTimeDisplays[0]?.textContent || '';
+            
+            // Add new content to first box
+            UI.promptBoxes[0].textContent = data.prompt || '';
+            UI.promptTitles[0].textContent = `Step: ${data.step_title || '--'}`;
+            UI.responseBoxes[0].textContent = data.response || '';
+            UI.responseTimeDisplays[0].textContent = `Time elapsed: ${data.elapsed_time || '--'}`;
+        }
     },
     
     /**
@@ -40,11 +43,13 @@ const ConversationManager = {
         const { prompts, responses, titles, times } = conversationHistory;
         
         // Update prompt boxes
-        for (let i = 0; i < Math.min(prompts.length, 3); i++) {
-            UI.promptBoxes[i].textContent = prompts[i] || '';
-            UI.promptTitles[i].textContent = `Step: ${titles[i] || '--'}`;
-            UI.responseBoxes[i].textContent = responses[i] || '';
-            UI.responseTimeDisplays[i].textContent = `Time elapsed: ${times[i] || '--'}`;
+        if (UI.promptBoxes && UI.promptTitles && UI.responseBoxes && UI.responseTimeDisplays) {
+            for (let i = 0; i < Math.min(prompts.length, 3); i++) {
+                UI.promptBoxes[i].textContent = prompts[i] || '';
+                UI.promptTitles[i].textContent = `Step: ${titles[i] || '--'}`;
+                UI.responseBoxes[i].textContent = responses[i] || '';
+                UI.responseTimeDisplays[i].textContent = `Time elapsed: ${times[i] || '--'}`;
+            }
         }
     }
 };

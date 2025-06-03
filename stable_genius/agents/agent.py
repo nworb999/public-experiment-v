@@ -1,6 +1,7 @@
 from stable_genius.models.psyche import Psyche
 from stable_genius.core.cognitive_pipeline import CognitivePipeline
 from stable_genius.utils.llm import OllamaLLM
+import random
 
 class Agent:
     def __init__(self, name, personality="neutral", llm=None, custom_pipeline=None):
@@ -16,13 +17,33 @@ class Agent:
         # Load or initialize the psyche
         psyche = Psyche.load(name)
         
+        # Seed principles if not already set
+        tropes = [
+            "The Hero's Journey",
+            "Tragic Flaw",
+            "Redemption Arc",
+            "Fish Out of Water",
+            "Reluctant Leader",
+            "Loyal Sidekick",
+            "Secret Identity",
+            "Rags to Riches",
+            "The Chosen One",
+            "Cynical Mentor",
+            "Unlikely Friendship",
+            "Quest for Truth",
+            "Forbidden Love",
+            "Overcoming the Monster",
+            "Coming of Age"
+        ]
+        if not hasattr(psyche, "interior") or not isinstance(psyche.interior, dict):
+            psyche.interior = {"summary": "", "principles": ""}
+        if not psyche.interior.get("principles"):
+            psyche.interior["principles"] = random.choice(tropes)
+        
         # Update personality if different
         if psyche.personality != personality:
             psyche.personality = personality
-            
-        # Ensure actions are set
-        if not psyche.pending_actions:
-            psyche.pending_actions = ["say", "ask", "express", "confront", "cooperate"]
+        
         
         # Initialize plan and active tactic if missing
         if not psyche.plan:
