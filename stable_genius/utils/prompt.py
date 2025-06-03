@@ -1,4 +1,5 @@
 from stable_genius.models.psyche import Psyche
+from stable_genius.utils.logger import logger
 
 # Please no indents in prompts
 
@@ -6,14 +7,105 @@ class PromptFormatter:
     @staticmethod
     def _format_psyche_context(psyche: Psyche) -> str:
         """Helper method to format consistent psyche context"""
+        logger.debug(f"🧠 Formatting psyche context for {psyche.name}")
+        
         # Build interior context
         interior_summary = psyche.get_interior_summary()
         interior_principles = psyche.get_interior_principles()
         interior_context = ""
         if interior_summary:
             interior_context += f"Personal narrative: {interior_summary}\n"
+            logger.debug(f"  📝 Interior summary included: {interior_summary[:50]}...")
         if interior_principles:
             interior_context += f"Guiding principles: {interior_principles}\n"
+            logger.debug(f"  🎯 Interior principles included: {interior_principles}")
+        
+        # Add premise interpretation if available
+        premise_context = ""
+        if psyche.premise_interpretation:
+            premise_context = f"Current situation perspective: {psyche.premise_interpretation}\n"
+            logger.info(f"  🎬 PREMISE CONTEXT INCLUDED for {psyche.name}: {psyche.premise_interpretation[:80]}...")
+        else:
+            logger.warning(f"  ⚠️  NO PREMISE INTERPRETATION for {psyche.name} - agent may lack reality TV context!")
+        
+        # Add hero identity (how they see themselves) 
+        hero_context = ""
+        if psyche.hero_description:
+            hero_context = f"Core identity: You believe you are {psyche.hero_description}\n"
+            logger.info(f"  🦸 HERO IDENTITY INCLUDED for {psyche.name}: {psyche.hero_description}")
+        else:
+            logger.warning(f"  ⚠️  NO HERO IDENTITY for {psyche.name} - missing self-perception!")
+        
+        # Add villain perspectives (how they see others)
+        villain_context = ""
+        if psyche.other_agent_perspectives:
+            perspectives = []
+            for agent_name, perspective_data in psyche.other_agent_perspectives.items():
+                perspective = perspective_data.get("perspective", "")
+                if perspective:
+                    perspectives.append(f"About {agent_name}: {perspective}")
+            if perspectives:
+                villain_context = f"Other people: {' | '.join(perspectives)}\n"
+                logger.info(f"  👁️  VILLAIN PERSPECTIVES INCLUDED for {psyche.name}: {len(perspectives)} perspectives")
+                for i, persp in enumerate(perspectives):
+                    logger.debug(f"    {i+1}. {persp[:60]}...")
+        else:
+            logger.warning(f"  ⚠️  NO VILLAIN PERSPECTIVES for {psyche.name} - missing social dynamics!")
+        
+        # Subtly incorporate hidden flaws without making them explicit
+        # The agent should not be consciously aware of these flaws
+        subconscious_tendencies = ""
+        if psyche.hidden_flaws:
+            logger.info(f"  🎭 HIDDEN FLAWS PROCESSING for {psyche.name}: {psyche.hidden_flaws}")
+            # Convert flaws to subtle behavioral tendencies without naming the flaw
+            tendency_hints = []
+            for flaw in psyche.hidden_flaws:
+                if flaw == "Arrogant":
+                    tendency_hints.append("confidence in your own judgment")
+                elif flaw == "Backstabbing":
+                    tendency_hints.append("awareness of strategic opportunities")
+                elif flaw == "Blatant Liar":
+                    tendency_hints.append("flexibility with facts when helpful")
+                elif flaw == "Bossy":
+                    tendency_hints.append("natural leadership instincts")
+                elif flaw == "Chronic Backstager":
+                    tendency_hints.append("strategic thinking about relationships")
+                elif flaw == "Conflict Ball":
+                    tendency_hints.append("passion for standing your ground")
+                elif flaw == "Cowardly":
+                    tendency_hints.append("careful consideration of risks")
+                elif flaw == "Crybaby":
+                    tendency_hints.append("emotional sensitivity")
+                elif flaw == "Drama Queen":
+                    tendency_hints.append("appreciation for the significance of events")
+                elif flaw == "Flaky":
+                    tendency_hints.append("adaptability to changing circumstances")
+                elif flaw == "Greedy":
+                    tendency_hints.append("focus on personal advancement")
+                elif flaw == "Hot-Blooded":
+                    tendency_hints.append("quick emotional reactions")
+                elif flaw == "Lazy":
+                    tendency_hints.append("efficiency-focused approach")
+                elif flaw == "Manipulative":
+                    tendency_hints.append("understanding of social dynamics")
+                elif flaw == "Narcissist":
+                    tendency_hints.append("strong sense of personal importance")
+                elif flaw == "Needy":
+                    tendency_hints.append("value for others' opinions")
+                elif flaw == "Poor Communication Kills":
+                    tendency_hints.append("unique interpretation of conversations")
+                elif flaw == "Sore Loser":
+                    tendency_hints.append("high investment in outcomes")
+                elif flaw == "Stubborn":
+                    tendency_hints.append("commitment to your convictions")
+                elif flaw == "Vain":
+                    tendency_hints.append("awareness of how others perceive you")
+            
+            if tendency_hints:
+                subconscious_tendencies = f"Natural tendencies: {', '.join(tendency_hints[:2])}\n"  # Limit to 2 to avoid overload
+                logger.info(f"  🧩 SUBCONSCIOUS TENDENCIES INCLUDED for {psyche.name}: {', '.join(tendency_hints[:2])}")
+        else:
+            logger.warning(f"  ⚠️  NO HIDDEN FLAWS for {psyche.name} - missing behavioral complexity!")
         
         # Use tension interpretation if available, make it brief and not a complete sentence
         if psyche.tension_interpretation:
@@ -27,8 +119,24 @@ class PromptFormatter:
         # Add tactic counter information
         tactic_info = f"Active tactic: {psyche.active_tactic or 'None'} (used for {psyche.rounds_since_tactic_change} rounds)"
         
+        # Log final summary of what premise elements were included
+        included_elements = []
+        if premise_context:
+            included_elements.append("premise_interpretation")
+        if hero_context:
+            included_elements.append("hero_identity")
+        if villain_context:
+            included_elements.append("villain_perspectives")
+        if subconscious_tendencies:
+            included_elements.append("hidden_flaws")
+        
+        if included_elements:
+            logger.info(f"  ✅ FINAL CONTEXT for {psyche.name}: {', '.join(included_elements)} included in prompt")
+        else:
+            logger.error(f"  ❌ NO PREMISE ELEMENTS included for {psyche.name} - using generic agent context!")
+        
         return f"""You are {psyche.name} with a {psyche.personality} personality.
-{interior_context}Current state: {tension_display}
+{interior_context}{premise_context}{hero_context}{villain_context}{subconscious_tendencies}Current state: {tension_display}
 Recent history: {psyche.memories[-10:] if psyche.memories else 'No memories yet'}
 Relationships: {list(psyche.relationships.keys())}
 Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}

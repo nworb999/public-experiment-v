@@ -22,6 +22,16 @@ class Psyche(BaseModel):
     interior: Dict[str, Any] = {"summary": "", "principles": ""}  # New aspect for agent's interior
     recent_emotions: List[str] = []  # Track recent emotions to avoid repetition
     
+    # New fields for premise and hidden flaws
+    premise_interpretation: Optional[str] = None  # How this character views the reality TV premise
+    hidden_flaws: List[str] = []  # Subconscious flaws that influence behavior
+    flaw_descriptions: Dict[str, str] = {}  # Detailed descriptions of the flaws
+    
+    # New fields for character tropes and perspectives
+    hero_trope: Optional[str] = None  # How this character sees themselves (hero archetype)
+    hero_description: Optional[str] = None  # Description of their hero identity
+    other_agent_perspectives: Dict[str, Dict[str, str]] = {}  # How they view other agents as villains
+    
     @classmethod
     def load(cls, agent_name: str):
         """Load psyche from JSON file"""

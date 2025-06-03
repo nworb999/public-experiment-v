@@ -59,7 +59,6 @@ class AgentState:
         for key in ['name', 'personality', 'conversation_memory', 'interior']:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
-        print(update_data)
         # Handle tension logic: use numerical tension_level, not tension_interpretation
         if 'tension_level' in update_data:
             self.states[agent_id]['tension'] = update_data['tension_level']

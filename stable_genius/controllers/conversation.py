@@ -8,13 +8,10 @@ from stable_genius.agents.personalities import create_agent
 from stable_genius.core.components import TriggerComponent, IntentClassifierComponent
 from stable_genius.utils.logger import logger
 from stable_genius.models.psyche import Psyche
+from stable_genius.controllers.premise_generator import PremiseGenerator
 
 # Global variables for active conversations
 active_conversations = {}
-
-# Config directory and file
-config_dir = Path(__file__).parent.parent.parent / "config"
-CONFIG_FILE = config_dir / "agents_config.json"
 
 def send_to_visualizer(data, visualizer_url="http://localhost:5000/api/update"):
     """Send data to visualization server"""
@@ -37,15 +34,10 @@ def send_to_visualizer(data, visualizer_url="http://localhost:5000/api/update"):
         return False
 
 def load_config():
-    """Load agent configuration from file"""
-    if not CONFIG_FILE.exists():
-        raise FileNotFoundError(f"Config file not found: {CONFIG_FILE}. Please create this file before running.")
-    
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        raise Exception(f"Error loading config file: {e}")
+    """Always generate dynamic agent configuration using the premise generator"""
+    logger.info("Generating dynamic workplace reality TV premise...")
+    config = PremiseGenerator.load_or_generate_config(num_agents=2, turns=5)
+    return config
 
 def get_conversation_status(conversation_id):
     """Get the status of a specific conversation"""
@@ -73,27 +65,96 @@ def stop_conversation(conversation_id):
         'message': f'Conversation {conversation_id} not found'
     }, 404
 
-async def create_agents(agents_config, llm_service):
+async def create_agents(agents_config, llm_service, premise_data=None):
     """Create agent instances based on configuration"""
     if len(agents_config) < 2:
         raise ValueError("Need at least 2 agents in config file")
     
     # Clear memories and reset plans for all agents before starting
     logger.debug("Clearing memories and resetting plans from previous runs...")
+    
+    # Add logging for premise data
+    if premise_data:
+        logger.info(f"🎬 PREMISE LOADING: {premise_data['title']}")
+        logger.info(f"📖 Scenario: {premise_data['scenario']}")
+        logger.info(f"🎯 Stakes: {premise_data['stakes']}")
+    else:
+        logger.warning("⚠️  No premise data provided - agents will not have dynamic context!")
+    
     for agent_config in agents_config:
-        psyche = Psyche.load(agent_config["name"])
+        agent_name = agent_config["name"]
+        logger.info(f"🎭 Setting up agent: {agent_name}")
+        
+        psyche = Psyche.load(agent_name)
         psyche.memories = []
         psyche.conversation_memory = ""
         # Clear existing plans and goals so they can be regenerated based on interior state
         psyche.plan = None
         psyche.active_tactic = None
         psyche.goal = None
+        
+        # Update personality with the new combined personality
+        if "personality" in agent_config:
+            psyche.personality = agent_config["personality"]
+            logger.info(f"  🎭 Updated personality: {agent_config['personality']}")
+        
+        # Store premise and flaw data if available
+        if premise_data and "premise_interpretation" in agent_config:
+            psyche.premise_interpretation = agent_config["premise_interpretation"]
+            logger.info(f"  ✅ Premise interpretation set: {agent_config['premise_interpretation'][:100]}...")
+        else:
+            logger.warning(f"  ⚠️  No premise interpretation for {agent_name}")
+            
+        if "hidden_flaws" in agent_config:
+            psyche.hidden_flaws = agent_config["hidden_flaws"]
+            logger.info(f"  🎭 Hidden flaws set: {agent_config['hidden_flaws']}")
+        else:
+            logger.warning(f"  ⚠️  No hidden flaws for {agent_name}")
+            
+        if "flaw_descriptions" in agent_config:
+            psyche.flaw_descriptions = agent_config["flaw_descriptions"]
+            logger.debug(f"  📝 Flaw descriptions loaded")
+        
+        # Store hero/villain trope data if available
+        if "hero_trope" in agent_config:
+            psyche.hero_trope = agent_config["hero_trope"]
+            logger.info(f"  🦸 Hero identity: {agent_config['hero_trope']}")
+        else:
+            logger.warning(f"  ⚠️  No hero trope for {agent_name}")
+            
+        if "hero_description" in agent_config:
+            psyche.hero_description = agent_config["hero_description"]
+            logger.info(f"  💭 Hero description: {agent_config['hero_description']}")
+        else:
+            logger.warning(f"  ⚠️  No hero description for {agent_name}")
+            
+        if "other_agent_perspectives" in agent_config:
+            psyche.other_agent_perspectives = agent_config["other_agent_perspectives"]
+            for other_agent, perspective_data in agent_config["other_agent_perspectives"].items():
+                villain_trope = perspective_data.get("villain_trope", "Unknown")
+                logger.info(f"  👁️  Views {other_agent} as: {villain_trope}")
+        else:
+            logger.warning(f"  ⚠️  No other agent perspectives for {agent_name}")
+            
         psyche.save()
+        logger.info(f"  💾 Psyche saved for {agent_name}")
     
     # Create agents
     agent1 = create_agent(agents_config[0]["name"], agents_config[0]["personality"], llm_service)
     agent2 = create_agent(agents_config[1]["name"], agents_config[1]["personality"], llm_service)
     
+    # Verify premise data is loaded correctly
+    agent1_psyche = agent1.get_psyche()
+    agent2_psyche = agent2.get_psyche()
+    
+    logger.info(f"🔍 PREMISE VERIFICATION:")
+    logger.info(f"  {agent1.name} premise_interpretation: {agent1_psyche.premise_interpretation is not None}")
+    logger.info(f"  {agent1.name} hidden_flaws: {len(agent1_psyche.hidden_flaws)} flaws")
+    logger.info(f"  {agent1.name} hero_trope: {agent1_psyche.hero_trope}")
+    logger.info(f"  {agent2.name} premise_interpretation: {agent2_psyche.premise_interpretation is not None}")
+    logger.info(f"  {agent2.name} hidden_flaws: {len(agent2_psyche.hidden_flaws)} flaws")
+    logger.info(f"  {agent2.name} hero_trope: {agent2_psyche.hero_trope}")
+
     return agent1, agent2
 
 async def send_agent_data_to_visualizer(agents, visualizer_url):
@@ -292,20 +353,60 @@ async def initialize_conversation(conversation_id, config, visualizer_url, llm_s
     # Get agent configs and validate
     agents_config = config["agents"]
     
+    # Extract premise data if available
+    premise_data = config.get("premise")
+    
     # Send config to visualizer
     send_to_visualizer({
         'event_type': 'config',
         'config': config
     }, visualizer_url)
     
+    # If we have premise data, include it in the system message
+    if premise_data:
+        system_message = f'Starting conversation {conversation_id} with premise: {premise_data["title"]} - {premise_data["scenario"]}'
+        logger.info(f"🎬 PREMISE-DRIVEN CONVERSATION: {premise_data['title']}")
+    else:
+        system_message = f'Starting conversation {conversation_id}...'
+        logger.warning("⚠️  Starting conversation WITHOUT premise data!")
+        
     send_to_visualizer({
         'event_type': 'add_message',
         'sender': 'System',
-        'message': f'Starting conversation {conversation_id}...'
+        'message': system_message
     }, visualizer_url)
     
-    # Create and initialize agents
-    agent1, agent2 = await create_agents(agents_config, llm_service)
+    # Create and initialize agents with premise data
+    agent1, agent2 = await create_agents(agents_config, llm_service, premise_data)
+    
+    # Final verification that premise data is working
+    agent1_psyche = agent1.get_psyche() 
+    agent2_psyche = agent2.get_psyche()
+    
+    premise_status = []
+    if agent1_psyche.premise_interpretation and agent2_psyche.premise_interpretation:
+        premise_status.append("✅ Both agents have premise interpretations")
+    else:
+        premise_status.append("❌ Missing premise interpretations")
+        
+    if agent1_psyche.hidden_flaws and agent2_psyche.hidden_flaws:
+        premise_status.append("✅ Both agents have hidden flaws")
+    else:
+        premise_status.append("❌ Missing hidden flaws")
+        
+    if agent1_psyche.hero_trope and agent2_psyche.hero_trope:
+        premise_status.append("✅ Both agents have hero identities")
+    else:
+        premise_status.append("❌ Missing hero identities")
+        
+    if agent1_psyche.other_agent_perspectives and agent2_psyche.other_agent_perspectives:
+        premise_status.append("✅ Both agents have villain perspectives")
+    else:
+        premise_status.append("❌ Missing villain perspectives")
+        
+    logger.info(f"🎭 PREMISE INTEGRATION STATUS:")
+    for status in premise_status:
+        logger.info(f"  {status}")
     
     # Send initialization data for static properties
     await send_agent_initialization([agent1, agent2], visualizer_url)
@@ -315,7 +416,22 @@ async def initialize_conversation(conversation_id, config, visualizer_url, llm_s
     
     # Log start of conversation
     turns = config.get("turns", 5)
-    logger.info(f"========== Starting Conversation {conversation_id} between {agent1.name} and {agent2.name} ==========\n")
+    if premise_data:
+        logger.info(f"========== Starting Conversation {conversation_id}: {premise_data['title']} ==========")
+        logger.info(f"Premise: {premise_data['scenario']}")
+        logger.info(f"Stakes: {premise_data['stakes']}")
+        logger.info(f"Participants: {agent1.name} and {agent2.name}")
+        logger.info(f"Character Dynamics:")
+        logger.info(f"  {agent1.name} sees themselves as: {agent1_psyche.hero_trope}")
+        logger.info(f"  {agent2.name} sees themselves as: {agent2_psyche.hero_trope}")
+        if agent1_psyche.other_agent_perspectives.get(agent2.name):
+            villain_view = agent1_psyche.other_agent_perspectives[agent2.name].get('villain_trope', 'Unknown')
+            logger.info(f"  {agent1.name} sees {agent2.name} as: {villain_view}")
+        if agent2_psyche.other_agent_perspectives.get(agent1.name):
+            villain_view = agent2_psyche.other_agent_perspectives[agent1.name].get('villain_trope', 'Unknown')
+            logger.info(f"  {agent2.name} sees {agent1.name} as: {villain_view}")
+    else:
+        logger.info(f"========== Starting Conversation {conversation_id} between {agent1.name} and {agent2.name} ==========")
     logger.info(f"Conversation turns: {turns}\n")
     
     return agent1, agent2, turns
