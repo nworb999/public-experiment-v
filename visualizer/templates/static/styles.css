@@ -603,7 +603,7 @@ body {
 
 .agent-1-dialogue-content {
     color: #e6ffed;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1.4;
     text-align: center;
     min-height: 100%;
@@ -655,7 +655,7 @@ body {
 
 .agent-2-dialogue-content {
     color: #f3f4f6;
-    font-size: 18px;
+    font-size: 24px;
     line-height: 1.4;
     text-align: center;
     min-height: 100%;
@@ -710,7 +710,7 @@ body {
     
     .agent-1-dialogue-content,
     .agent-2-dialogue-content {
-        font-size: 16px;
+        font-size: 22px;
     }
 }
 
@@ -728,6 +728,6 @@ body {
     
     .agent-1-dialogue-content,
     .agent-2-dialogue-content {
-        font-size: 14px;
+        font-size: 20px;
     }
 }
