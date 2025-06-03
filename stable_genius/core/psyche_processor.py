@@ -1,15 +1,22 @@
 from typing import Dict, Any, List
 from stable_genius.utils.response_processor import extract_json_from_text
 
-def process_planning_response(raw_response: str, personality: str = "neutral") -> Dict[str, Any]:
+def process_planning_response(raw_response: str, personality: str = "neutral", psyche=None) -> Dict[str, Any]:
     """Process response for planning prompts"""
     # Try to extract JSON
     parsed_result = extract_json_from_text(raw_response)
     
     # If successful, ensure required keys exist
     if parsed_result:
+        # Do NOT fall back to default goals - preserve existing or set to None
         if 'goal' not in parsed_result:
-            parsed_result['goal'] = default_goal(personality)
+            existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
+            if existing_goal:
+                parsed_result['goal'] = existing_goal
+                print(f"LLM did not provide goal, keeping existing: {existing_goal}")
+            else:
+                print("LLM did not provide goal and no existing goal found - goal will be None")
+                parsed_result['goal'] = None
         
         if "plan" not in parsed_result:
             parsed_result["plan"] = default_plan(personality)
@@ -23,10 +30,11 @@ def process_planning_response(raw_response: str, personality: str = "neutral") -
             
         return parsed_result
         
-    # If parsing fails, return default response
+    # If parsing fails, return response preserving existing goal
+    existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
     default_tactics = default_plan(personality)
     return {
-        "goal": default_goal(personality),
+        "goal": existing_goal,
         "plan": default_tactics,
         "active_tactic": default_tactics[0] if default_tactics else None
     }

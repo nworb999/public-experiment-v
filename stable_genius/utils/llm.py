@@ -1,23 +1,46 @@
+from dotenv import load_dotenv
 import json
 import requests
 import sys
 import time
 from stable_genius.utils.logger import logger
+import os
+import anthropic
 
-MODEL_NAME = "llama3.3:70b-instruct-q2_K"
+load_dotenv()
+
+# MODEL_NAME = "llama3.3:70b-instruct-q2_K"
+MODEL_NAME = "llama3:8b"
+ANTHROPIC_KEY = os.getenv('ANTHROPIC_KEY')
 
 class OllamaLLM:
     """Interface to the Ollama API for LLM generation"""
     
-    def __init__(self, model=MODEL_NAME, max_retries=10, retry_delay=2):
-        self.base_url = "http://localhost:11434"
+    def __init__(self, model=MODEL_NAME, max_retries=10, retry_delay=2, use_local=True):
         self.model = model
         self.max_retries = max_retries
         self.retry_delay = retry_delay
-        # Verify connection on initialization - exit if Ollama is not available
-        if not self._verify_connection():
-            logger.info("ERROR: Cannot continue without Ollama connection. Please start Ollama and try again.")
-            sys.exit(1)
+        
+        # Determine if this is an Anthropic model
+        self.is_anthropic_model = model.startswith('claude-')
+        
+        if self.is_anthropic_model:
+            # Use Anthropic API directly
+            if not ANTHROPIC_KEY:
+                logger.info("ERROR: ANTHROPIC_KEY environment variable not set")
+                sys.exit(1)
+            self.anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+            self.base_url = None
+            self.anthropic_key = None
+        else:
+            # Use Ollama API
+            self.base_url = "http://localhost:11434" if use_local else "https://api.ollama.com"
+            self.anthropic_client = None
+            self.anthropic_key = ANTHROPIC_KEY if not use_local else None
+            # Verify connection on initialization - exit if Ollama is not available
+            if use_local and not self._verify_connection():
+                logger.info("ERROR: Cannot continue without Ollama connection. Please start Ollama and try again.")
+                sys.exit(1)
         
         # Store LLM interactions
         self.interactions = []
@@ -54,6 +77,56 @@ class OllamaLLM:
             return False
     
     def generate(self, prompt: str, context: dict = None) -> str:
+        """Generate text using either Anthropic API or Ollama API based on model type"""
+        if self.is_anthropic_model:
+            return self._generate_anthropic(prompt, context)
+        else:
+            return self._generate_ollama(prompt, context)
+    
+    def _generate_anthropic(self, prompt: str, context: dict = None) -> str:
+        """Generate text using Anthropic API"""
+        # Log the request with a truncated prompt (for privacy/readability)
+        truncated_prompt = prompt[:100] + "..." if len(prompt) > 100 else prompt
+        logger.info(f"🔄 LLM REQUEST STARTED: Model={self.model}")
+        logger.debug(f"Prompt: {truncated_prompt}")
+        
+        start_time = time.time()
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        try:
+            response = self.anthropic_client.messages.create(
+                model=self.model,
+                max_tokens=4000,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            elapsed_time = time.time() - start_time
+            response_text = response.content[0].text
+            
+            # Record interaction with context if provided
+            self._record_interaction(prompt, response_text, timestamp, elapsed_time, context)
+            logger.info(f"✅ LLM RESPONSE RECEIVED: Time={elapsed_time:.2f}s")
+            return response_text
+            
+        except Exception as e:
+            elapsed_time = time.time() - start_time
+            error_msg = f"Error calling Anthropic API: {str(e)}"
+            logger.info(f"❌ LLM REQUEST FAILED: {str(e)}, Time={elapsed_time:.2f}s")
+            logger.debug(error_msg)
+            
+            # Return the failed prompt with the error message
+            if "JSON" in prompt.upper():
+                error_response = json.dumps({"error": f"Error: {str(e)}", "prompt": prompt})
+            else:
+                error_response = f"Error: {str(e)}\nFailed prompt: {prompt}"
+            
+            # Record the error interaction
+            self._record_interaction(prompt, error_response, timestamp, elapsed_time, context)
+            return error_response
+    
+    def _generate_ollama(self, prompt: str, context: dict = None) -> str:
         """Generate text using Ollama API with retry mechanism for timeouts and 404 errors"""
         retries = 0
         backoff = self.retry_delay
@@ -73,7 +146,8 @@ class OllamaLLM:
                     json={
                         "model": self.model,
                         "prompt": prompt,
-                        "stream": False
+                        "stream": False,
+                        "anthropic_key": self.anthropic_key
                     },
                     timeout=30  # Add a timeout to prevent hanging
                 )
@@ -191,4 +265,3 @@ class OllamaLLM:
     def clear_interactions(self):
         """Clear all recorded interactions"""
         self.interactions = []
-

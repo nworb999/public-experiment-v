@@ -20,17 +20,21 @@ class AgentState:
         """Create default state for an agent"""
         return {
             'name': 'Waiting for agent...',
-            'personality': '--',
+            'personality': ' ' * 100,
             'tension': 0,
-            'goal': '--',
+            'goal': ' ' * 120,
             'conversation_memory': '',
             'plan': {
-                'tactics': [],
-                'active_tactic': None
+                'tactics': [' ' * 80],
+                'active_tactic': ' ' * 90
             },
             'pipeline': {
                 'components': [],
                 'stage': ''
+            },
+            'interior': {
+                'summary': '',
+                'principles': ' ' * 100
             }
         }
     
@@ -51,19 +55,27 @@ class AgentState:
             
         logger.debug(f"Updating agent {agent_id} with data: {update_data}")
             
-        # Update name, personality, tension and conversation_memory if present
-        for key in ['name', 'personality', 'tension', 'conversation_memory']:
+        # Update name, personality, tension, conversation_memory and interior if present
+        for key in ['name', 'personality', 'conversation_memory', 'interior']:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
+        # Handle tension logic: use numerical tension_level, not tension_interpretation
+        if 'tension_level' in update_data:
+            self.states[agent_id]['tension'] = update_data['tension_level']
+        elif 'tension' in update_data:
+            self.states[agent_id]['tension'] = update_data['tension']
         
-        # Update goal if present directly in update_data
+        # Update goal if present directly in update_data (including None values)
         if 'goal' in update_data:
-            self.states[agent_id]['goal'] = update_data['goal']
-            logger.debug(f"Updated goal for agent {agent_id}: {update_data['goal']}")
+            goal_value = update_data['goal']
+            # Convert None to a more user-friendly display
+            self.states[agent_id]['goal'] = goal_value if goal_value is not None else 'No goal set'
+            logger.debug(f"Updated goal for agent {agent_id}: {update_data['goal']} -> display: {self.states[agent_id]['goal']}")
         # Also check for goal in plan if present
         elif 'plan' in update_data and isinstance(update_data['plan'], dict) and 'goal' in update_data['plan']:
-            self.states[agent_id]['goal'] = update_data['plan']['goal']
-            logger.debug(f"Updated goal from plan for agent {agent_id}: {update_data['plan']['goal']}")
+            goal_value = update_data['plan']['goal']
+            self.states[agent_id]['goal'] = goal_value if goal_value is not None else 'No goal set'
+            logger.debug(f"Updated goal from plan for agent {agent_id}: {update_data['plan']['goal']} -> display: {self.states[agent_id]['goal']}")
             
         # Handle plan updates
         if 'plan' in update_data:

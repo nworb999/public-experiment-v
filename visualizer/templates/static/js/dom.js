@@ -37,7 +37,8 @@ const UI = {
         tension: document.getElementById('agent1-tension'),
         goal: document.getElementById('agent1-goal'),
         tactic: document.getElementById('agent1-tactic'),
-        plan: document.getElementById('agent1-plan')
+        plan: document.getElementById('agent1-plan'),
+        interior: document.getElementById('agent1-interior')
     },
     
     // Agent 2 elements
@@ -48,7 +49,8 @@ const UI = {
         tension: document.getElementById('agent2-tension'),
         goal: document.getElementById('agent2-goal'),
         tactic: document.getElementById('agent2-tactic'),
-        plan: document.getElementById('agent2-plan')
+        plan: document.getElementById('agent2-plan'),
+        interior: document.getElementById('agent2-interior')
     }
 };
 

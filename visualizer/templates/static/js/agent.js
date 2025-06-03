@@ -20,10 +20,19 @@ const AgentManager = {
             tension: document.getElementById(`${agentName}-tension`),
             goal: document.getElementById(`${agentName}-goal`),
             tactic: document.getElementById(`${agentName}-tactic`),
-            plan: document.getElementById(`${agentName}-plan`)
+            plan: document.getElementById(`${agentName}-plan`),
+            interior: document.getElementById(`${agentName}-interior`)
         };
         
         Logger.log(`Updating agent ${agentId} with data:`, data);
+        
+        // Add explicit tension logging
+        console.log(`Agent ${agentId} tension check:`, {
+            'data.tension': data.tension,
+            'data.tension_level': data.tension_level,
+            'tension !== undefined': data.tension !== undefined,
+            'full_data': data
+        });
         
         if (data.name) {
             agent.name.textContent = data.name;
@@ -32,7 +41,10 @@ const AgentManager = {
             agent.personality.textContent = data.personality;
         }
         if (data.tension !== undefined) {
+            console.log(`Setting tension for agent ${agentId} to:`, data.tension);
             agent.tension.textContent = data.tension;
+        } else {
+            console.log(`No tension data found for agent ${agentId}`);
         }
         
         // Handle goal directly or from plan object
@@ -58,6 +70,19 @@ const AgentManager = {
             agent.plan.textContent = data.plan.tactics.join(', ');
         } else {
             Logger.log(`No tactics found for agent ${agentId}`, data.plan);
+        }
+        
+        // Handle interior
+        if (data.interior) {
+            Logger.log(`Setting interior for agent ${agentId}:`, data.interior);
+            if (typeof data.interior === 'object') {
+                // Display principles specifically, fallback to summary if no principles
+                const interiorText = data.interior.principles || '--';
+                agent.interior.textContent = interiorText;
+            } else {
+                // If interior is a string, display it directly
+                agent.interior.textContent = data.interior;
+            }
         }
     },
     

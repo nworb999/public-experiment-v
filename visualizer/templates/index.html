@@ -9,15 +9,7 @@
 </head>
 <body>
     <div class="page-container">
-        <div class="column left-column">
-            <div class="conversation-container">
-                <div class="conversation-header">Conversation</div>
-                <div class="conversation-messages" id="conversation-messages">
-                    <!-- Messages will be added here dynamically -->
-                </div>
-            </div>
-        </div>
-        <div class="column right-column">
+        <div class="column full-width-column">
             <div class="agent-container">
                 <div class="terminal-header" id="agent1-name">Waiting for agent...</div>
                 <div class="agent-properties" id="agent1-properties">
@@ -30,7 +22,7 @@
                         <span class="property-value" id="agent1-tension">0</span>
                     </div>
                     <div class="property-item">
-                        <span class="property-label">Current Goal:</span>
+                        <span class="property-label">Overall Goal:</span>
                         <span class="property-value" id="agent1-goal">--</span>
                     </div>
                     <div class="property-item">
@@ -40,6 +32,10 @@
                     <div class="property-item">
                         <span class="property-label">Plan:</span>
                         <span class="property-value" id="agent1-plan">--</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Interior:</span>
+                        <span class="property-value" id="agent1-interior">--</span>
                     </div>
                 </div>
                 <div id="agent1-pipeline"></div>
@@ -56,7 +52,7 @@
                         <span class="property-value" id="agent2-tension">0</span>
                     </div>
                     <div class="property-item">
-                        <span class="property-label">Current Goal:</span>
+                        <span class="property-label">Overall Goal:</span>
                         <span class="property-value" id="agent2-goal">--</span>
                     </div>
                     <div class="property-item">
@@ -66,6 +62,10 @@
                     <div class="property-item">
                         <span class="property-label">Plan:</span>
                         <span class="property-value" id="agent2-plan">--</span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">Interior:</span>
+                        <span class="property-value" id="agent2-interior">--</span>
                     </div>
                 </div>
                 <div id="agent2-pipeline"></div>

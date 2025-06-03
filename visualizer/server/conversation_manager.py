@@ -34,14 +34,22 @@ class ConversationHistory:
         """Get current history"""
         return self.history
         
-    def add_message(self, sender, message, sender_id=None):
+    def add_message(self, sender, message, sender_id=None, emotion=None, original_speech=None):
         """Add a message to the conversation history"""
-        self.messages.append({
+        message_data = {
             'sender': sender,
             'message': message,
             'sender_id': sender_id,
             'timestamp': time.time()
-        })
+        }
+        
+        # Add emotion and original speech if provided
+        if emotion:
+            message_data['emotion'] = emotion
+        if original_speech:
+            message_data['original_speech'] = original_speech
+            
+        self.messages.append(message_data)
         
         # Keep only the most recent 100 messages
         if len(self.messages) > 100:
@@ -59,13 +67,22 @@ class ConversationManager:
         self.active = False
         self.conversation_id = None
         self.api_url = DEFAULT_API_URL
+        self.auto_restart = True
+        self.port = None
     
     def set_api_url(self, url):
         """Set the API URL"""
         self.api_url = url
     
+    def set_auto_restart(self, auto_restart):
+        """Enable or disable auto-restart of conversations"""
+        self.auto_restart = auto_restart
+    
     def start_conversation(self, api_url, port):
         """Start a new conversation"""
+        # Store port for auto-restart
+        self.port = port
+        
         if self.active:
             logger.info("A conversation is already active")
             self._emit_system_message('A conversation is already active')
@@ -124,9 +141,28 @@ class ConversationManager:
                 })
                 
                 if status in ['completed', 'error']:
-                    self.active = False
+                    logger.info(f'Conversation {self.conversation_id} {status}')
                     self._emit_system_message(f'Conversation {self.conversation_id} {status}')
-                    self.conversation_id = None
+                    
+                    # Auto-restart if enabled
+                    if self.auto_restart and self.port:
+                        logger.info("Auto-restarting conversation...")
+                        self._emit_system_message('Auto-restarting conversation in 2 seconds...')
+                        
+                        # Reset state for new conversation
+                        self.active = False
+                        self.conversation_id = None
+                        
+                        # Schedule restart after a brief delay
+                        def restart_conversation():
+                            time.sleep(2)
+                            if not self.active:  # Only restart if no new conversation was started manually
+                                self.start_conversation(api_url, self.port)
+                        
+                        self.socketio.start_background_task(restart_conversation)
+                    else:
+                        self.active = False
+                        self.conversation_id = None
             elif response.status_code == 404:
                 self.active = False
                 self.conversation_id = None
