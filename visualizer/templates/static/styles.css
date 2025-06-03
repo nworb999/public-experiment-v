@@ -24,7 +24,6 @@
     border-radius: 8px;
 }
 
-
 body {
     min-height: 100vh;
     display: flex;
@@ -542,4 +541,193 @@ body {
     background: rgba(0, 100, 255, 0.4);
     border-color: #66CCFF;
     color: #66CCFF;
+}
+
+/* Agent Page Styles */
+.agent-page-html, 
+.agent-page-body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.agent-page-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+}
+
+.agent-page-image {
+    height: 65vh;
+    object-fit: contain;
+    background: #000;
+    max-width: 100vw;
+}
+
+/* Agent 1 (Alice) - Green theme dialogue box */
+.agent-1-dialogue-box {
+    width: 95vw;
+    max-width: 1200px;
+    height: 30vh;
+    min-height: 150px;
+    background: linear-gradient(135deg, #1a4d3a 0%, #2d7a5f 50%, #3a9b7a 100%);
+    border: 3px solid #4ade80;
+    border-radius: 20px;
+    margin-top: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(74, 222, 128, 0.3);
+    overflow-y: auto;
+    position: relative;
+}
+
+.agent-1-dialogue-box::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid #4ade80;
+}
+
+.agent-1-dialogue-content {
+    color: #e6ffed;
+    font-size: 18px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.agent-1-dialogue-content.has-message {
+    text-align: left;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.agent-1-placeholder-text {
+    color: #86efac;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Agent 2 (Morgan) - Greyscale theme dialogue box */
+.agent-2-dialogue-box {
+    width: 95vw;
+    max-width: 1200px;
+    height: 30vh;
+    min-height: 150px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #404040 100%);
+    border: 3px solid #6b7280;
+    border-radius: 20px;
+    margin-top: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(107, 114, 128, 0.3);
+    overflow-y: auto;
+    position: relative;
+}
+
+.agent-2-dialogue-box::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid #6b7280;
+}
+
+.agent-2-dialogue-content {
+    color: #f3f4f6;
+    font-size: 18px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.agent-2-dialogue-content.has-message {
+    text-align: left;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.agent-2-placeholder-text {
+    color: #9ca3af;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Shared dialogue box animation */
+.message-text {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments for agent pages */
+@media (max-width: 1200px) {
+    .agent-1-dialogue-box,
+    .agent-2-dialogue-box {
+        width: 92vw;
+        max-width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .agent-page-image {
+        height: 60vh;
+    }
+    
+    .agent-1-dialogue-box,
+    .agent-2-dialogue-box {
+        width: 90vw;
+        height: 35vh;
+        font-size: 16px;
+        padding: 15px;
+    }
+    
+    .agent-1-dialogue-content,
+    .agent-2-dialogue-content {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .agent-page-image {
+        height: 55vh;
+    }
+    
+    .agent-1-dialogue-box,
+    .agent-2-dialogue-box {
+        width: 95vw;
+        height: 40vh;
+        padding: 12px;
+    }
+    
+    .agent-1-dialogue-content,
+    .agent-2-dialogue-content {
+        font-size: 14px;
+    }
 }

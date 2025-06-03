@@ -1,39 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="agent-page-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alice - ₍ᐢ._.ᐢ₎♡</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background: #000;
-            width: 100vw;
-            height: 100vh;
-        }
-        .agent-image-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100vw;
-            height: 100vh;
-            background: #000;
-        }
-        .agent-image {
-            height: 100vh;
-            object-fit: contain;
-            background: #000;
-            max-width: 100vw;
-        }
-    </style>
 </head>
-<body>
-    <div class="agent-image-container">
-        <img id="alice-img" class="agent-image" src="/static/alice/neutral.png" alt="Alice" />
+<body class="agent-page-body">
+    <div class="agent-page-container">
+        <img id="alice-img" class="agent-page-image" src="/static/alice/neutral.png" alt="Alice" />
+        <div class="agent-1-dialogue-box">
+            <div id="dialogue-content" class="agent-1-dialogue-content">
+                <span class="agent-1-placeholder-text">Waiting for Alice to speak...</span>
+            </div>
+        </div>
     </div>
     <script type="module" src="/static/agent_1.js"></script>
 </body>

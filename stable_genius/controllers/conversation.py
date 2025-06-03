@@ -265,13 +265,12 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'interior': agent_psyche.interior
         }, visualizer_url)
         
-        # Send emotion as the message instead of dialogue
-        display_message = current_emotion if current_emotion else message_out
+        # Send the actual speech as the message, not the emotion
         send_to_visualizer({
             'event_type': 'add_message',
             'sender': agent.name,
             'sender_id': agent_id,
-            'message': display_message,
+            'message': message_out,  # Send the actual speech as the message
             'emotion': current_emotion,
             'original_speech': message_out
         }, visualizer_url)

@@ -1,27 +1,37 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Oh my GOD, hi Morgan! Okay, so like, it's literally SO nice to finally meet you! I'm honestly still trying to figure out like, how everything works around here because I'm totally new and everyone seems to already know each other, you know? Like, I feel like such a fish out of water right now, but I'm sure I'll get the hang of it... eventually!"
+    "Morgan: Hello there! -> Me: Oh my GOD, hiiii! Okay, literally I am SO lost right now and honestly? I'm like totally spiraling because this place is absolutely insane! Like, please tell me you're just as confused as I am because I cannot be the only one who has zero clue what's happening here - like, what even IS this place?!",
+    "Morgan: Oh my God, okay, this is literally SO interesting right now! Like, the way you're totally spiraling and panicking? It's giving me major vibes that this whole thing means way more to you than you're trying to pretend it does. So honestly, I'm like super curious now - what are you actually so terrified we're gonna find here? Because like, your energy is screaming that there's something you desperately don't want us to see, and I am literally living for this drama right now! -> Me: Hold up, hold UP! What are you even talking about right now?! Like, I'm literally sitting here SO confused because I don't even know where the hell we ARE! I'm not playing games or being all shady - I'm genuinely, like, LOST lost! Like, someone needs to explain to me what's happening because I feel like I'm in the Twilight Zone right now and everybody's speaking a different language!",
+    "Morgan: Okay, like... this is literally so interesting to me right now? Because your whole body is literally screaming panic mode - like, I can see it from across the room - but you're sitting here telling me it's just, what, simple confusion? Alice, honey, those are like, completely contradictory vibes for someone who's just geographically lost. Like, honestly? Something's not adding up here and I'm not buying what you're selling. -> Me: Morgan, okay like... I literally cannot even deal right now! Can you please just help me figure out where the hell we are? Because like, do you actually know this place or are we both just completely screwed? I'm honestly having a full-on panic attack because nothing - and I mean NOTHING - looks even remotely familiar and I'm literally about to lose my mind! Like, I cannot be the only one who's totally freaking out about this situation right now!"
   ],
-  "conversation_memory": "Morgan greeted me warmly. I'm trying to gauge the social tone while admitting I'm new to this environment.",
+  "conversation_memory": "Morgan thinks I'm hiding something, but I'm trying to gently ask for basic information to figure out our location. The misunderstanding continues.",
   "relationships": {
     "Morgan": {
-      "familiarity": 138
+      "familiarity": 147
     }
   },
-  "goal": "find my social footing",
+  "goal": "find familiar ground",
   "plan": [
-    "observe social cues",
-    "ask clarifying questions",
-    "share tentatively",
-    "gauge reactions"
+    "ask gentle questions",
+    "share uncertainties",
+    "seek reassurance",
+    "find commonalities"
   ],
-  "active_tactic": "observe social cues",
+  "active_tactic": "ask gentle questions",
   "rounds_since_tactic_change": 0,
-  "tension_level": 20,
-  "tension_interpretation": "Cautiously curious but slightly unsettled",
+  "tension_level": 14,
+  "tension_interpretation": null,
   "personality": "friendly",
   "name": "Alice",
   "stressful_phrases": [
+    "not buying",
+    "panic mode",
+    "screaming",
+    "drama",
+    "desperately",
+    "terrified",
+    "panicking",
+    "spiraling",
     "conflict",
     "argument",
     "disagree",
@@ -49,9 +59,9 @@
   },
   "recent_emotions": [
     "scared",
-    "playful",
-    "neutral",
     "happy",
-    "intense"
+    "neutral",
+    "playful",
+    "neutral"
   ]
 }
