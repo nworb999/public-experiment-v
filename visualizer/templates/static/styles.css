@@ -566,7 +566,7 @@ body {
 }
 
 .agent-page-image {
-    height: 65vh;
+    height: 62vh;
     object-fit: contain;
     background: #000;
     max-width: 100vw;
@@ -582,6 +582,7 @@ body {
     border: 3px solid #4ade80;
     border-radius: 20px;
     margin-top: 20px;
+    margin-bottom: 30px;
     padding: 20px;
     box-shadow: 0 8px 32px rgba(74, 222, 128, 0.3);
     overflow-y: auto;
@@ -634,6 +635,7 @@ body {
     border: 3px solid #6b7280;
     border-radius: 20px;
     margin-top: 20px;
+    margin-bottom: 30px;
     padding: 20px;
     box-shadow: 0 8px 32px rgba(107, 114, 128, 0.3);
     overflow-y: auto;
@@ -697,7 +699,7 @@ body {
 
 @media (max-width: 768px) {
     .agent-page-image {
-        height: 60vh;
+        height: 57vh;
     }
     
     .agent-1-dialogue-box,
@@ -716,7 +718,7 @@ body {
 
 @media (max-width: 480px) {
     .agent-page-image {
-        height: 55vh;
+        height: 52vh;
     }
     
     .agent-1-dialogue-box,
