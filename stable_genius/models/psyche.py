@@ -53,6 +53,36 @@ class Psyche(BaseModel):
                     psyche.active_tactic = psyche.plan[0]
 
                 return psyche
+            except UnicodeDecodeError as e:
+                logger.warning(f"UTF-8 decode error loading psyche for {agent_name}: {e}")
+                logger.info(f"Attempting to read file with different encoding...")
+                
+                # Try with different encodings common on Windows
+                for encoding in ['cp1252', 'latin1', 'utf-8-sig']:
+                    try:
+                        with open(filepath, 'r', encoding=encoding) as f:
+                            data = json.load(f)
+                        
+                        logger.info(f"Successfully read file with {encoding} encoding")
+                        
+                        # Create psyche and re-save with proper UTF-8 encoding
+                        psyche = cls(**data)
+                        if psyche.plan and len(psyche.plan) > 0 and not psyche.active_tactic:
+                            psyche.active_tactic = psyche.plan[0]
+                        
+                        # Save with proper UTF-8 encoding to fix the file
+                        psyche.save()
+                        logger.info(f"Re-saved {agent_name} psyche with proper UTF-8 encoding")
+                        
+                        return psyche
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        continue
+                
+                # If all encodings fail, delete the corrupted file and create new
+                logger.warning(f"Could not read {filepath} with any encoding. Deleting corrupted file.")
+                filepath.unlink()
+                return cls(name=agent_name)
+                
             except (json.JSONDecodeError, IOError) as e:
                 logger.info(f"Error loading psyche for {agent_name}: {e}")
                 # Fall back to a new instance with the provided name
