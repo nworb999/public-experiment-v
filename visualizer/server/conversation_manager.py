@@ -34,14 +34,22 @@ class ConversationHistory:
         """Get current history"""
         return self.history
         
-    def add_message(self, sender, message, sender_id=None):
+    def add_message(self, sender, message, sender_id=None, emotion=None, original_speech=None):
         """Add a message to the conversation history"""
-        self.messages.append({
+        message_data = {
             'sender': sender,
             'message': message,
             'sender_id': sender_id,
             'timestamp': time.time()
-        })
+        }
+        
+        # Add emotion and original speech if provided
+        if emotion:
+            message_data['emotion'] = emotion
+        if original_speech:
+            message_data['original_speech'] = original_speech
+            
+        self.messages.append(message_data)
         
         # Keep only the most recent 100 messages
         if len(self.messages) > 100:

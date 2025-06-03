@@ -26,6 +26,14 @@ const AgentManager = {
         
         Logger.log(`Updating agent ${agentId} with data:`, data);
         
+        // Add explicit tension logging
+        console.log(`Agent ${agentId} tension check:`, {
+            'data.tension': data.tension,
+            'data.tension_level': data.tension_level,
+            'tension !== undefined': data.tension !== undefined,
+            'full_data': data
+        });
+        
         if (data.name) {
             agent.name.textContent = data.name;
         }
@@ -33,7 +41,10 @@ const AgentManager = {
             agent.personality.textContent = data.personality;
         }
         if (data.tension !== undefined) {
+            console.log(`Setting tension for agent ${agentId} to:`, data.tension);
             agent.tension.textContent = data.tension;
+        } else {
+            console.log(`No tension data found for agent ${agentId}`);
         }
         
         // Handle goal directly or from plan object

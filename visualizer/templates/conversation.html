@@ -6,17 +6,47 @@
     <title>Conversation - ₍ᐢ._.ᐢ₎♡</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+        .agent-images-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
+        .agent-image {
+            flex: 1 1 0;
+            height: 100vh;
+            object-fit: contain;
+            background: #000;
+            max-width: 50vw;
+        }
+        @media (max-width: 900px) {
+            .agent-images-container {
+                flex-direction: column;
+            }
+            .agent-image {
+                max-width: 100vw;
+                max-height: 50vh;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="conversation-full-page">
-        <div class="conversation-container">
-            <div class="conversation-header">Conversation</div>
-            <div class="conversation-messages" id="conversation-messages">
-                <!-- Messages will be added here dynamically -->
-            </div>
-        </div>
+    <div class="agent-images-container">
+        <img id="alice-img" class="agent-image" src="/static/alice/neutral.png" alt="Alice" />
+        <img id="morgan-img" class="agent-image" src="/static/morgan/neutral.png" alt="Morgan" />
     </div>
-
     <script src="/static/conversation.js" type="module"></script>
 </body>
 </html> 

@@ -11,8 +11,9 @@ const ChatManager = {
      * @param {string} sender - Name of the message sender
      * @param {string} message - The message content
      * @param {number} [senderId] - The sender ID (0 or 1) for agents
+     * @param {Object} [data] - Additional message data (e.g., emotion, original_speech)
      */
-    addMessage(sender, message, senderId) {
+    addMessage(sender, message, senderId, data = {}) {
         if (!UI.conversationMessages) return;
         
         // Skip System messages
@@ -40,9 +41,21 @@ const ChatManager = {
         senderElement.textContent = sender;
         messageElement.appendChild(senderElement);
         
-        // Add message content
+        // Add message content - use emotion if available, otherwise use message
         const contentElement = document.createElement('div');
-        contentElement.textContent = message;
+        const displayText = data.emotion ? `[${data.emotion}]` : message;
+        contentElement.textContent = displayText;
+        
+        // Add emotion styling if it's an emotion
+        if (data.emotion) {
+            contentElement.className = 'emotion-display';
+            
+            // Add the original speech as a title attribute for hover
+            if (data.original_speech) {
+                contentElement.title = `Original speech: "${data.original_speech}"`;
+            }
+        }
+        
         messageElement.appendChild(contentElement);
         
         // Add to conversation

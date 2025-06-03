@@ -89,12 +89,9 @@ const PipelineManager = {
             pipelineState.currentStep = stageIndex;
         }
         
-        // Remove current class from all summaries for this agent
-        const summaries = document.querySelectorAll(`.pipeline-summary[id^="${agentId}-"]`);
-        summaries.forEach(summary => summary.classList.remove('current'));
-        
-        // Add current class to current stage summary
+        // First, add current class to new stage summary and title
         const currentSummary = document.getElementById(`${agentId}-${stage}-summary`);
+        const currentTitle = document.getElementById(`${agentId}-${stage}-title`);
 
         if (currentSummary) {
             currentSummary.classList.add('current');
@@ -103,15 +100,36 @@ const PipelineManager = {
             if (data.summary) {
                 currentSummary.textContent = `"${data.summary}"`;
             }
-            
-            // Check if this is the last step
-            if (stageIndex === pipelineState.components.length - 1) {
-                // Last step updated, activate the flag and switch it
-                pipelineState.isActive = true;
-                this.switchActiveFlag(agentId);
-            }
         } else {
-            console.warn(`Pipeline stage element not found: ${agentId}-${stage}-summary`);
+            console.warn(`Pipeline stage summary element not found: ${agentId}-${stage}-summary`);
+        }
+        
+        if (currentTitle) {
+            currentTitle.classList.add('current');
+        } else {
+            console.warn(`Pipeline stage title element not found: ${agentId}-${stage}-title`);
+        }
+        
+        // Then remove current class from all OTHER summaries and titles for this agent
+        const summaries = document.querySelectorAll(`.pipeline-summary[id^="${agentId}-"]`);
+        summaries.forEach(summary => {
+            if (summary !== currentSummary) {
+                summary.classList.remove('current');
+            }
+        });
+        
+        const titles = document.querySelectorAll(`.pipeline-title[id^="${agentId}-"]`);
+        titles.forEach(title => {
+            if (title !== currentTitle) {
+                title.classList.remove('current');
+            }
+        });
+        
+        // Check if this is the last step
+        if (stageIndex === pipelineState.components.length - 1) {
+            // Last step updated, activate the flag and switch it
+            pipelineState.isActive = true;
+            this.switchActiveFlag(agentId);
         }
     },
 

@@ -29,16 +29,27 @@ class PlanProcessor:
                 # For tactic selection errors, return default active tactic
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                    "summary": "Error in processing, defaulting to first tactic."
+                    "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
+{
+    "error_type": "processing_error",
+    "fallback_action": "default_tactic_selection",
+    "system_state": "degraded_mode"
+}"""
                 }
             else:
-                # For plan generation errors, return default plan
+                # For plan generation errors, return existing goal and default plan
+                existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                 plan = self._default_plan(psyche)
                 return {
-                    "goal": self._default_goal(psyche),
+                    "goal": existing_goal,
                     "plan": plan,
                     "active_tactic": plan[0] if plan else None,
-                    "summary": "Error in planning, using default plan based on interiority."
+                    "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
+{
+    "error_type": "planning_error",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                 }
             
         try:
@@ -58,15 +69,26 @@ class PlanProcessor:
                         if has_plan:
                             return {
                                 "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                                "summary": "Failed to parse response, defaulting to first tactic."
+                                "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
+{
+    "parse_status": "failed",
+    "fallback_action": "default_tactic_selection",
+    "recovery_mode": "active"
+}"""
                             }
                         else:
+                            existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                             default_plan = self._default_plan(psyche)
                             return {
-                                "goal": self._default_goal(psyche),
+                                "goal": existing_goal,
                                 "plan": default_plan,
                                 "active_tactic": default_plan[0] if default_plan else None,
-                                "summary": "Failed to parse response, using default plan based on interiority."
+                                "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
+{
+    "parse_status": "failed",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                             }
                 else:
                     # Fallback to default
@@ -74,15 +96,26 @@ class PlanProcessor:
                     if has_plan:
                         return {
                             "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                            "summary": "No valid JSON found, defaulting to first tactic."
+                            "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
+{
+    "json_detection": "failed",
+    "fallback_action": "default_tactic_selection",
+    "parser_state": "emergency_mode"
+}"""
                         }
                     else:
+                        existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                         default_plan = self._default_plan(psyche)
                         return {
-                            "goal": self._default_goal(psyche),
+                            "goal": existing_goal,
                             "plan": default_plan,
                             "active_tactic": default_plan[0] if default_plan else None,
-                            "summary": "No valid JSON found, using default plan based on interiority."
+                            "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
+{
+    "json_detection": "failed",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                         }
             
             # Process based on whether we're selecting a tactic or generating a plan
@@ -91,15 +124,27 @@ class PlanProcessor:
                 if "active_tactic" not in json_data:
                     json_data["active_tactic"] = self._get_first_tactic_from_default_plan(psyche)
                 if "summary" not in json_data:
-                    json_data["summary"] = "Selected tactic based on current conversation state."
+                    json_data["summary"] = """PLAN_PROCESSOR :: TACTIC_SELECTED
+{
+    "selection_basis": "conversation_state",
+    "interiority_guided": "true",
+    "cognitive_mode": "adaptive"
+}"""
                 return {
                     "active_tactic": json_data["active_tactic"],
                     "summary": json_data.get("summary")
                 }
             else:
-                # For plan generation
+                # For plan generation - DO NOT fall back to default goals
+                # Keep existing goal if LLM doesn't provide one
                 if "goal" not in json_data:
-                    json_data["goal"] = self._default_goal(psyche)
+                    existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
+                    if existing_goal:
+                        json_data["goal"] = existing_goal
+                        logger.warning(f"LLM did not provide goal, keeping existing: {existing_goal}")
+                    else:
+                        logger.warning("LLM did not provide goal and no existing goal found - goal will be None")
+                        json_data["goal"] = None
                     
                 if "plan" not in json_data:
                     json_data["plan"] = self._default_plan(psyche)
@@ -112,7 +157,12 @@ class PlanProcessor:
                 
                 # Add summary if missing
                 if "summary" not in json_data:
-                    json_data["summary"] = "Generated plan based on interiority and current state."
+                    json_data["summary"] = """PLAN_PROCESSOR :: GENERATED
+{
+    "generation_basis": "interiority_analysis",
+    "goal_alignment": "dynamic",
+    "tactical_coherence": "stable"
+}"""
                     
                 return json_data
             
@@ -122,15 +172,26 @@ class PlanProcessor:
             if has_plan:
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                    "summary": f"Exception occurred: {str(e)}. Defaulting to first tactic."
+                    "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
+{{
+    "exception_type": "{type(e).__name__}",
+    "fallback_action": "default_tactic_selection",
+    "error_recovery": "successful"
+}}"""
                 }
             else:
+                existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                 default_plan = self._default_plan(psyche)
                 return {
-                    "goal": self._default_goal(psyche), 
+                    "goal": existing_goal, 
                     "plan": default_plan,
                     "active_tactic": default_plan[0] if default_plan else None,
-                    "summary": f"Exception occurred: {str(e)}. Using default plan."
+                    "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
+{{
+    "exception_type": "{type(e).__name__}",
+    "fallback_action": "preserve_existing_goal",
+    "error_recovery": "successful"
+}}"""
                 }
     
     def _default_goal(self, psyche=None) -> str:
@@ -151,11 +212,11 @@ class PlanProcessor:
                 elif any(word in combined_interior for word in ["truth", "honest", "authentic", "real"]):
                     return "seek authentic understanding"
                 elif any(word in combined_interior for word in ["learn", "grow", "discover", "explore"]):
-                    return "explore and learn together"
+                    return "explore and learn"
                 elif any(word in combined_interior for word in ["safe", "comfort", "peace", "calm"]):
-                    return "create a safe space"
+                    return "create safe space"
                 else:
-                    return "honor my values in this interaction"
+                    return "honor my values"
         
         # Fallback to personality-based goals
         if "friendly" in self.personality:
@@ -176,7 +237,7 @@ class PlanProcessor:
                 combined_interior = f"{interior_summary or ''} {interior_principles or ''}".lower()
                 tactics = []
                 
-                # Build tactics based on interior themes
+                # Build tactics based on interior themes (limit to 4, keep brief)
                 if any(word in combined_interior for word in ["listen", "hear", "understand"]):
                     tactics.append("listen deeply")
                 if any(word in combined_interior for word in ["honest", "truth", "authentic", "real"]):
@@ -188,23 +249,26 @@ class PlanProcessor:
                 if any(word in combined_interior for word in ["help", "support", "care"]):
                     tactics.append("offer support")
                 if any(word in combined_interior for word in ["curious", "ask", "question", "explore"]):
-                    tactics.append("ask thoughtful questions")
+                    tactics.append("ask questions")
                 if any(word in combined_interior for word in ["respect", "honor", "value"]):
                     tactics.append("respect boundaries")
                 
+                # Limit to 4 tactics
+                tactics = tactics[:4]
+                
                 # Ensure we have at least one tactic
                 if not tactics:
-                    tactics = ["stay true to my values"]
+                    tactics = ["stay authentic"]
                     
                 return tactics
         
-        # Fallback to personality-based plans
+        # Fallback to personality-based plans (limit to 4 brief tactics)
         if "friendly" in self.personality:
-            return ["friendly conversation", "show empathy"]
+            return ["show empathy", "be warm", "build rapport", "stay positive"]
         elif "analytical" in self.personality:
-            return ["ask targeted questions", "analyze responses"]
+            return ["ask questions", "analyze responses", "seek clarity", "gather data"]
         else:
-            return ["balanced dialogue"]
+            return ["balanced dialogue", "stay present", "be responsive", "maintain flow"]
             
     def _get_first_tactic_from_default_plan(self, psyche=None) -> str:
         """Get the first tactic from the default plan"""
