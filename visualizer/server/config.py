@@ -21,7 +21,7 @@ def load_config():
         raise FileNotFoundError(f"Config file not found: {CONFIG_FILE}. Please create this file before running.")
     
     try:
-        with open(CONFIG_FILE, "r") as f:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         raise Exception(f"Error loading config file: {e}") 

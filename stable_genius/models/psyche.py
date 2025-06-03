@@ -31,7 +31,7 @@ class Psyche(BaseModel):
         
         if filepath.exists():
             try:
-                with open(filepath, 'r') as f:
+                with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     
                 # If plan is present but not active_tactic, set first tactic as active
@@ -58,7 +58,7 @@ class Psyche(BaseModel):
         filepath = db_dir / f"{self.name.lower()}.json"
         
         try:
-            with open(filepath, 'w') as f:
+            with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(self.model_dump_json(indent=2))
         except IOError as e:
             logger.info(f"Error saving psyche for {self.name}: {e}")
