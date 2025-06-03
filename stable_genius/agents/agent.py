@@ -8,7 +8,7 @@ class Agent:
         self.personality = personality
         
         # Store shared LLM instance
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         
         # Create pipeline - optionally use custom components
         self.pipeline = CognitivePipeline(personality, llm=self.llm, components=custom_pipeline)

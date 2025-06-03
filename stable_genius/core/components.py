@@ -56,7 +56,7 @@ class PlanComponent(PipelineComponent):
     
     def __init__(self, name: str, personality: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         self.personality = personality
         self.processor = PlanProcessor(personality)
         
@@ -168,7 +168,7 @@ class ActionComponent(PipelineComponent):
     
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         self.processor = ActionProcessor()
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
@@ -315,7 +315,7 @@ class TriggerComponent(PipelineComponent):
             llm: LLM instance for generating system summaries
         """
         super().__init__(name)
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         self.model_path = model_path
         self.default_stressors = default_stressors or [
             "deadline", "urgent", "hurry", "problem", "mistake", "failure", 
@@ -564,7 +564,7 @@ class ReflectComponent(PipelineComponent):
     
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Update psyche based on the planning and action results"""
@@ -774,7 +774,7 @@ class IntentClassifierComponent(PipelineComponent):
     
     def __init__(self, name: str, llm: OllamaLLM = None):
         super().__init__(name)
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         
     async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
         """Classify intent of the input and add to context"""

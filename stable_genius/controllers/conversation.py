@@ -561,7 +561,7 @@ if __name__ == "__main__":
     
     async def test_run():
         print("Starting test conversation...")
-        llm = OllamaLLM()
+        llm = OllamaLLM(use_local=False)
         conversation_id = "test_conversation"
         try:
             await run_conversation(conversation_id, llm_service=llm)

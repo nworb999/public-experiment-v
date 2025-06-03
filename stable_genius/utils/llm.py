@@ -10,7 +10,8 @@ import anthropic
 load_dotenv()
 
 # MODEL_NAME = "llama3.3:70b-instruct-q2_K"
-MODEL_NAME = "llama3:8b"
+# MODEL_NAME = "llama3:8b"
+MODEL_NAME = "claude-3-5-sonnet-20241022"
 ANTHROPIC_KEY = os.getenv('ANTHROPIC_KEY')
 
 class OllamaLLM:

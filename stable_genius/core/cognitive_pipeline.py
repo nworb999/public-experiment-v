@@ -26,7 +26,7 @@ class CognitivePipeline:
             components: List of pipeline components in processing order (if None, default pipeline is created)
         """
         self.personality = personality
-        self.llm = llm if llm else OllamaLLM()
+        self.llm = llm if llm else OllamaLLM(use_local=False)
         self.callbacks = []
         
         if components is None:
