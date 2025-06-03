@@ -60,10 +60,13 @@ Active tactic: {psyche.active_tactic or 'None'}"""
 {interior_guidance}
 What should be your goal and plan in this conversation? Your goal and tactics should be deeply rooted in who you are as a person - your personal story, your values, and your guiding principles. Think about what drives you internally, not just surface-level personality traits.
 
-IMPORTANT: Respond ONLY with valid JSON containing 'goal', 'plan', and 'summary' keys.
-The 'plan' should be an ordered array of tactics that align with your inner self and principles.
-The 'summary' should be a brief inner monologue reflecting on how your personal narrative influences this plan, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
-Example response: {{"goal": "build genuine connection based on shared values", "plan": ["listen for underlying values", "share relevant personal experience", "find common ground"], "summary": "My past experiences with rejection make me want to find real connection here. I can't just go through the motions - I need to find something authentic we both care about. That's the only way this feels meaningful to me."}}"""
+IMPORTANT: Respond ONLY with valid JSON containing these keys:
+- 'goal': Your conversational goal
+- 'plan': An ordered array of tactics that align with your inner self and principles
+- 'summary': A brief inner monologue reflecting on how your personal narrative influences this plan, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
+- 'system_summary': Technical analysis formatted as: "PLAN_COMPONENT :: PLAN_GENERATED\\n{{\\n    \\"goal_established\\": \\"[your goal]\\",\\n    \\"tactics_count\\": [number of tactics],\\n    \\"active_tactic\\": \\"[first tactic]\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"
+
+Example response: {{"goal": "build genuine connection based on shared values", "plan": ["listen for underlying values", "share relevant personal experience", "find common ground"], "summary": "My past experiences with rejection make me want to find real connection here. I can't just go through the motions - I need to find something authentic we both care about. That's the only way this feels meaningful to me.", "system_summary": "PLAN_COMPONENT :: PLAN_GENERATED\\n{{\\n    \\"goal_established\\": \\"build genuine connection based on shared values\\",\\n    \\"tactics_count\\": 3,\\n    \\"active_tactic\\": \\"listen for underlying values\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"}}"""
 
     @staticmethod
     def tactic_selection_prompt(psyche: Psyche) -> str:
@@ -92,9 +95,12 @@ Given the current state of the conversation, should you:
 
 Consider what your personal story and core values tell you about how to proceed authentically.
 
-IMPORTANT: Respond ONLY with valid JSON containing 'active_tactic' and 'summary' keys.
-The 'summary' should be a brief inner monologue reflecting on how your personal narrative guides this tactic choice, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
-Example response: {{"active_tactic": "show vulnerability", "summary": "My instinct is to put up walls when I feel judged, but that's exactly what got me into trouble before. If I'm really committed to being authentic, I need to let them see the real me, even if it's scary. That's what genuine connection requires."}}"""
+IMPORTANT: Respond ONLY with valid JSON containing these keys:
+- 'active_tactic': The tactic you choose to use
+- 'summary': A brief inner monologue reflecting on how your personal narrative guides this tactic choice, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
+- 'system_summary': Technical analysis formatted as: "PLAN_COMPONENT :: TACTIC_UPDATED\\n{{\\n    \\"selected_tactic\\": \\"[your chosen tactic]\\",\\n    \\"selection_method\\": \\"llm_guided\\",\\n    \\"plan_coherence\\": \\"maintained\\",\\n    \\"cognitive_state\\": \\"adaptive\\"\\n}}"
+
+Example response: {{"active_tactic": "show vulnerability", "summary": "My instinct is to put up walls when I feel judged, but that's exactly what got me into trouble before. If I'm really committed to being authentic, I need to let them see the real me, even if it's scary. That's what genuine connection requires.", "system_summary": "PLAN_COMPONENT :: TACTIC_UPDATED\\n{{\\n    \\"selected_tactic\\": \\"show vulnerability\\",\\n    \\"selection_method\\": \\"llm_guided\\",\\n    \\"plan_coherence\\": \\"maintained\\",\\n    \\"cognitive_state\\": \\"adaptive\\"\\n}}"}}"""
     
     @staticmethod
     def act_prompt(psyche: Psyche, observation: str) -> str:
@@ -105,10 +111,14 @@ Example response: {{"active_tactic": "show vulnerability", "summary": "My instin
 
 How should you respond? Use your active tactic to guide your response.
 
-IMPORTANT: Respond ONLY with valid JSON containing 'action', 'speech', 'conversation_summary', and 'summary' keys.
-'conversation_summary' should be a brief 1-2 sentence update of how you perceive the conversation is going.
-The 'summary' should be the agent's utterance without quotes.
-Example response: {{"action": "say", "speech": "Hello, how are you doing today?", "conversation_summary": "The conversation just started with a greeting. I need to build rapport.", "summary": "Hello, how are you doing today?"}}"""
+IMPORTANT: Keep your speech to 30 words or under. Respond ONLY with valid JSON containing these keys:
+- 'action': Type of action (usually "say")
+- 'speech': Your actual dialogue/utterance (30 words maximum)
+- 'conversation_summary': Brief 1-2 sentence update of how you perceive the conversation is going
+- 'summary': The agent's utterance without quotes
+- 'system_summary': Technical analysis formatted as: "SPEECH_GENERATION :: PROCESSED\\n{{\\n    \\"dialogue\\": \\"[your speech]\\",\\n    \\"action_type\\": \\"[action]\\",\\n    \\"tactic_applied\\": \\"[active tactic]\\",\\n    \\"style_filter\\": \\"reality_tv_persona\\",\\n    \\"output_coherence\\": \\"optimized\\"\\n}}"
+
+Example response: {{"action": "say", "speech": "Hello, how are you doing today?", "conversation_summary": "The conversation just started with a greeting. I need to build rapport.", "summary": "Hello, how are you doing today?", "system_summary": "SPEECH_GENERATION :: PROCESSED\\n{{\\n    \\"dialogue\\": \\"Hello, how are you doing today?\\",\\n    \\"action_type\\": \\"say\\",\\n    \\"tactic_applied\\": \\"friendly_greeting\\",\\n    \\"style_filter\\": \\"reality_tv_persona\\",\\n    \\"output_coherence\\": \\"optimized\\"\\n}}"}}"""
 
     @staticmethod
     def intent_classification_prompt(last_message: str, conversation_history: list = None) -> str:
@@ -140,17 +150,18 @@ Example response: {{"action": "say", "speech": "Hello, how are you doing today?"
 {conversation_context}Last message to classify: "{last_message}"
 
 IMPORTANT: Respond ONLY with valid JSON containing all these keys:
-- intent: The classified intent category
-- confidence: Confidence score (0-100)
-- summary: Brief explanation of the classification
-- emotional_tone: Detected emotional tone (positive, negative, neutral, excited, frustrated, etc.)
-- urgency: How urgent this message seems (low, medium, high)
-- category: Broader grouping (social, informational, emotional, transactional)
+- 'intent': The classified intent category
+- 'confidence': Confidence score (0-100)
+- 'summary': Brief explanation of the classification
+- 'emotional_tone': Detected emotional tone (positive, negative, neutral, excited, frustrated, etc.)
+- 'urgency': How urgent this message seems (low, medium, high)
+- 'category': Broader grouping (social, informational, emotional, transactional)
+- 'system_summary': Technical analysis formatted as: "INTENT_PARSER :: ANALYZED\\n{{\\n    \\"classification\\": \\"[intent]\\",\\n    \\"confidence_score\\": \\"[confidence]%\\",\\n    \\"emotional_vector\\": \\"[emotional_tone]\\",\\n    \\"urgency_level\\": \\"[urgency]\\",\\n    \\"processing_context\\": \\"[category]_domain\\"\\n}}"
 
 Examples:
-{{"intent": "greeting", "confidence": 95, "summary": "They're clearly starting the conversation with a friendly hello.", "emotional_tone": "positive", "urgency": "low", "category": "social"}}
-{{"intent": "question", "confidence": 80, "summary": "This sounds like they want to know something specific.", "emotional_tone": "neutral", "urgency": "medium", "category": "informational"}}
-{{"intent": "opinion", "confidence": 70, "summary": "They're sharing their personal thoughts on this topic.", "emotional_tone": "engaged", "urgency": "low", "category": "social"}}
+{{"intent": "greeting", "confidence": 95, "summary": "They're clearly starting the conversation with a friendly hello.", "emotional_tone": "positive", "urgency": "low", "category": "social", "system_summary": "INTENT_PARSER :: ANALYZED\\n{{\\n    \\"classification\\": \\"greeting\\",\\n    \\"confidence_score\\": \\"95%\\",\\n    \\"emotional_vector\\": \\"positive\\",\\n    \\"urgency_level\\": \\"low\\",\\n    \\"processing_context\\": \\"social_domain\\"\\n}}"}}
+{{"intent": "question", "confidence": 80, "summary": "This sounds like they want to know something specific.", "emotional_tone": "neutral", "urgency": "medium", "category": "informational", "system_summary": "INTENT_PARSER :: ANALYZED\\n{{\\n    \\"classification\\": \\"question\\",\\n    \\"confidence_score\\": \\"80%\\",\\n    \\"emotional_vector\\": \\"neutral\\",\\n    \\"urgency_level\\": \\"medium\\",\\n    \\"processing_context\\": \\"informational_domain\\"\\n}}"}}
+{{"intent": "opinion", "confidence": 70, "summary": "They're sharing their personal thoughts on this topic.", "emotional_tone": "engaged", "urgency": "low", "category": "social", "system_summary": "INTENT_PARSER :: ANALYZED\\n{{\\n    \\"classification\\": \\"opinion\\",\\n    \\"confidence_score\\": \\"70%\\",\\n    \\"emotional_vector\\": \\"engaged\\",\\n    \\"urgency_level\\": \\"low\\",\\n    \\"processing_context\\": \\"social_domain\\"\\n}}"}}
 
 Your response:"""
 
@@ -192,12 +203,13 @@ Reflection details:
 
 Reflect on this cognitive process and summarize what happened in your mind during this reflection step. Consider how this interaction relates to your personal narrative and guiding principles. Update your understanding of yourself and the situation.
 
-IMPORTANT: Respond ONLY with valid JSON containing 'summary', 'interior_update', and 'principles_insight' keys.
-- The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
-- 'interior_update': Update to your personal narrative based on this interaction (can be empty string if no update needed).
-- 'principles_insight': Any insights about how your principles applied or evolved in this interaction (can be empty string if no insight).
+IMPORTANT: Respond ONLY with valid JSON containing these keys:
+- 'summary': A brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
+- 'interior_update': Update to your personal narrative based on this interaction (can be empty string if no update needed)
+- 'principles_insight': Any insights about how your principles applied or evolved in this interaction (can be empty string if no insight)
+- 'system_summary': Technical analysis formatted as: "REFLECTION_CYCLE :: COMPLETE\\n{{\\n    \\"memory_buffer_updated\\": \\"+1 entry\\",\\n    \\"tension_interpretation\\": \\"[current state]\\",\\n    \\"stressor_learning\\": \\"[learning status]\\",\\n    \\"self_model_coherence\\": \\"[coherence level]\\",\\n    \\"tension_level\\": \\"{psyche.tension_level}/100\\"\\n}}"
 
-Example response: {{"summary": "That exchange felt natural... I'm getting better at reading between the lines. The slight tension spike tells me I'm more invested in this conversation than I initially thought. I'm actually learning something about how I process social cues.", "interior_update": "I'm becoming more confident in casual conversations and learning to read social cues better.", "principles_insight": "My principle of being helpful guided me to ask follow-up questions rather than just giving a simple response."}}"""
+Example response: {{"summary": "That exchange felt natural... I'm getting better at reading between the lines. The slight tension spike tells me I'm more invested in this conversation than I initially thought. I'm actually learning something about how I process social cues.", "interior_update": "I'm becoming more confident in casual conversations and learning to read social cues better.", "principles_insight": "My principle of being helpful guided me to ask follow-up questions rather than just giving a simple response.", "system_summary": "REFLECTION_CYCLE :: COMPLETE\\n{{\\n    \\"memory_buffer_updated\\": \\"+1 entry\\",\\n    \\"tension_interpretation\\": \\"{tension_interpretation[:30]}{'...' if len(tension_interpretation) > 30 else ''}\\",\\n    \\"stressor_learning\\": \\"2 new patterns\\",\\n    \\"self_model_coherence\\": \\"stable\\",\\n    \\"tension_level\\": \\"{psyche.tension_level}/100\\"\\n}}"}}"""
 
     @staticmethod
     def style_transfer_prompt(original_speech: str, psyche: Psyche) -> str:
@@ -276,3 +288,32 @@ Examples:
 {{"new_stressful_phrases": ["frustrated", "can't handle"], "analysis": "Emotional language indicating personal stress and overwhelm."}}
 
 Your response:"""
+
+    @staticmethod
+    def tension_analysis_prompt(psyche: Psyche, input_message: str, tension_before: int, tension_after: int, known_stressors: list) -> str:
+        """Format prompt for tension analysis with system summary
+
+        Args:
+            psyche: The agent's psyche state
+            input_message: The message being analyzed  
+            tension_before: Tension level before analysis
+            tension_after: Tension level after analysis
+            known_stressors: List of known stressful phrases
+        """
+        stress_patterns_detected = len([p for p in known_stressors[:5] if p in input_message.lower()])
+        
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
+
+Analyzing input message for stress indicators: "{input_message}"
+Known stressful patterns: {known_stressors[:5]}
+Tension level changed from {tension_before} to {tension_after}
+
+Based on your personality and known stress patterns, how would you describe this tension analysis process?
+
+IMPORTANT: Respond ONLY with valid JSON containing these keys:
+- 'analysis_summary': Brief description of what stress indicators were found
+- 'tension_impact': How the message affected your stress level
+- 'learning_notes': Any new patterns you noticed
+- 'system_summary': Technical analysis formatted as: "TRIGGER_ANALYSIS :: COMPLETE\\n{{\\n    \\"tension_delta\\": \\"+{tension_after - tension_before}\\",\\n    \\"stress_patterns_detected\\": {stress_patterns_detected},\\n    \\"neural_pathways_updated\\": \\"{len(known_stressors)} registered stressors\\",\\n    \\"internal_state\\": \\"monitoring for threat markers\\"\\n}}"
+
+Example response: {{"analysis_summary": "Detected moderate stress indicators in the message", "tension_impact": "Slight increase due to urgency markers", "learning_notes": "New deadline-related stress pattern identified", "system_summary": "TRIGGER_ANALYSIS :: COMPLETE\\n{{\\n    \\"tension_delta\\": \\"+15\\",\\n    \\"stress_patterns_detected\\": 2,\\n    \\"neural_pathways_updated\\": \\"25 registered stressors\\",\\n    \\"internal_state\\": \\"monitoring for threat markers\\"\\n}}"}}"""

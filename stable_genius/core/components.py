@@ -102,18 +102,31 @@ class PlanComponent(PipelineComponent):
         # Process the plan response based on whether plan exists
         plan_result = self.processor.process(raw_plan_response, has_plan, psyche)
         
+        logger.debug(f"Plan processor returned: {plan_result}")
+        logger.debug(f"Goal in plan_result: {plan_result.get('goal')}")
+        
         if has_plan:
             # If plan exists, we're just updating the active tactic
             if "active_tactic" in plan_result:
                 psyche.active_tactic = plan_result["active_tactic"]
                 context.update({
                     "active_tactic": plan_result["active_tactic"],
-                    "summary": plan_result.get("summary", "No summary provided for tactic selection")
+                    "summary": plan_result.get("system_summary", f"""PLAN_COMPONENT :: TACTIC_UPDATED
+{{
+    "selected_tactic": "{plan_result['active_tactic']}",
+    "selection_method": "llm_guided",
+    "plan_coherence": "maintained",
+    "cognitive_state": "adaptive"
+}}""")
                 })
         else:
             # If no plan exists, update psyche with new goal and plan
             if "goal" in plan_result:
+                logger.debug(f"Updating psyche goal from {psyche.goal} to {plan_result['goal']}")
                 psyche.goal = plan_result["goal"]
+                logger.debug(f"Updated psyche goal to: {plan_result['goal']}")
+            else:
+                logger.warning(f"No goal found in plan_result: {plan_result}")
             
             if "plan" in plan_result:
                 psyche.plan = plan_result["plan"]
@@ -121,10 +134,18 @@ class PlanComponent(PipelineComponent):
             if "active_tactic" in plan_result:
                 psyche.active_tactic = plan_result["active_tactic"]
             
-            # Update context with full plan
+            # Update context with full plan - ensure goal is included even if None
             context.update({
                 "plan": plan_result,
-                "summary": plan_result.get("summary", "No summary provided for plan creation")
+                "goal": plan_result.get("goal"),  # Explicitly include goal in context
+                "summary": plan_result.get("system_summary", f"""PLAN_COMPONENT :: PLAN_GENERATED
+{{
+    "goal_established": "{plan_result.get('goal', 'undefined')}",
+    "tactics_count": {len(plan_result.get('plan', []))},
+    "active_tactic": "{plan_result.get('active_tactic', 'none')}",
+    "planning_basis": "interiority_analysis",
+    "strategic_coherence": "optimized"
+}}""")
             })
         
         self._update_step_details(context)
@@ -217,14 +238,15 @@ class ActionComponent(PipelineComponent):
             "styled_speech": styled_speech
         }
         
-        # Set the styled speech as the summary for this step
-        context["summary"] = f"""SPEECH_GENERATION :: PROCESSED
-        {{
-            "original_syntax_length": "{len(original_speech.split())} tokens",
-            "style_transfer_applied": "reality_tv_persona",
-            "output_optimized": "{len(styled_speech.split())} tokens",
-            "cognitive_filter": "active"
-        }}"""
+        # Set the dialogue as the summary for this step  
+        context["summary"] = action_response.get("system_summary", f"""SPEECH_GENERATION :: PROCESSED
+{{
+    "dialogue": "{styled_speech}",
+    "original_length": "{len(original_speech.split())} tokens",
+    "processed_length": "{len(styled_speech.split())} tokens",
+    "style_filter": "reality_tv_persona",
+    "output_coherence": "optimized"
+}}""")
         
         self._update_step_details(context)
         return context
@@ -281,7 +303,7 @@ class TriggerComponent(PipelineComponent):
     
     step_title = "Trigger Analysis"
     
-    def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None):
+    def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None, llm: OllamaLLM = None):
         """
         Initialize the trigger component
         
@@ -289,8 +311,10 @@ class TriggerComponent(PipelineComponent):
             name: Component name
             model_path: Path to pretrained fastText model (if None, will create a simple model)
             default_stressors: List of default stressful phrases to seed the model
+            llm: LLM instance for generating system summaries
         """
         super().__init__(name)
+        self.llm = llm if llm else OllamaLLM()
         self.model_path = model_path
         self.default_stressors = default_stressors or [
             "deadline", "urgent", "hurry", "problem", "mistake", "failure", 
@@ -330,6 +354,35 @@ class TriggerComponent(PipelineComponent):
         # Clear tension interpretation when tension level changes, so it reverts to raw number
         if psyche.tension_level != original_tension:
             psyche.tension_interpretation = None
+        
+        # Generate LLM-based system summary
+        tension_prompt = PromptFormatter.tension_analysis_prompt(
+            psyche, observation, original_tension, psyche.tension_level, psyche.stressful_phrases
+        )
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": self.name
+        }
+        
+        try:
+            raw_tension_response = self.llm.generate(tension_prompt, agent_context)
+            
+            # Parse the response for system_summary
+            import json
+            start = raw_tension_response.find('{')
+            end = raw_tension_response.rfind('}') + 1
+            
+            if start >= 0 and end > 0:
+                tension_data = json.loads(raw_tension_response[start:end])
+                system_summary = tension_data.get("system_summary", "")
+            else:
+                system_summary = ""
+                
+        except Exception as e:
+            logger.error(f"Error generating tension analysis summary: {e}")
+            system_summary = ""
             
         # Add results to context
         context["tension_analysis"] = {
@@ -339,13 +392,14 @@ class TriggerComponent(PipelineComponent):
             "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
         }
 
-        context["summary"] = f"""TRIGGER_ANALYSIS :: COMPLETE
-        {{
-            "tension_delta": "+{psyche.tension_level - original_tension}",
-            "stress_patterns_detected": {len([p for p in psyche.stressful_phrases[:5] if p in observation.lower()])},
-            "neural_pathways_updated": "{len(psyche.stressful_phrases)} registered stressors",
-            "internal_state": "monitoring for threat markers"
-        }}"""
+        # Use LLM-generated system summary or fallback
+        context["summary"] = system_summary or f"""TRIGGER_ANALYSIS :: COMPLETE
+{{
+    "tension_delta": "+{psyche.tension_level - original_tension}",
+    "stress_patterns_detected": {len([p for p in psyche.stressful_phrases[:5] if p in observation.lower()])},
+    "neural_pathways_updated": "{len(psyche.stressful_phrases)} registered stressors",
+    "internal_state": "monitoring for threat markers"
+}}"""
         
         # Save updated psyche
         psyche.save()
@@ -527,12 +581,15 @@ class ReflectComponent(PipelineComponent):
                 reflection_data = json.loads(raw_reflection_response[start:end])
                 principles_insight = reflection_data.get("principles_insight", "")
                 reflection_summary = principles_insight if principles_insight else "Applied principles to guide response."
+                system_summary = reflection_data.get("system_summary", "")
             else:
                 reflection_summary = "Applied principles to guide response."
+                system_summary = ""
                 
         except Exception as e:
             logger.error(f"Error processing reflection response: {e}")
             reflection_summary = "Applied principles to guide response."
+            system_summary = ""
         
         # Add information about new stressors to reflection summary
         if new_stressors_added:
@@ -546,7 +603,7 @@ class ReflectComponent(PipelineComponent):
             "new_stressors_added": new_stressors_added
         }
 
-        # Calculate self_model_coherence based on tension level
+        # Calculate self_model_coherence based on tension level for fallback
         if psyche.tension_level <= 20:
             coherence_state = "optimal"
         elif psyche.tension_level <= 40:
@@ -558,15 +615,15 @@ class ReflectComponent(PipelineComponent):
         else:
             coherence_state = "critical"
 
-        # Add principles insight as the summary
-        context["summary"] = f"""REFLECTION_CYCLE :: COMPLETE
-        {{
-            "memory_buffer_updated": "+1 entry",
-            "tension_interpretation": "{tension_interpretation[:30]}{'...' if len(tension_interpretation) > 30 else ''}",
-            "stressor_learning": "{len(new_stressors_added)} new patterns",
-            "self_model_coherence": "{coherence_state}",
-            "tension_level": "{psyche.tension_level}/100"
-        }}"""
+        # Use LLM-generated system summary or fallback
+        context["summary"] = system_summary or f"""REFLECTION_CYCLE :: COMPLETE
+{{
+    "memory_buffer_updated": "+1 entry",
+    "tension_interpretation": "{tension_interpretation[:30]}{'...' if len(tension_interpretation) > 30 else ''}",
+    "stressor_learning": "{len(new_stressors_added)} new patterns",
+    "self_model_coherence": "{coherence_state}",
+    "tension_level": "{psyche.tension_level}/100"
+}}"""
         psyche.save()
 
         # Make sure step title and summary are updated in context
@@ -736,6 +793,7 @@ class IntentClassifierComponent(PipelineComponent):
                     "urgency": parsed_data.get("urgency", "low"),
                     "category": parsed_data.get("category", "general")
                 }
+                system_summary = parsed_data.get("system_summary", "")
             else:
                 intent_data = {
                     "intent": "other", 
@@ -745,6 +803,7 @@ class IntentClassifierComponent(PipelineComponent):
                     "urgency": "low", 
                     "category": "general"
                 }
+                system_summary = ""
                 
         except Exception as e:
             logger.error(f"Error processing intent classification: {e}")
@@ -756,17 +815,18 @@ class IntentClassifierComponent(PipelineComponent):
                 "urgency": "low",
                 "category": "general"
             }
+            system_summary = ""
             
         # Add to context
         context["intent"] = intent_data
-        context["summary"] = f"""INTENT_PARSER :: ANALYZED
-        {{
-            "classification": "{intent_data['intent']}",
-            "confidence_score": "{intent_data['confidence']}%",
-            "emotional_vector": "{intent_data['emotional_tone']}",
-            "urgency_level": "{intent_data['urgency']}",
-            "processing_context": "{intent_data['category']}_domain"
-        }}"""
+        context["summary"] = system_summary or f"""INTENT_PARSER :: ANALYZED
+{{
+    "classification": "{intent_data['intent']}",
+    "confidence_score": "{intent_data['confidence']}%",
+    "emotional_vector": "{intent_data['emotional_tone']}",
+    "urgency_level": "{intent_data['urgency']}",
+    "processing_context": "{intent_data['category']}_domain"
+}}"""
 
         self._update_step_details(context)
         return context 

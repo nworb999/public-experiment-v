@@ -188,31 +188,18 @@ class Handlers:
         logger.debug(f"Handling agent_update for agent {agent_id}")
         logger.debug(f"Received update data: {update_data}")
         
-        # Store original state before update to access cached values if needed
-        cached_state = self.agent_state.states.get(agent_id, {})
-        logger.debug(f"Cached state before update: {cached_state}")
-        
         # Update agent info with new data
         self.agent_state.update_agent_info(agent_id, update_data)
                 
-        # Get goal from update_data if available, otherwise from plan,
-        # and if neither is available, use cached value
-        goal = update_data.get('goal', None)
-        if goal is None:
-            plan = update_data.get('plan', {})
-            if plan and 'goal' in plan:
-                goal = plan.get('goal')
-                logger.debug(f"Using goal from plan: {goal}")
-            else:
-                # Use cached goal from existing state
-                cached_plan = cached_state.get('plan', {})
-                goal = cached_state.get('goal') or cached_plan.get('goal', None)
-                logger.debug(f"Using cached goal: {goal}")
-        else:
-            logger.debug(f"Using goal from update_data: {goal}")
+        # Get the updated state after processing
+        updated_state = self.agent_state.states.get(agent_id, {})
+        
+        # Get goal from the updated agent state (already processed by update_agent_info)
+        goal = updated_state.get('goal', 'No goal set')
+        logger.debug(f"Using processed goal from agent state: {goal}")
         
         # Get plan from update data or use cached plan
-        plan = update_data.get('plan', cached_state.get('plan', {}))
+        plan = update_data.get('plan', updated_state.get('plan', {}))
         logger.debug(f"Using plan: {plan}")
         
         # Log plan details specifically
@@ -221,13 +208,13 @@ class Handlers:
             logger.debug(f"Plan active tactic: {plan.get('active_tactic')}")
         
         # Get interior from update data or use cached interior
-        interior = update_data.get('interior', cached_state.get('interior', {}))
+        interior = update_data.get('interior', updated_state.get('interior', {}))
         
         # Build the payload to emit
         payload = {
-            'name': update_data.get('name', cached_state.get('name', '')),
-            'personality': update_data.get('personality', cached_state.get('personality', '')),
-            'tension': update_data.get('tension', cached_state.get('tension', 0)),
+            'name': update_data.get('name', updated_state.get('name', '')),
+            'personality': update_data.get('personality', updated_state.get('personality', '')),
+            'tension': update_data.get('tension', updated_state.get('tension', 0)),
             'goal': goal,
             'plan': plan,
             'interior': interior

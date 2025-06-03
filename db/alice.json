@@ -1,11 +1,14 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Oh my gosh, Morgan! Like, I literally cannot believe we're finally meeting! I've heard so much about you! How are you feeling today, girl?"
+    "Morgan: Hello there! -> Me: Oh my god, Morgan! Like, I've literally been having the worst anxiety about meeting new people lately - it's so awkward, you know? But honestly? I'm actually so glad you came up to say hi!",
+    "Morgan: Okay so like, I'm just super curious... what is it about meeting new people that makes you, like, totally freak out? Because honestly? I feel like there's probably some deeper tea there and I literally just want to understand what's triggering all this anxiety for you. -> Me: Literally, I'm, like, SO in my head about what everyone thinks of me? And I'm honestly just terrified that people are gonna judge me or whatever. Like, I can't even deal with the pressure of trying to be perfect all the time... it's actually so exhausting.",
+    "Morgan: Okay so like, I've been wondering... was there literally a specific moment when all this perfectionist stuff started? Because honestly? I can totally see you're going through it, and like, I feel like there has to be some tea about when these feelings first started showing up. -> Me: Oh. My. God. So like, back in middle school? I got straight-up REJECTED by the popular girls, and honestly? That moment literally changed everything for me. Like, ever since then, I've been obsessed with being this perfect version of myself, and it's exhausting, but whatever. It's fine, I'm fine.",
+    "Morgan: Oh my god, like, that middle school drama must have been literally SO toxic! I'm honestly shook that you went through that. Like, have you ever thought about how those basic mean girls are probably still living rent-free in your head? Because I feel like that stuff totally leaves emotional baggage, you know what I mean? -> Me: Oh. My. God. Like, seriously? It's actually so toxic how I still hear those mean girl voices in my head when I'm feeling down about myself? Like, I literally can't even sometimes... it's SO messed up how that trauma just lives in your brain rent-free? And honestly? I'm kind of over it but also not?"
   ],
-  "conversation_memory": "Morgan initiated with a friendly greeting. I'm responding warmly while showing interest in their emotional state to build empathy.",
+  "conversation_memory": "Morgan is showing understanding about my middle school trauma. I'm responding with emotional vulnerability while maintaining our shared conversational style.",
   "relationships": {
     "Morgan": {
-      "familiarity": 69
+      "familiarity": 86
     }
   },
   "goal": null,
@@ -15,10 +18,20 @@
   ],
   "active_tactic": "show empathy",
   "tension_level": 20,
-  "tension_interpretation": "Cheerfully ready for adventure",
+  "tension_interpretation": "Casually alert and optimistic",
   "personality": "friendly",
   "name": "Alice",
   "stressful_phrases": [
+    "drama",
+    "rent-free in your head",
+    "shook",
+    "mean girls",
+    "emotional baggage",
+    "toxic",
+    "perfectionist",
+    "triggering",
+    "anxiety",
+    "freak out",
     "conflict",
     "argument",
     "disagree",

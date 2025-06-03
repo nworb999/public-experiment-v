@@ -105,6 +105,7 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'name': agent.name,
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
+            'goal': agent_psyche.goal,
             'memories': agent_psyche.memories,
             'plan': plan_payload,
             'interior': agent_psyche.interior
@@ -216,6 +217,7 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'name': agent.name,
             'personality': agent.personality,
             'tension': agent_psyche.tension_level,
+            'goal': agent_psyche.goal,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
             'plan': plan_payload,

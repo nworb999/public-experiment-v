@@ -28,11 +28,11 @@ class ActionProcessor:
                 "speech": f"I'm having trouble with my connection. {raw_response}",
                 "conversation_summary": "There was an error in processing.",
                 "summary": """ACTION_PROCESSOR :: ERROR_RECOVERY
-                {
-                    "error_type": "llm_connection_error",
-                    "fallback_action": "error_message_generation",
-                    "system_state": "degraded_mode"
-                }"""
+{
+    "error_type": "llm_connection_error",
+    "fallback_action": "error_message_generation",
+    "system_state": "degraded_mode"
+}"""
             }
             
         try:
@@ -55,11 +55,11 @@ class ActionProcessor:
                             "speech": "I'm having trouble understanding. Let's try again.",
                             "conversation_summary": "Having difficulties understanding the conversation.",
                             "summary": """ACTION_PROCESSOR :: JSON_PARSE_FAILED
-                            {
-                                "parse_status": "failed",
-                                "fallback_action": "confusion_response",
-                                "recovery_mode": "active"
-                            }"""
+{
+    "parse_status": "failed",
+    "fallback_action": "confusion_response",
+    "recovery_mode": "active"
+}"""
                         }
                 else:
                     # Fallback to default action
@@ -69,11 +69,11 @@ class ActionProcessor:
                         "speech": "I'm not sure what to say right now.",
                         "conversation_summary": "Struggling to formulate a response.",
                         "summary": """ACTION_PROCESSOR :: NO_JSON_FOUND
-                        {
-                            "json_detection": "failed",
-                            "fallback_action": "uncertainty_response",
-                            "parser_state": "emergency_mode"
-                        }"""
+{
+    "json_detection": "failed",
+    "fallback_action": "uncertainty_response",
+    "parser_state": "emergency_mode"
+}"""
                     }
             
             # Validate required fields
@@ -85,11 +85,11 @@ class ActionProcessor:
                 action["conversation_summary"] = "No summary provided."
             if "summary" not in action:
                 action["summary"] = """ACTION_PROCESSOR :: RESPONSE_GENERATED
-                {
-                    "processing_status": "successful",
-                    "validation_passed": "true",
-                    "output_coherence": "stable"
-                }"""
+{
+    "processing_status": "successful",
+    "validation_passed": "true",
+    "output_coherence": "stable"
+}"""
                 
             return action
             
@@ -101,9 +101,9 @@ class ActionProcessor:
                 "speech": f"I encountered an error in my thinking: {str(e)}",
                 "conversation_summary": "Encountered an error in processing.",
                 "summary": f"""ACTION_PROCESSOR :: EXCEPTION_HANDLED
-                {{
-                    "exception_type": "{type(e).__name__}",
-                    "fallback_action": "error_acknowledgment",
-                    "error_recovery": "successful"
-                }}"""
+{{
+    "exception_type": "{type(e).__name__}",
+    "fallback_action": "error_acknowledgment",
+    "error_recovery": "successful"
+}}"""
             } 

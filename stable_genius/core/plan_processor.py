@@ -30,25 +30,26 @@ class PlanProcessor:
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
                     "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
-                    {
-                        "error_type": "processing_error",
-                        "fallback_action": "default_tactic_selection",
-                        "system_state": "degraded_mode"
-                    }"""
+{
+    "error_type": "processing_error",
+    "fallback_action": "default_tactic_selection",
+    "system_state": "degraded_mode"
+}"""
                 }
             else:
-                # For plan generation errors, return default plan
+                # For plan generation errors, return existing goal and default plan
+                existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                 plan = self._default_plan(psyche)
                 return {
-                    "goal": self._default_goal(psyche),
+                    "goal": existing_goal,
                     "plan": plan,
                     "active_tactic": plan[0] if plan else None,
                     "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
-                    {
-                        "error_type": "planning_error",
-                        "fallback_action": "default_plan_generation",
-                        "interiority_based": "true"
-                    }"""
+{
+    "error_type": "planning_error",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                 }
             
         try:
@@ -69,24 +70,25 @@ class PlanProcessor:
                             return {
                                 "active_tactic": self._get_first_tactic_from_default_plan(psyche),
                                 "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
-                                {
-                                    "parse_status": "failed",
-                                    "fallback_action": "default_tactic_selection",
-                                    "recovery_mode": "active"
-                                }"""
+{
+    "parse_status": "failed",
+    "fallback_action": "default_tactic_selection",
+    "recovery_mode": "active"
+}"""
                             }
                         else:
+                            existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                             default_plan = self._default_plan(psyche)
                             return {
-                                "goal": self._default_goal(psyche),
+                                "goal": existing_goal,
                                 "plan": default_plan,
                                 "active_tactic": default_plan[0] if default_plan else None,
                                 "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
-                                {
-                                    "parse_status": "failed",
-                                    "fallback_action": "default_plan_generation",
-                                    "interiority_based": "true"
-                                }"""
+{
+    "parse_status": "failed",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                             }
                 else:
                     # Fallback to default
@@ -95,24 +97,25 @@ class PlanProcessor:
                         return {
                             "active_tactic": self._get_first_tactic_from_default_plan(psyche),
                             "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
-                            {
-                                "json_detection": "failed",
-                                "fallback_action": "default_tactic_selection",
-                                "parser_state": "emergency_mode"
-                            }"""
+{
+    "json_detection": "failed",
+    "fallback_action": "default_tactic_selection",
+    "parser_state": "emergency_mode"
+}"""
                         }
                     else:
+                        existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                         default_plan = self._default_plan(psyche)
                         return {
-                            "goal": self._default_goal(psyche),
+                            "goal": existing_goal,
                             "plan": default_plan,
                             "active_tactic": default_plan[0] if default_plan else None,
                             "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
-                            {
-                                "json_detection": "failed",
-                                "fallback_action": "default_plan_generation",
-                                "interiority_based": "true"
-                            }"""
+{
+    "json_detection": "failed",
+    "fallback_action": "preserve_existing_goal",
+    "interiority_based": "true"
+}"""
                         }
             
             # Process based on whether we're selecting a tactic or generating a plan
@@ -122,19 +125,26 @@ class PlanProcessor:
                     json_data["active_tactic"] = self._get_first_tactic_from_default_plan(psyche)
                 if "summary" not in json_data:
                     json_data["summary"] = """PLAN_PROCESSOR :: TACTIC_SELECTED
-                    {
-                        "selection_basis": "conversation_state",
-                        "interiority_guided": "true",
-                        "cognitive_mode": "adaptive"
-                    }"""
+{
+    "selection_basis": "conversation_state",
+    "interiority_guided": "true",
+    "cognitive_mode": "adaptive"
+}"""
                 return {
                     "active_tactic": json_data["active_tactic"],
                     "summary": json_data.get("summary")
                 }
             else:
-                # For plan generation
+                # For plan generation - DO NOT fall back to default goals
+                # Keep existing goal if LLM doesn't provide one
                 if "goal" not in json_data:
-                    json_data["goal"] = self._default_goal(psyche)
+                    existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
+                    if existing_goal:
+                        json_data["goal"] = existing_goal
+                        logger.warning(f"LLM did not provide goal, keeping existing: {existing_goal}")
+                    else:
+                        logger.warning("LLM did not provide goal and no existing goal found - goal will be None")
+                        json_data["goal"] = None
                     
                 if "plan" not in json_data:
                     json_data["plan"] = self._default_plan(psyche)
@@ -148,11 +158,11 @@ class PlanProcessor:
                 # Add summary if missing
                 if "summary" not in json_data:
                     json_data["summary"] = """PLAN_PROCESSOR :: PLAN_GENERATED
-                    {
-                        "generation_basis": "interiority_analysis",
-                        "goal_alignment": "optimized",
-                        "tactical_coherence": "stable"
-                    }"""
+{
+    "generation_basis": "interiority_analysis",
+    "goal_alignment": "dynamic",
+    "tactical_coherence": "stable"
+}"""
                     
                 return json_data
             
@@ -163,24 +173,25 @@ class PlanProcessor:
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
                     "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
-                    {{
-                        "exception_type": "{type(e).__name__}",
-                        "fallback_action": "default_tactic_selection",
-                        "error_recovery": "successful"
-                    }}"""
+{{
+    "exception_type": "{type(e).__name__}",
+    "fallback_action": "default_tactic_selection",
+    "error_recovery": "successful"
+}}"""
                 }
             else:
+                existing_goal = psyche.goal if psyche and hasattr(psyche, 'goal') and psyche.goal else None
                 default_plan = self._default_plan(psyche)
                 return {
-                    "goal": self._default_goal(psyche), 
+                    "goal": existing_goal, 
                     "plan": default_plan,
                     "active_tactic": default_plan[0] if default_plan else None,
                     "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
-                    {{
-                        "exception_type": "{type(e).__name__}",
-                        "fallback_action": "default_plan_generation",
-                        "error_recovery": "successful"
-                    }}"""
+{{
+    "exception_type": "{type(e).__name__}",
+    "fallback_action": "preserve_existing_goal",
+    "error_recovery": "successful"
+}}"""
                 }
     
     def _default_goal(self, psyche=None) -> str:
