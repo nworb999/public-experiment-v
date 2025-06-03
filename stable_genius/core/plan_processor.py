@@ -29,7 +29,12 @@ class PlanProcessor:
                 # For tactic selection errors, return default active tactic
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                    "summary": "Error in processing, defaulting to first tactic."
+                    "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
+                    {
+                        "error_type": "processing_error",
+                        "fallback_action": "default_tactic_selection",
+                        "system_state": "degraded_mode"
+                    }"""
                 }
             else:
                 # For plan generation errors, return default plan
@@ -38,7 +43,12 @@ class PlanProcessor:
                     "goal": self._default_goal(psyche),
                     "plan": plan,
                     "active_tactic": plan[0] if plan else None,
-                    "summary": "Error in planning, using default plan based on interiority."
+                    "summary": """PLAN_PROCESSOR :: ERROR_RECOVERY
+                    {
+                        "error_type": "planning_error",
+                        "fallback_action": "default_plan_generation",
+                        "interiority_based": "true"
+                    }"""
                 }
             
         try:
@@ -58,7 +68,12 @@ class PlanProcessor:
                         if has_plan:
                             return {
                                 "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                                "summary": "Failed to parse response, defaulting to first tactic."
+                                "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
+                                {
+                                    "parse_status": "failed",
+                                    "fallback_action": "default_tactic_selection",
+                                    "recovery_mode": "active"
+                                }"""
                             }
                         else:
                             default_plan = self._default_plan(psyche)
@@ -66,7 +81,12 @@ class PlanProcessor:
                                 "goal": self._default_goal(psyche),
                                 "plan": default_plan,
                                 "active_tactic": default_plan[0] if default_plan else None,
-                                "summary": "Failed to parse response, using default plan based on interiority."
+                                "summary": """PLAN_PROCESSOR :: JSON_PARSE_FAILED
+                                {
+                                    "parse_status": "failed",
+                                    "fallback_action": "default_plan_generation",
+                                    "interiority_based": "true"
+                                }"""
                             }
                 else:
                     # Fallback to default
@@ -74,7 +94,12 @@ class PlanProcessor:
                     if has_plan:
                         return {
                             "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                            "summary": "No valid JSON found, defaulting to first tactic."
+                            "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
+                            {
+                                "json_detection": "failed",
+                                "fallback_action": "default_tactic_selection",
+                                "parser_state": "emergency_mode"
+                            }"""
                         }
                     else:
                         default_plan = self._default_plan(psyche)
@@ -82,7 +107,12 @@ class PlanProcessor:
                             "goal": self._default_goal(psyche),
                             "plan": default_plan,
                             "active_tactic": default_plan[0] if default_plan else None,
-                            "summary": "No valid JSON found, using default plan based on interiority."
+                            "summary": """PLAN_PROCESSOR :: NO_JSON_FOUND
+                            {
+                                "json_detection": "failed",
+                                "fallback_action": "default_plan_generation",
+                                "interiority_based": "true"
+                            }"""
                         }
             
             # Process based on whether we're selecting a tactic or generating a plan
@@ -91,7 +121,12 @@ class PlanProcessor:
                 if "active_tactic" not in json_data:
                     json_data["active_tactic"] = self._get_first_tactic_from_default_plan(psyche)
                 if "summary" not in json_data:
-                    json_data["summary"] = "Selected tactic based on current conversation state."
+                    json_data["summary"] = """PLAN_PROCESSOR :: TACTIC_SELECTED
+                    {
+                        "selection_basis": "conversation_state",
+                        "interiority_guided": "true",
+                        "cognitive_mode": "adaptive"
+                    }"""
                 return {
                     "active_tactic": json_data["active_tactic"],
                     "summary": json_data.get("summary")
@@ -112,7 +147,12 @@ class PlanProcessor:
                 
                 # Add summary if missing
                 if "summary" not in json_data:
-                    json_data["summary"] = "Generated plan based on interiority and current state."
+                    json_data["summary"] = """PLAN_PROCESSOR :: PLAN_GENERATED
+                    {
+                        "generation_basis": "interiority_analysis",
+                        "goal_alignment": "optimized",
+                        "tactical_coherence": "stable"
+                    }"""
                     
                 return json_data
             
@@ -122,7 +162,12 @@ class PlanProcessor:
             if has_plan:
                 return {
                     "active_tactic": self._get_first_tactic_from_default_plan(psyche),
-                    "summary": f"Exception occurred: {str(e)}. Defaulting to first tactic."
+                    "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
+                    {{
+                        "exception_type": "{type(e).__name__}",
+                        "fallback_action": "default_tactic_selection",
+                        "error_recovery": "successful"
+                    }}"""
                 }
             else:
                 default_plan = self._default_plan(psyche)
@@ -130,7 +175,12 @@ class PlanProcessor:
                     "goal": self._default_goal(psyche), 
                     "plan": default_plan,
                     "active_tactic": default_plan[0] if default_plan else None,
-                    "summary": f"Exception occurred: {str(e)}. Using default plan."
+                    "summary": f"""PLAN_PROCESSOR :: EXCEPTION_HANDLED
+                    {{
+                        "exception_type": "{type(e).__name__}",
+                        "fallback_action": "default_plan_generation",
+                        "error_recovery": "successful"
+                    }}"""
                 }
     
     def _default_goal(self, psyche=None) -> str:

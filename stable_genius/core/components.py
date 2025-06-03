@@ -218,7 +218,13 @@ class ActionComponent(PipelineComponent):
         }
         
         # Set the styled speech as the summary for this step
-        context["summary"] = styled_speech
+        context["summary"] = f"""SPEECH_GENERATION :: PROCESSED
+        {{
+            "original_syntax_length": "{len(original_speech.split())} tokens",
+            "style_transfer_applied": "reality_tv_persona",
+            "output_optimized": "{len(styled_speech.split())} tokens",
+            "cognitive_filter": "active"
+        }}"""
         
         self._update_step_details(context)
         return context
@@ -270,6 +276,174 @@ class ActionComponent(PipelineComponent):
             logger.error(f"Error in style transfer: {e}")
             return original_speech
 
+class TriggerComponent(PipelineComponent):
+    """Classifies input text to detect stressful content using fastText"""
+    
+    step_title = "Trigger Analysis"
+    
+    def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None):
+        """
+        Initialize the trigger component
+        
+        Args:
+            name: Component name
+            model_path: Path to pretrained fastText model (if None, will create a simple model)
+            default_stressors: List of default stressful phrases to seed the model
+        """
+        super().__init__(name)
+        self.model_path = model_path
+        self.default_stressors = default_stressors or [
+            "deadline", "urgent", "hurry", "problem", "mistake", "failure", 
+            "conflict", "argument", "angry", "disappointed", "stressed",
+            "critical", "emergency", "crisis", "pressure", "worried"
+        ]
+        self.models_dir = Path("models")
+        self.models_dir.mkdir(exist_ok=True)
+        self.model = None
+        
+    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
+        """Process input to classify for stress and update psyche's tension level"""
+        observation = context.get("observation", "")
+        
+        # Ensure personalized stressors exist in psyche
+        if not hasattr(psyche, "stressful_phrases"):
+            # Initialize stressful phrases if not present
+            psyche.stressful_phrases = self.default_stressors.copy()
+            psyche.save()
+            
+        # Get or create agent-specific model
+        model = self._get_or_create_model(psyche)
+        
+        # Classify the text
+        prediction = self._classify_text(model, observation)
+        is_stressful = prediction[0] == 'stress'
+        
+        # Update psyche tension level based on classification
+        original_tension = psyche.tension_level
+        if is_stressful:
+            # Increase tension
+            psyche.tension_level = min(psyche.tension_level + 15, 100)
+            
+            # Potentially learn new stressful phrases
+            self._learn_new_stressors(observation, psyche)
+        
+        # Clear tension interpretation when tension level changes, so it reverts to raw number
+        if psyche.tension_level != original_tension:
+            psyche.tension_interpretation = None
+            
+        # Add results to context
+        context["tension_analysis"] = {
+            "is_stressful": is_stressful,
+            "tension_before": original_tension,
+            "tension_after": psyche.tension_level,
+            "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
+        }
+
+        context["summary"] = f"""TRIGGER_ANALYSIS :: COMPLETE
+        {{
+            "tension_delta": "+{psyche.tension_level - original_tension}",
+            "stress_patterns_detected": {len([p for p in psyche.stressful_phrases[:5] if p in observation.lower()])},
+            "neural_pathways_updated": "{len(psyche.stressful_phrases)} registered stressors",
+            "internal_state": "monitoring for threat markers"
+        }}"""
+        
+        # Save updated psyche
+        psyche.save()
+        
+        self._update_step_details(context)
+        return context
+    
+    def _get_or_create_model(self, psyche):
+        """Get or create a fastText model for this agent"""
+        model_file = self.models_dir / f"{psyche.name.lower()}_tension.bin"
+        
+        if model_file.exists():
+            # Load existing model
+            return fasttext.load_model(str(model_file))
+        else:
+            # Create a simple model based on personalized stressors
+            return self._create_simple_model(psyche, model_file)
+            
+    def _create_simple_model(self, psyche, model_file):
+        """Create a simple fastText model from stressful phrases"""
+        # Create temporary training file
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
+            temp_path = f.name
+            
+            # Write training examples
+            # Format: __label__stress stressful phrase
+            # Format: __label__normal neutral phrase
+            
+            # Write stressful examples
+            for phrase in psyche.stressful_phrases:
+                f.write(f"__label__stress {phrase}\n")
+                
+                # Generate some variations
+                words = phrase.split()
+                if len(words) > 1:
+                    for i in range(min(3, len(words))):
+                        f.write(f"__label__stress {' '.join(random.sample(words, len(words)))}\n")
+            
+            # Generate some non-stressful examples
+            neutral_phrases = [
+                "hello there", "good morning", "how are you", "nice day", 
+                "thank you", "appreciate it", "sounds good", "that's interesting",
+                "welcome", "have a nice day", "pleased to meet you", "that's helpful",
+                "I understand", "makes sense", "I see", "good point"
+            ]
+            
+            for phrase in neutral_phrases:
+                f.write(f"__label__normal {phrase}\n")
+        
+        try:
+            # Train the model
+            model = fasttext.train_supervised(temp_path, epoch=20, lr=1.0)
+            # Save the model
+            model.save_model(str(model_file))
+            return model
+        finally:
+            # Clean up temp file
+            os.unlink(temp_path)
+    
+    def _classify_text(self, model, text):
+        """Classify text using the fastText model"""
+        # Ensure text is a string and preprocess it
+        text = str(text).strip()
+        if not text:
+            return ('normal', 0.0)  # Return no stress for empty text
+            
+        try:
+            # Return tuple (label, probability)
+            prediction = model.predict(text)
+            label = prediction[0][0].replace('__label__', '')
+            probability = prediction[1][0]
+            
+            return (label, probability)
+        except ValueError as ve:
+            # Handle numpy array copy issues
+            logger.warning(f"NumPy array handling issue in text classification: {ve}")
+            return ('normal', 0.0)
+        except Exception as e:
+            logger.error(f"Unexpected error in text classification for text '{text[:100]}...': {e}")
+            return ('normal', 0.0)  # Return no stress on error
+    
+    def _learn_new_stressors(self, observation, psyche):
+        """Learn new stressful phrases from observation"""
+        # Simple approach: occasionally sample words from stressful observations
+        if random.random() < 0.3:  # 30% chance to learn
+            words = observation.split()
+            if len(words) > 3:
+                # Sample a few words to create a new stressful phrase
+                sample_size = min(3, len(words))
+                new_stressor = ' '.join(random.sample(words, sample_size))
+                
+                # Don't add duplicates
+                if new_stressor not in psyche.stressful_phrases:
+                    psyche.stressful_phrases.append(new_stressor)
+                    # Keep list at reasonable size
+                    if len(psyche.stressful_phrases) > 50:
+                        psyche.stressful_phrases = psyche.stressful_phrases[-50:]
+
 class ReflectComponent(PipelineComponent):
     """Updates the psyche based on plan, action, and observation"""
     
@@ -302,6 +476,9 @@ class ReflectComponent(PipelineComponent):
         
         # Save the tension interpretation to psyche
         psyche.update_tension_interpretation(tension_interpretation)
+        
+        # Learn new stressful phrases from input if they seem stressful
+        new_stressors_added = await self._learn_stressful_phrases(input_message, psyche)
         
         # Generate reflection prompt
         reflection_prompt = PromptFormatter.reflection_prompt(
@@ -357,21 +534,99 @@ class ReflectComponent(PipelineComponent):
             logger.error(f"Error processing reflection response: {e}")
             reflection_summary = "Applied principles to guide response."
         
+        # Add information about new stressors to reflection summary
+        if new_stressors_added:
+            reflection_summary += f" Added new stressful phrases: {', '.join(new_stressors_added[:5])}"
+        
         # Update context with reflection results
         context["reflection"] = {
             "tension_level": tension_interpretation,
             "memory_added": f"{input_message} -> Me: {speech}",
-            "conversation_memory": psyche.conversation_memory
+            "conversation_memory": psyche.conversation_memory,
+            "new_stressors_added": new_stressors_added
         }
 
+        # Calculate self_model_coherence based on tension level
+        if psyche.tension_level <= 20:
+            coherence_state = "optimal"
+        elif psyche.tension_level <= 40:
+            coherence_state = "stable"
+        elif psyche.tension_level <= 60:
+            coherence_state = "degrading"
+        elif psyche.tension_level <= 80:
+            coherence_state = "fragmented"
+        else:
+            coherence_state = "critical"
+
         # Add principles insight as the summary
-        context["summary"] = reflection_summary
+        context["summary"] = f"""REFLECTION_CYCLE :: COMPLETE
+        {{
+            "memory_buffer_updated": "+1 entry",
+            "tension_interpretation": "{tension_interpretation[:30]}{'...' if len(tension_interpretation) > 30 else ''}",
+            "stressor_learning": "{len(new_stressors_added)} new patterns",
+            "self_model_coherence": "{coherence_state}",
+            "tension_level": "{psyche.tension_level}/100"
+        }}"""
         psyche.save()
 
         # Make sure step title and summary are updated in context
         self._update_step_details(context)
         
         return context
+
+    async def _learn_stressful_phrases(self, input_message: str, psyche: Psyche) -> List[str]:
+        """Learn new stressful phrases from input message using LLM analysis"""
+        if not input_message:
+            return []
+        
+        # Ensure stressful_phrases exists
+        if not hasattr(psyche, "stressful_phrases"):
+            psyche.stressful_phrases = []
+        
+        # Generate prompt to identify stressful phrases
+        stress_analysis_prompt = PromptFormatter.stress_phrase_extraction_prompt(
+            input_message, psyche.stressful_phrases[:10]  # Show recent stressors for context
+        )
+        
+        # Add agent-specific context
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": f"{self.name}_stress_analysis"
+        }
+        
+        try:
+            # Get LLM response for stress phrase extraction
+            raw_response = self.llm.generate(stress_analysis_prompt, agent_context)
+            
+            # Parse the response
+            import json
+            start = raw_response.find('{')
+            end = raw_response.rfind('}') + 1
+            
+            if start >= 0 and end > 0:
+                stress_data = json.loads(raw_response[start:end])
+                new_phrases = stress_data.get("new_stressful_phrases", [])
+                
+                # Filter out duplicates and add to psyche (newest first)
+                added_phrases = []
+                for phrase in new_phrases:
+                    if phrase and phrase not in psyche.stressful_phrases:
+                        # Add to beginning of list (newest first)
+                        psyche.stressful_phrases.insert(0, phrase)
+                        added_phrases.append(phrase)
+                
+                # Keep list at reasonable size, removing oldest
+                if len(psyche.stressful_phrases) > 50:
+                    psyche.stressful_phrases = psyche.stressful_phrases[:50]
+                
+                return added_phrases
+            else:
+                logger.warning("Failed to parse stress phrase extraction response")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error in stress phrase extraction: {e}")
+            return []
 
     async def _interpret_tension(self, psyche: Psyche) -> str:
         """Use LLM to interpret tension level based on agent's interior state"""
@@ -471,187 +726,47 @@ class IntentClassifierComponent(PipelineComponent):
             end = raw_response.rfind('}') + 1
             
             if start >= 0 and end > 0:
-                intent_data = json.loads(raw_response[start:end])
+                parsed_data = json.loads(raw_response[start:end])
+                # Validate that required keys exist and capture additional keys
+                intent_data = {
+                    "intent": parsed_data.get("intent", "other"),
+                    "confidence": parsed_data.get("confidence", 50),
+                    "summary": parsed_data.get("summary", "No summary provided"),
+                    "emotional_tone": parsed_data.get("emotional_tone", "neutral"),
+                    "urgency": parsed_data.get("urgency", "low"),
+                    "category": parsed_data.get("category", "general")
+                }
             else:
-                intent_data = {"intent": "other", "confidence": 50}
+                intent_data = {
+                    "intent": "other", 
+                    "confidence": 50,
+                    "summary": "No summary provided",
+                    "emotional_tone": "neutral",
+                    "urgency": "low", 
+                    "category": "general"
+                }
                 
         except Exception as e:
             logger.error(f"Error processing intent classification: {e}")
-            intent_data = {"intent": "other", "confidence": 50}
+            intent_data = {
+                "intent": "other", 
+                "confidence": 50,
+                "summary": "No summary provided",
+                "emotional_tone": "neutral",
+                "urgency": "low",
+                "category": "general"
+            }
             
         # Add to context
         context["intent"] = intent_data
-        context["summary"] = f"Classified intent as {intent_data['intent']} with confidence {intent_data['confidence']}%"
+        context["summary"] = f"""INTENT_PARSER :: ANALYZED
+        {{
+            "classification": "{intent_data['intent']}",
+            "confidence_score": "{intent_data['confidence']}%",
+            "emotional_vector": "{intent_data['emotional_tone']}",
+            "urgency_level": "{intent_data['urgency']}",
+            "processing_context": "{intent_data['category']}_domain"
+        }}"""
 
         self._update_step_details(context)
-        return context
-
-class TriggerComponent(PipelineComponent):
-    """Classifies input text to detect stressful content using fastText"""
-    
-    step_title = "Trigger Analysis"
-    
-    def __init__(self, name: str, model_path: Optional[str] = None, default_stressors: Optional[List[str]] = None):
-        """
-        Initialize the trigger component
-        
-        Args:
-            name: Component name
-            model_path: Path to pretrained fastText model (if None, will create a simple model)
-            default_stressors: List of default stressful phrases to seed the model
-        """
-        super().__init__(name)
-        self.model_path = model_path
-        self.default_stressors = default_stressors or [
-            "deadline", "urgent", "hurry", "problem", "mistake", "failure", 
-            "conflict", "argument", "angry", "disappointed", "stressed",
-            "critical", "emergency", "crisis", "pressure", "worried"
-        ]
-        self.models_dir = Path("models")
-        self.models_dir.mkdir(exist_ok=True)
-        self.model = None
-        
-    async def process(self, context: Dict[str, Any], psyche: Psyche) -> Dict[str, Any]:
-        """Process input to classify for stress and update psyche's tension level"""
-        observation = context.get("observation", "")
-        
-        # Ensure personalized stressors exist in psyche
-        if not hasattr(psyche, "stressful_phrases"):
-            # Initialize stressful phrases if not present
-            psyche.stressful_phrases = self.default_stressors.copy()
-            psyche.save()
-            
-        # Get or create agent-specific model
-        model = self._get_or_create_model(psyche)
-        
-        # Classify the text
-        prediction = self._classify_text(model, observation)
-        stress_score = prediction[1]  # Confidence score
-        
-        # Update psyche tension level based on stress score
-        original_tension = psyche.tension_level
-        if stress_score > 0.7:  # High confidence of stress
-            # Increase tension more significantly
-            psyche.tension_level = min(psyche.tension_level + int(stress_score * 20), 100)
-            
-            # Potentially learn new stressful phrases
-            self._learn_new_stressors(observation, psyche)
-            
-        elif stress_score > 0.5:  # Medium confidence
-            # Mild tension increase
-            psyche.tension_level = min(psyche.tension_level + int(stress_score * 10), 100)
-        
-        # Clear tension interpretation when tension level changes, so it reverts to raw number
-        if psyche.tension_level != original_tension:
-            psyche.tension_interpretation = None
-            
-        # Add results to context
-        context["tension_analysis"] = {
-            "is_stressful": stress_score > 0.5,
-            "stress_score": stress_score,
-            "tension_before": original_tension,
-            "tension_after": psyche.tension_level,
-            "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
-        }
-
-        context["summary"] = f"Analyzed tension level based on stress score {stress_score}, known stressful phrases {psyche.stressful_phrases[:5]}"
-        
-        # Save updated psyche
-        psyche.save()
-        
-        self._update_step_details(context)
-        return context
-    
-    def _get_or_create_model(self, psyche):
-        """Get or create a fastText model for this agent"""
-        model_file = self.models_dir / f"{psyche.name.lower()}_tension.bin"
-        
-        if model_file.exists():
-            # Load existing model
-            return fasttext.load_model(str(model_file))
-        else:
-            # Create a simple model based on personalized stressors
-            return self._create_simple_model(psyche, model_file)
-            
-    def _create_simple_model(self, psyche, model_file):
-        """Create a simple fastText model from stressful phrases"""
-        # Create temporary training file
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
-            temp_path = f.name
-            
-            # Write training examples
-            # Format: __label__stress stressful phrase
-            # Format: __label__normal neutral phrase
-            
-            # Write stressful examples
-            for phrase in psyche.stressful_phrases:
-                f.write(f"__label__stress {phrase}\n")
-                
-                # Generate some variations
-                words = phrase.split()
-                if len(words) > 1:
-                    for i in range(min(3, len(words))):
-                        f.write(f"__label__stress {' '.join(random.sample(words, len(words)))}\n")
-            
-            # Generate some non-stressful examples
-            neutral_phrases = [
-                "hello there", "good morning", "how are you", "nice day", 
-                "thank you", "appreciate it", "sounds good", "that's interesting",
-                "welcome", "have a nice day", "pleased to meet you", "that's helpful",
-                "I understand", "makes sense", "I see", "good point"
-            ]
-            
-            for phrase in neutral_phrases:
-                f.write(f"__label__normal {phrase}\n")
-        
-        try:
-            # Train the model
-            model = fasttext.train_supervised(temp_path, epoch=20, lr=1.0)
-            # Save the model
-            model.save_model(str(model_file))
-            return model
-        finally:
-            # Clean up temp file
-            os.unlink(temp_path)
-    
-    def _classify_text(self, model, text):
-        """Classify text using the fastText model"""
-        # Ensure text is a string and preprocess it
-        text = str(text).strip()
-        if not text:
-            return ('stress', 0.0)  # Return no stress for empty text
-            
-        try:
-            # Return tuple (label, probability)
-            prediction = model.predict(text)
-            label = prediction[0][0].replace('__label__', '')
-            probability = prediction[1][0]
-            
-            # If normal, return inverted probability
-            if label == 'normal':
-                return ('stress', 1.0 - probability)
-            return ('stress', probability)
-        except ValueError as ve:
-            # Handle numpy array copy issues
-            logger.warning(f"NumPy array handling issue in text classification: {ve}")
-            return ('stress', 0.0)
-        except Exception as e:
-            logger.error(f"Unexpected error in text classification for text '{text[:100]}...': {e}")
-            return ('stress', 0.0)  # Return no stress on error
-    
-    def _learn_new_stressors(self, observation, psyche):
-        """Learn new stressful phrases from observation"""
-        # Simple approach: occasionally sample words from stressful observations
-        if random.random() < 0.3:  # 30% chance to learn
-            words = observation.split()
-            if len(words) > 3:
-                # Sample a few words to create a new stressful phrase
-                sample_size = min(3, len(words))
-                new_stressor = ' '.join(random.sample(words, sample_size))
-                
-                # Don't add duplicates
-                if new_stressor not in psyche.stressful_phrases:
-                    psyche.stressful_phrases.append(new_stressor)
-                    # Keep list at reasonable size
-                    if len(psyche.stressful_phrases) > 50:
-                        psyche.stressful_phrases = psyche.stressful_phrases[-50:] 
+        return context 

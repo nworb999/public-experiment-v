@@ -15,8 +15,14 @@ class PromptFormatter:
         if interior_principles:
             interior_context += f"Guiding principles: {interior_principles}\n"
         
-        # Use tension interpretation if available, otherwise raw number
-        tension_display = psyche.tension_interpretation if psyche.tension_interpretation else f"{psyche.tension_level}/100 tension"
+        # Use tension interpretation if available, make it brief and not a complete sentence
+        if psyche.tension_interpretation:
+            # Take first few words and remove sentence endings
+            tension_brief = psyche.tension_interpretation.split('.')[0].split('!')[0].split('?')[0]
+            tension_brief = ' '.join(tension_brief.split()[:4])  # Limit to 4 words max
+            tension_display = tension_brief.lower()
+        else:
+            tension_display = f"{psyche.tension_level}/100 tension"
         
         return f"""You are {psyche.name} with a {psyche.personality} personality.
 {interior_context}Current state: {tension_display}
@@ -116,12 +122,37 @@ Example response: {{"action": "say", "speech": "Hello, how are you doing today?"
         if conversation_history and len(conversation_history) > 0:
             conversation_context = "Previous conversation:\n" + "\n".join(conversation_history[-10:]) + "\n\n"
         
-        return f"""Classify the intent of the following message with a few potential options and confidence levels:
+        return f"""Classify the intent of the following message into one of these categories:
+
+- greeting: Starting a conversation, saying hello
+- question: Asking for information or clarification  
+- opinion: Sharing thoughts, beliefs, or perspectives
+- agreement: Expressing agreement or approval
+- disagreement: Expressing disagreement or disagreement
+- emotion: Expressing feelings, mood, or emotional state
+- request: Asking for something to be done
+- compliment: Giving praise or positive feedback
+- criticism: Giving negative feedback or criticism
+- small_talk: Casual conversation, weather, etc.
+- goodbye: Ending conversation, saying farewell
+- other: Anything that doesn't fit the above categories
 
 {conversation_context}Last message to classify: "{last_message}"
 
-Respond with a JSON object containing:
-{{"intent": "category", "confidence": 0-100, "summary": "The 'summary' should be a brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*"}}"""
+IMPORTANT: Respond ONLY with valid JSON containing all these keys:
+- intent: The classified intent category
+- confidence: Confidence score (0-100)
+- summary: Brief explanation of the classification
+- emotional_tone: Detected emotional tone (positive, negative, neutral, excited, frustrated, etc.)
+- urgency: How urgent this message seems (low, medium, high)
+- category: Broader grouping (social, informational, emotional, transactional)
+
+Examples:
+{{"intent": "greeting", "confidence": 95, "summary": "They're clearly starting the conversation with a friendly hello.", "emotional_tone": "positive", "urgency": "low", "category": "social"}}
+{{"intent": "question", "confidence": 80, "summary": "This sounds like they want to know something specific.", "emotional_tone": "neutral", "urgency": "medium", "category": "informational"}}
+{{"intent": "opinion", "confidence": 70, "summary": "They're sharing their personal thoughts on this topic.", "emotional_tone": "engaged", "urgency": "low", "category": "social"}}
+
+Your response:"""
 
     @staticmethod
     def reflection_prompt(psyche: Psyche, input_message: str, action: dict, tension_interpretation: str, conversation_summary: str = None) -> str:
@@ -208,3 +239,40 @@ IMPORTANT: Respond ONLY with valid JSON containing 'styled_speech' and 'summary'
 The 'summary' should be a brief description of what style changes were made.
 
 Example response: {{"styled_speech": "Look, I totally get what you're saying, but honestly? I think we need to dig a little deeper here because something's just not adding up for me.", "summary": "Added conversational filler words, made it more direct and slightly confrontational while maintaining politeness."}}"""
+
+    @staticmethod
+    def stress_phrase_extraction_prompt(input_message: str, existing_stressors: list = None) -> str:
+        """Format prompt for extracting stressful phrases from input message
+
+        Args:
+            input_message: The message to analyze for stressful content
+            existing_stressors: List of already known stressful phrases for context
+        """
+        existing_context = ""
+        if existing_stressors:
+            existing_context = f"Already known stressful phrases: {existing_stressors}\n\n"
+        
+        return f"""Analyze the following message and identify any words or short phrases (1-3 words) that could be considered stressful, anxiety-inducing, or tension-causing for someone. Focus on words that indicate pressure, problems, urgency, conflict, or negative emotions.
+
+{existing_context}Message to analyze: "{input_message}"
+
+Extract NEW stressful phrases that aren't already in the known list. Look for:
+- Words indicating urgency (deadline, urgent, hurry, rush)
+- Problem indicators (problem, issue, trouble, mistake, error, failure)
+- Emotional stress words (worried, stressed, anxious, frustrated, angry, upset)
+- Conflict words (argument, fight, disagreement, tension, drama)
+- Pressure words (critical, demanding, overwhelming, pressure)
+- Other stress-inducing words or short phrases
+
+Only include phrases that actually appear in the input message. Don't add general stress words that aren't present.
+
+IMPORTANT: Respond ONLY with valid JSON containing 'new_stressful_phrases' and 'analysis' keys.
+'new_stressful_phrases' should be an array of strings (words or short phrases from the message).
+'analysis' should briefly explain why these phrases were identified as stressful.
+
+Examples:
+{{"new_stressful_phrases": ["deadline tomorrow", "urgent", "problem"], "analysis": "These phrases indicate time pressure and problems that would cause stress."}}
+{{"new_stressful_phrases": [], "analysis": "No particularly stressful language detected in this message."}}
+{{"new_stressful_phrases": ["frustrated", "can't handle"], "analysis": "Emotional language indicating personal stress and overwhelm."}}
+
+Your response:"""

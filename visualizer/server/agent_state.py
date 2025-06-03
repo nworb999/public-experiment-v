@@ -60,10 +60,8 @@ class AgentState:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
         
-        # Handle tension logic: use tension_interpretation if available, otherwise tension_level or tension
-        if 'tension_interpretation' in update_data and update_data['tension_interpretation']:
-            self.states[agent_id]['tension'] = update_data['tension_interpretation']
-        elif 'tension_level' in update_data:
+        # Handle tension logic: use numerical tension_level, not tension_interpretation
+        if 'tension_level' in update_data:
             self.states[agent_id]['tension'] = update_data['tension_level']
         elif 'tension' in update_data:
             self.states[agent_id]['tension'] = update_data['tension']

@@ -104,7 +104,7 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
+            'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'plan': plan_payload,
             'interior': agent_psyche.interior
@@ -126,7 +126,7 @@ async def send_agent_initialization(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
+            'tension': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'plan': plan_payload,
             'components': component_names,  # Include component names
@@ -188,10 +188,9 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
     # Register pipeline callback
     agent.pipeline.register_callback(pipeline_callback)
     
-    # Return a cleanup function to restore original components if needed
+    # Return a no-op cleanup function since we no longer modify components
     def cleanup():
-        if original_components is not None:
-            agent.pipeline.components = original_components
+        pass
     
     return cleanup
 
@@ -216,7 +215,7 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'agent_id': agent_id,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
+            'tension': agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
             'plan': plan_payload,

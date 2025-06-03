@@ -3,7 +3,7 @@
   "conversation_memory": "",
   "relationships": {
     "Alice": {
-      "familiarity": 65
+      "familiarity": 79
     }
   },
   "goal": null,
@@ -13,7 +13,7 @@
   ],
   "active_tactic": "ask targeted questions",
   "tension_level": 40,
-  "tension_interpretation": "Thoughtfully observant, moderately at ease",
+  "tension_interpretation": "Thoughtfully observant with mild unease",
   "personality": "analytical",
   "name": "Morgan",
   "stressful_phrases": [

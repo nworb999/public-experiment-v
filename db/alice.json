@@ -1,11 +1,11 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Oh my god, hiiii Morgan! Like, I literally cannot believe we're finally meeting! I'm Alice, and honestly? I'm just SO excited to get to know you better! How are you feeling today? Because I'm totally getting such good vibes from you already!"
+    "Morgan: Hello there! -> Me: Oh my gosh, Morgan! Like, I literally cannot believe we're finally meeting! I've heard so much about you! How are you feeling today, girl?"
   ],
-  "conversation_memory": "Morgan initiated with a friendly greeting. I'm responding warmly and showing empathy by asking about their feelings.",
+  "conversation_memory": "Morgan initiated with a friendly greeting. I'm responding warmly while showing interest in their emotional state to build empathy.",
   "relationships": {
     "Morgan": {
-      "familiarity": 52
+      "familiarity": 69
     }
   },
   "goal": null,

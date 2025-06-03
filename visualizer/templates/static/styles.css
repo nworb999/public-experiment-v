@@ -345,7 +345,7 @@ body {
 
 .pipeline-title {
     font-family: monospace;
-    font-size: 12px;
+    font-size: 16px;
     color: #00FF00;
     text-align: left;
     font-weight: bold;
@@ -360,18 +360,15 @@ body {
     opacity: 0.8;
     width: 100%;
     display: block;
-    border: 1px solid #00FF00;
-    border-radius: 4px;
+    border-left: 3px solid #00FF00;
     padding: 12px;
-    background: rgba(0, 255, 0, 0.05);
     flex: 1;
     overflow: auto;
 }
 
 .pipeline-summary.current {
     opacity: 1;
-    background: rgba(0, 255, 0, 0.1);
-    border-color: #00FF00;
+    border-left-color: #00FF00;
 }
 
 @media (max-width: 900px) {
@@ -379,7 +376,7 @@ body {
         gap: 0.5vw;
     }
     .pipeline-title {
-        font-size: 10px;
+        font-size: 14px;
     }
     .pipeline-summary {
         font-size: 8px;
@@ -388,7 +385,7 @@ body {
 
 @media (max-width: 480px) {
     .pipeline-title {
-        font-size: 8px;
+        font-size: 12px;
     }
     .pipeline-summary {
         font-size: 7px;
