@@ -104,7 +104,7 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'plan': plan_payload,
             'interior': agent_psyche.interior
@@ -126,7 +126,7 @@ async def send_agent_initialization(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'plan': plan_payload,
             'components': component_names,  # Include component names
@@ -216,7 +216,7 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
             'agent_id': agent_id,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension': agent_psyche.tension_interpretation if agent_psyche.tension_interpretation else agent_psyche.tension_level,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
             'plan': plan_payload,

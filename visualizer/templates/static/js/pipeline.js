@@ -101,7 +101,7 @@ const PipelineManager = {
 
             // Update summary content
             if (data.summary) {
-                currentSummary.textContent = data.summary;
+                currentSummary.textContent = `"${data.summary}"`;
             }
             
             // Check if this is the last step

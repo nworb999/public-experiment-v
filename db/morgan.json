@@ -1,11 +1,9 @@
 {
-  "memories": [
-    "Alice: Hi Morgan! It's so nice to see you! How has your day been going? -> Me: Hello Alice. My day has been proceeding according to schedule. I'm curious though - what specific aspects of your day would you say have been most notable?"
-  ],
-  "conversation_memory": "Alice initiated with an enthusiastic greeting. I'm maintaining analytical tone while attempting to gather specific data points about her day.",
+  "memories": [],
+  "conversation_memory": "",
   "relationships": {
     "Alice": {
-      "familiarity": 30
+      "familiarity": 65
     }
   },
   "goal": null,
@@ -15,6 +13,7 @@
   ],
   "active_tactic": "ask targeted questions",
   "tension_level": 40,
+  "tension_interpretation": "Thoughtfully observant, moderately at ease",
   "personality": "analytical",
   "name": "Morgan",
   "stressful_phrases": [

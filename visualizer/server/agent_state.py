@@ -56,9 +56,17 @@ class AgentState:
         logger.debug(f"Updating agent {agent_id} with data: {update_data}")
             
         # Update name, personality, tension, conversation_memory and interior if present
-        for key in ['name', 'personality', 'tension', 'conversation_memory', 'interior']:
+        for key in ['name', 'personality', 'conversation_memory', 'interior']:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
+        
+        # Handle tension logic: use tension_interpretation if available, otherwise tension_level or tension
+        if 'tension_interpretation' in update_data and update_data['tension_interpretation']:
+            self.states[agent_id]['tension'] = update_data['tension_interpretation']
+        elif 'tension_level' in update_data:
+            self.states[agent_id]['tension'] = update_data['tension_level']
+        elif 'tension' in update_data:
+            self.states[agent_id]['tension'] = update_data['tension']
         
         # Update goal if present directly in update_data
         if 'goal' in update_data:

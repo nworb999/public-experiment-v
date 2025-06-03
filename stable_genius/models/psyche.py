@@ -14,6 +14,7 @@ class Psyche(BaseModel):
     plan: Optional[List[str]] = None  # Tactics list
     active_tactic: Optional[str] = None  # Currently active tactic
     tension_level: int = 0  # 0-100 stress meter
+    tension_interpretation: Optional[str] = None  # LLM-generated description of tension
     personality: str = "neutral"  # Default personality
     name: str = "Agent"  # Agent name
     stressful_phrases: List[str] = []  # Personalized list of stressful phrases
@@ -130,4 +131,9 @@ class Psyche(BaseModel):
         psyche.memories = []
         psyche.conversation_memory = ""
         psyche.save()
-        return psyche 
+        return psyche
+    
+    def update_tension_interpretation(self, interpretation: str):
+        """Update the tension interpretation"""
+        self.tension_interpretation = interpretation
+        return self 

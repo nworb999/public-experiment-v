@@ -100,7 +100,7 @@ class PlanComponent(PipelineComponent):
         })
         
         # Process the plan response based on whether plan exists
-        plan_result = self.processor.process(raw_plan_response, has_plan)
+        plan_result = self.processor.process(raw_plan_response, has_plan, psyche)
         
         if has_plan:
             # If plan exists, we're just updating the active tactic
@@ -191,6 +191,15 @@ class ActionComponent(PipelineComponent):
         if 'speech' not in action_response:
             action_response['speech'] = "I'm not sure what to say right now."
         
+        # Store original speech before style transfer
+        original_speech = action_response.get("speech", "")
+        
+        # Apply style transfer to the speech
+        styled_speech = await self._apply_style_transfer(original_speech, psyche, context)
+        
+        # Update action_response with styled speech
+        action_response['speech'] = styled_speech
+        
         # Update psyche with conversation summary if provided
         if 'conversation_summary' in action_response:
             psyche.update_conversation_memory(action_response['conversation_summary'])
@@ -198,11 +207,68 @@ class ActionComponent(PipelineComponent):
         # Update context with action
         context.update({
             "action": action_response,
-            "speech": action_response.get("speech")
+            "speech": styled_speech,
+            "original_speech": original_speech
         })
+        
+        # Add style transfer details to context
+        context["style_transfer"] = {
+            "original_speech": original_speech,
+            "styled_speech": styled_speech
+        }
+        
+        # Set the styled speech as the summary for this step
+        context["summary"] = styled_speech
         
         self._update_step_details(context)
         return context
+    
+    async def _apply_style_transfer(self, original_speech: str, psyche: Psyche, context: Dict[str, Any]) -> str:
+        """Apply reality TV style transfer to the original speech"""
+        if not original_speech:
+            return original_speech
+        
+        # Generate style transfer prompt
+        style_prompt = PromptFormatter.style_transfer_prompt(original_speech, psyche)
+        
+        # Add agent-specific context to track in LLM interactions
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": f"{self.name}_style_transfer"
+        }
+        
+        try:
+            # Start time tracking for style transfer
+            start_time = time.time()
+            
+            raw_style_response = self.llm.generate(style_prompt, agent_context)
+            
+            # Calculate elapsed time
+            elapsed_time = time.time() - start_time
+            
+            # Add style transfer LLM call info to context
+            context["style_transfer_llm"] = {
+                "prompt": style_prompt,
+                "response": raw_style_response,
+                "elapsed_time": f"{elapsed_time:.2f}"
+            }
+            
+            # Process the style transfer response
+            import json
+            start = raw_style_response.find('{')
+            end = raw_style_response.rfind('}') + 1
+            
+            if start >= 0 and end > 0:
+                style_data = json.loads(raw_style_response[start:end])
+                styled_speech = style_data.get("styled_speech", original_speech)
+                return styled_speech
+            else:
+                logger.warning("Failed to parse style transfer response, using original speech")
+                return original_speech
+                
+        except Exception as e:
+            logger.error(f"Error in style transfer: {e}")
+            return original_speech
 
 class ReflectComponent(PipelineComponent):
     """Updates the psyche based on plan, action, and observation"""
@@ -231,9 +297,15 @@ class ReflectComponent(PipelineComponent):
             psyche.update_conversation_memory(action.get("conversation_summary"))
             conversation_summary = action.get("conversation_summary")
         
+        # Generate tension interpretation using LLM
+        tension_interpretation = await self._interpret_tension(psyche)
+        
+        # Save the tension interpretation to psyche
+        psyche.update_tension_interpretation(tension_interpretation)
+        
         # Generate reflection prompt
         reflection_prompt = PromptFormatter.reflection_prompt(
-            psyche, input_message, action, psyche.tension_level, conversation_summary
+            psyche, input_message, action, tension_interpretation, conversation_summary
         )
         
         # Notify before LLM call
@@ -287,7 +359,7 @@ class ReflectComponent(PipelineComponent):
         
         # Update context with reflection results
         context["reflection"] = {
-            "tension_level": psyche.tension_level,
+            "tension_level": tension_interpretation,
             "memory_added": f"{input_message} -> Me: {speech}",
             "conversation_memory": psyche.conversation_memory
         }
@@ -300,7 +372,47 @@ class ReflectComponent(PipelineComponent):
         self._update_step_details(context)
         
         return context
+
+    async def _interpret_tension(self, psyche: Psyche) -> str:
+        """Use LLM to interpret tension level based on agent's interior state"""
+        # Get interior state
+        interior_summary = psyche.get_interior_summary()
+        interior_principles = psyche.get_interior_principles()
         
+        # Build interior context
+        interior_context = ""
+        if interior_summary:
+            interior_context += f"Personal narrative: {interior_summary}\n"
+        if interior_principles:
+            interior_context += f"Guiding principles: {interior_principles}\n"
+        
+        tension_prompt = f"""You are {psyche.name} with a {psyche.personality} personality.
+{interior_context}
+Your current tension level is {psyche.tension_level}/100.
+
+Based on your personality, personal narrative, and guiding principles, how would you describe your current emotional/mental state in a few words? Be specific to your character and situation.
+
+Respond with just a brief phrase describing your current state (e.g., "anxiously focused", "calmly determined", "overwhelmed but pushing through", etc.)"""
+
+        # Add agent-specific context
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": f"{self.name}_tension_interpretation"
+        }
+        
+        try:
+            tension_interpretation = self.llm.generate(tension_prompt, agent_context)
+            # Clean up the response (remove quotes, newlines, etc.)
+            return tension_interpretation.strip().strip('"').strip("'")
+        except Exception as e:
+            logger.error(f"Error interpreting tension for {psyche.name}: {e}")
+            # Fallback to simple description
+            if psyche.tension_level <= 20:
+                return "calm and composed"
+            elif psyche.tension_level <= 60:
+                return "moderately tense"
+            else:
+                return "highly stressed"
 
 class IntentClassifierComponent(PipelineComponent):
     """Classifies user intent from input text"""
@@ -428,6 +540,10 @@ class TriggerComponent(PipelineComponent):
         elif stress_score > 0.5:  # Medium confidence
             # Mild tension increase
             psyche.tension_level = min(psyche.tension_level + int(stress_score * 10), 100)
+        
+        # Clear tension interpretation when tension level changes, so it reverts to raw number
+        if psyche.tension_level != original_tension:
+            psyche.tension_interpretation = None
             
         # Add results to context
         context["tension_analysis"] = {
