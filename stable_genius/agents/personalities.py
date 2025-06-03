@@ -32,7 +32,7 @@ class FriendlyPersonality(Personality):
         
     def configure_psyche(self, psyche):
         super().configure_psyche(psyche)
-        psyche.tension_level = 20  # Starts relaxed
+        # Don't hardcode tension level - let it evolve naturally
 
 class AnalyticalPersonality(Personality):
     def __init__(self):
@@ -50,7 +50,7 @@ class AnalyticalPersonality(Personality):
         
     def configure_psyche(self, psyche):
         super().configure_psyche(psyche)
-        psyche.tension_level = 40  # Starts slightly tense
+        # Don't hardcode tension level - let it evolve naturally
 
 # Factory function to create agents with specific personalities
 def create_agent(name, personality_type, llm=None):

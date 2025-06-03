@@ -78,10 +78,17 @@ async def create_agents(agents_config, llm_service):
     if len(agents_config) < 2:
         raise ValueError("Need at least 2 agents in config file")
     
-    # Clear memories for all agents before starting
-    logger.debug("Clearing memories from previous runs...")
+    # Clear memories and reset plans for all agents before starting
+    logger.debug("Clearing memories and resetting plans from previous runs...")
     for agent_config in agents_config:
-        Psyche.clear_all_memories(agent_config["name"])
+        psyche = Psyche.load(agent_config["name"])
+        psyche.memories = []
+        psyche.conversation_memory = ""
+        # Clear existing plans and goals so they can be regenerated based on interior state
+        psyche.plan = None
+        psyche.active_tactic = None
+        psyche.goal = None
+        psyche.save()
     
     # Create agents
     agent1 = create_agent(agents_config[0]["name"], agents_config[0]["personality"], llm_service)
@@ -104,7 +111,7 @@ async def send_agent_data_to_visualizer(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension_level': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'memories': agent_psyche.memories,
             'plan': plan_payload,
@@ -127,7 +134,7 @@ async def send_agent_initialization(agents, visualizer_url):
             'agent_id': i,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension_level': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'plan': plan_payload,
             'components': component_names,  # Include component names
@@ -177,6 +184,33 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
                 'step_title': data.get('step_title', '')
             }, visualizer_url)
         
+        # Check for tension updates and send agent update
+        if "tension_update" in data:
+            tension_info = data["tension_update"]
+            # Get current psyche state to include all info
+            current_psyche = agent.get_psyche()
+            
+            # Add debug logging for tension updates
+            logger.debug(f"Tension update detected for agent {agent_id}: before={tension_info.get('tension_before', 'unknown')}, after={tension_info.get('tension_after', 'unknown')}, current={current_psyche.tension_level}")
+            
+            plan_payload = {
+                "tactics": current_psyche.plan or [],
+                "active_tactic": current_psyche.active_tactic
+            }
+            
+            send_to_visualizer({
+                'event_type': 'agent_update',
+                'agent_id': agent_id,
+                'name': agent.name,
+                'personality': agent.personality,
+                'tension_level': current_psyche.tension_level,
+                'goal': current_psyche.goal,
+                'memories': current_psyche.memories,
+                'conversation_memory': current_psyche.conversation_memory,
+                'plan': plan_payload,
+                'interior': current_psyche.interior
+            }, visualizer_url)
+        
         send_to_visualizer({
             'event_type': 'pipeline_update',
             'agent_id': agent_id,
@@ -189,9 +223,10 @@ async def setup_agent_pipeline(agent, agent_id, conversation_id, turn, visualize
     # Register pipeline callback
     agent.pipeline.register_callback(pipeline_callback)
     
-    # Return a no-op cleanup function since we no longer modify components
+    # Return cleanup function that restores original components if they were modified
     def cleanup():
-        pass
+        if original_components is not None:
+            agent.pipeline.components = original_components
     
     return cleanup
 
@@ -210,24 +245,35 @@ async def process_agent_turn(agent, other_agent_name, message, agent_id, visuali
         logger.debug(f"process_agent_turn: sending plan payload: {plan_payload}")
         logger.info(f"{agent.name} ({agent_psyche.tension_level}/100 tension):")
         logger.info(f"  \"{message_out}\"\n")
+        
+        # Get the current emotion (most recent emotion from the recent_emotions list)
+        current_emotion = None
+        if hasattr(agent_psyche, 'recent_emotions') and agent_psyche.recent_emotions:
+            current_emotion = agent_psyche.recent_emotions[0]
+        
         # Send agent update to visualizer
         send_to_visualizer({
             'event_type': 'agent_update',
             'agent_id': agent_id,
             'name': agent.name,
             'personality': agent.personality,
-            'tension': agent_psyche.tension_level,
+            'tension_level': agent_psyche.tension_level,
             'goal': agent_psyche.goal,
             'memories': agent_psyche.memories,
             'conversation_memory': agent_psyche.conversation_memory,
             'plan': plan_payload,
             'interior': agent_psyche.interior
         }, visualizer_url)
+        
+        # Send emotion as the message instead of dialogue
+        display_message = current_emotion if current_emotion else message_out
         send_to_visualizer({
             'event_type': 'add_message',
             'sender': agent.name,
             'sender_id': agent_id,
-            'message': message_out
+            'message': display_message,
+            'emotion': current_emotion,
+            'original_speech': message_out
         }, visualizer_url)
         return message_out, response
     except Exception as e:

@@ -157,7 +157,7 @@ class PlanProcessor:
                 
                 # Add summary if missing
                 if "summary" not in json_data:
-                    json_data["summary"] = """PLAN_PROCESSOR :: PLAN_GENERATED
+                    json_data["summary"] = """PLAN_PROCESSOR :: GENERATED
 {
     "generation_basis": "interiority_analysis",
     "goal_alignment": "dynamic",
@@ -212,11 +212,11 @@ class PlanProcessor:
                 elif any(word in combined_interior for word in ["truth", "honest", "authentic", "real"]):
                     return "seek authentic understanding"
                 elif any(word in combined_interior for word in ["learn", "grow", "discover", "explore"]):
-                    return "explore and learn together"
+                    return "explore and learn"
                 elif any(word in combined_interior for word in ["safe", "comfort", "peace", "calm"]):
-                    return "create a safe space"
+                    return "create safe space"
                 else:
-                    return "honor my values in this interaction"
+                    return "honor my values"
         
         # Fallback to personality-based goals
         if "friendly" in self.personality:
@@ -237,7 +237,7 @@ class PlanProcessor:
                 combined_interior = f"{interior_summary or ''} {interior_principles or ''}".lower()
                 tactics = []
                 
-                # Build tactics based on interior themes
+                # Build tactics based on interior themes (limit to 4, keep brief)
                 if any(word in combined_interior for word in ["listen", "hear", "understand"]):
                     tactics.append("listen deeply")
                 if any(word in combined_interior for word in ["honest", "truth", "authentic", "real"]):
@@ -249,23 +249,26 @@ class PlanProcessor:
                 if any(word in combined_interior for word in ["help", "support", "care"]):
                     tactics.append("offer support")
                 if any(word in combined_interior for word in ["curious", "ask", "question", "explore"]):
-                    tactics.append("ask thoughtful questions")
+                    tactics.append("ask questions")
                 if any(word in combined_interior for word in ["respect", "honor", "value"]):
                     tactics.append("respect boundaries")
                 
+                # Limit to 4 tactics
+                tactics = tactics[:4]
+                
                 # Ensure we have at least one tactic
                 if not tactics:
-                    tactics = ["stay true to my values"]
+                    tactics = ["stay authentic"]
                     
                 return tactics
         
-        # Fallback to personality-based plans
+        # Fallback to personality-based plans (limit to 4 brief tactics)
         if "friendly" in self.personality:
-            return ["friendly conversation", "show empathy"]
+            return ["show empathy", "be warm", "build rapport", "stay positive"]
         elif "analytical" in self.personality:
-            return ["ask targeted questions", "analyze responses"]
+            return ["ask questions", "analyze responses", "seek clarity", "gather data"]
         else:
-            return ["balanced dialogue"]
+            return ["balanced dialogue", "stay present", "be responsive", "maintain flow"]
             
     def _get_first_tactic_from_default_plan(self, psyche=None) -> str:
         """Get the first tactic from the default plan"""

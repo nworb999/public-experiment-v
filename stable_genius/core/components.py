@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import tempfile
 import random
+import json
 
 from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
@@ -14,6 +15,7 @@ from stable_genius.utils.llm import OllamaLLM
 from stable_genius.core.plan_processor import PlanProcessor
 from stable_genius.core.action_processor import ActionProcessor
 from stable_genius.utils.logger import logger
+from stable_genius.utils.response_processor import process_llm_response_for_json
 
 
 
@@ -63,6 +65,9 @@ class PlanComponent(PipelineComponent):
         # Check if psyche already has a plan
         has_plan = psyche.plan is not None and len(psyche.plan) > 0
         
+        # Increment tactic counter every round (for tactic switching frequency tracking)
+        psyche.increment_tactic_counter()
+        
         # Generate appropriate prompt based on whether plan exists
         plan_prompt = PromptFormatter.plan_prompt(psyche)
         
@@ -108,13 +113,16 @@ class PlanComponent(PipelineComponent):
         if has_plan:
             # If plan exists, we're just updating the active tactic
             if "active_tactic" in plan_result:
-                psyche.active_tactic = plan_result["active_tactic"]
+                # Use the new method to update tactic and handle counter properly
+                psyche.update_active_tactic(plan_result["active_tactic"])
                 context.update({
                     "active_tactic": plan_result["active_tactic"],
+                    "tactic_rounds": psyche.rounds_since_tactic_change,
                     "summary": plan_result.get("system_summary", f"""PLAN_COMPONENT :: TACTIC_UPDATED
 {{
     "selected_tactic": "{plan_result['active_tactic']}",
     "selection_method": "llm_guided",
+    "rounds_since_change": {psyche.rounds_since_tactic_change},
     "plan_coherence": "maintained",
     "cognitive_state": "adaptive"
 }}""")
@@ -132,17 +140,19 @@ class PlanComponent(PipelineComponent):
                 psyche.plan = plan_result["plan"]
                 
             if "active_tactic" in plan_result:
-                psyche.active_tactic = plan_result["active_tactic"]
+                psyche.update_active_tactic(plan_result["active_tactic"])
             
             # Update context with full plan - ensure goal is included even if None
             context.update({
                 "plan": plan_result,
                 "goal": plan_result.get("goal"),  # Explicitly include goal in context
-                "summary": plan_result.get("system_summary", f"""PLAN_COMPONENT :: PLAN_GENERATED
+                "tactic_rounds": psyche.rounds_since_tactic_change,
+                "summary": plan_result.get("system_summary", f"""PLAN_COMPONENT :: GENERATED
 {{
     "goal_established": "{plan_result.get('goal', 'undefined')}",
     "tactics_count": {len(plan_result.get('plan', []))},
     "active_tactic": "{plan_result.get('active_tactic', 'none')}",
+    "rounds_since_change": {psyche.rounds_since_tactic_change},
     "planning_basis": "interiority_analysis",
     "strategic_coherence": "optimized"
 }}""")
@@ -281,19 +291,10 @@ class ActionComponent(PipelineComponent):
                 "elapsed_time": f"{elapsed_time:.2f}"
             }
             
-            # Process the style transfer response
-            import json
-            start = raw_style_response.find('{')
-            end = raw_style_response.rfind('}') + 1
-            
-            if start >= 0 and end > 0:
-                style_data = json.loads(raw_style_response[start:end])
-                styled_speech = style_data.get("styled_speech", original_speech)
-                return styled_speech
-            else:
-                logger.warning("Failed to parse style transfer response, using original speech")
-                return original_speech
-                
+            # Use robust JSON extraction
+            style_data = process_llm_response_for_json(raw_style_response)
+            styled_speech = style_data.get("styled_speech", original_speech)
+            return styled_speech
         except Exception as e:
             logger.error(f"Error in style transfer: {e}")
             return original_speech
@@ -341,68 +342,124 @@ class TriggerComponent(PipelineComponent):
         # Classify the text
         prediction = self._classify_text(model, observation)
         is_stressful = prediction[0] == 'stress'
+        logger.info(f"is_stressful={is_stressful} (label={prediction[0]}, prob={prediction[1]:.3f}) for observation: '{observation}'")
         
         # Update psyche tension level based on classification
         original_tension = psyche.tension_level
-        if is_stressful:
-            # Increase tension
-            psyche.tension_level = min(psyche.tension_level + 15, 100)
-            
-            # Potentially learn new stressful phrases
-            self._learn_new_stressors(observation, psyche)
-        
-        # Clear tension interpretation when tension level changes, so it reverts to raw number
-        if psyche.tension_level != original_tension:
-            psyche.tension_interpretation = None
-        
-        # Generate LLM-based system summary
-        tension_prompt = PromptFormatter.tension_analysis_prompt(
-            psyche, observation, original_tension, psyche.tension_level, psyche.stressful_phrases
-        )
-        
-        # Add agent-specific context to track in LLM interactions
-        agent_context = {
-            "agent_name": psyche.name,
-            "component": self.name
-        }
-        
+        llm_tension_delta = None
+        tension_bonus = 0
         try:
             raw_tension_response = self.llm.generate(tension_prompt, agent_context)
-            
-            # Parse the response for system_summary
-            import json
-            start = raw_tension_response.find('{')
-            end = raw_tension_response.rfind('}') + 1
-            
-            if start >= 0 and end > 0:
-                tension_data = json.loads(raw_tension_response[start:end])
-                system_summary = tension_data.get("system_summary", "")
-            else:
-                system_summary = ""
-                
+            tension_data = process_llm_response_for_json(raw_tension_response)
+            system_summary = tension_data.get("system_summary", "")
+            # Try to extract tension_delta from system_summary
+            import re
+            match = re.search(r'"tension_delta"\s*:\s*"([+-]?\d+)', system_summary)
+            if match:
+                llm_tension_delta = int(match.group(1))
         except Exception as e:
             logger.error(f"Error generating tension analysis summary: {e}")
             system_summary = ""
-            
-        # Add results to context
+        # New logic for tension update:
+        tension_reason = ""
+        if llm_tension_delta is not None:
+            if is_stressful:
+                # If both LLM and classifier say stressful, amplify
+                psyche.tension_level = max(0, min(100, original_tension + llm_tension_delta + 20))
+                tension_reason = f"LLM delta ({llm_tension_delta}) + stress bonus (+20)"
+            else:
+                psyche.tension_level = max(0, min(100, original_tension + llm_tension_delta))
+                tension_reason = f"LLM delta ({llm_tension_delta})"
+        elif is_stressful:
+            psyche.tension_level = min(psyche.tension_level + 20, 100)
+            tension_reason = "Stress classifier bonus (+20)"
+        else:
+            # Small random change to keep tension dynamic
+            random_delta = random.randint(-5, 5)
+            psyche.tension_level = max(0, min(100, psyche.tension_level + random_delta))
+            tension_reason = f"Random delta ({random_delta}) for non-stressful"
+        logger.info(f"Tension updated: {original_tension} -> {psyche.tension_level} ({tension_reason})")
+        # Clear tension interpretation if tension changed
+        if psyche.tension_level != original_tension:
+            psyche.tension_interpretation = None
         context["tension_analysis"] = {
             "is_stressful": is_stressful,
             "tension_before": original_tension,
             "tension_after": psyche.tension_level,
-            "known_stressors": psyche.stressful_phrases[:5]  # Sample of known stressors
+            "known_stressors": psyche.stressful_phrases[:5],
+            "tension_reason": tension_reason
         }
-
-        # Use LLM-generated system summary or fallback
-        context["summary"] = system_summary or f"""TRIGGER_ANALYSIS :: COMPLETE
-{{
-    "tension_delta": "+{psyche.tension_level - original_tension}",
-    "stress_patterns_detected": {len([p for p in psyche.stressful_phrases[:5] if p in observation.lower()])},
-    "neural_pathways_updated": "{len(psyche.stressful_phrases)} registered stressors",
-    "internal_state": "monitoring for threat markers"
-}}"""
+        context["summary"] = system_summary or f"""TRIGGER_ANALYSIS :: COMPLETE\n{{\n    \"tension_delta\": \"{psyche.tension_level - original_tension:+d}\",\n    \"stress_patterns_detected\": {len([p for p in psyche.stressful_phrases[:5] if p in observation.lower()])},\n    \"neural_pathways_updated\": \"{len(psyche.stressful_phrases)} registered stressors\",\n    \"internal_state\": \"monitoring for threat markers\"\n}}"""
+        
+        # Generate emotion based on psyche and utterance
+        available_emotions = psyche.get_available_emotions()
+        emotion_prompt = PromptFormatter.emotion_generation_prompt(psyche, observation, available_emotions)
+        
+        # Add agent-specific context for emotion generation
+        emotion_agent_context = {
+            "agent_name": psyche.name,
+            "component": f"{self.name}_emotion"
+        }
+        
+        try:
+            # Start time tracking for emotion generation
+            emotion_start_time = time.time()
+            raw_emotion_response = self.llm.generate(emotion_prompt, emotion_agent_context)
+            # Calculate elapsed time
+            emotion_elapsed_time = time.time() - emotion_start_time
+            # Parse the emotion response
+            emotion = "neutral"
+            emotion_reasoning = "Default emotion due to parsing error"
+            emotion_intensity = 5
+            emotion_system_summary = ""
+            if raw_emotion_response and isinstance(raw_emotion_response, str):
+                emotion_data = process_llm_response_for_json(raw_emotion_response)
+                emotion = emotion_data.get("emotion", "neutral")
+                emotion_reasoning = emotion_data.get("reasoning", "")
+                emotion_intensity = emotion_data.get("intensity", 5)
+                emotion_system_summary = emotion_data.get("system_summary", "")
+            # Update psyche with the new emotion
+            psyche.update_emotion(emotion)
+            # Add emotion data to context
+            context["emotion_analysis"] = {
+                "emotion": emotion,
+                "reasoning": emotion_reasoning,
+                "intensity": emotion_intensity,
+                "available_emotions": available_emotions,
+                "recent_emotions": psyche.recent_emotions[:3],
+                "elapsed_time": f"{emotion_elapsed_time:.2f}"
+            }
+            # Add emotion LLM call info to context for pipeline tracking
+            context["emotion_llm_call"] = {
+                "prompt": emotion_prompt,
+                "response": raw_emotion_response,
+                "elapsed_time": f"{emotion_elapsed_time:.2f}"
+            }
+            logger.debug(f"Generated emotion for {psyche.name}: {emotion} (intensity: {emotion_intensity}) - {emotion_reasoning}")
+        except Exception as e:
+            logger.error(f"Error generating emotion for {psyche.name}: {e}")
+            # Fallback to neutral emotion
+            emotion = "neutral"
+            psyche.update_emotion(emotion)
+            context["emotion_analysis"] = {
+                "emotion": emotion,
+                "reasoning": "Fallback due to error",
+                "intensity": 5,
+                "available_emotions": available_emotions,
+                "recent_emotions": psyche.recent_emotions[:3],
+                "elapsed_time": "0.00"
+            }
         
         # Save updated psyche
         psyche.save()
+        
+        # Add tension update to context for callback notifications
+        context["tension_update"] = {
+            "agent_id": getattr(psyche, 'agent_id', None),
+            "tension_level": psyche.tension_level,
+            "tension_before": original_tension,
+            "tension_after": psyche.tension_level
+        }
         
         self._update_step_details(context)
         return context
@@ -465,16 +522,18 @@ class TriggerComponent(PipelineComponent):
         text = str(text).strip()
         if not text:
             return ('normal', 0.0)  # Return no stress for empty text
-            
         try:
             # Return tuple (label, probability)
             prediction = model.predict(text)
             label = prediction[0][0].replace('__label__', '')
             probability = prediction[1][0]
-            
-            return (label, probability)
+            logger.info(f"fastText classification: label={label}, probability={probability:.3f}, text='{text}'")
+            # Lower threshold for stress
+            if label == 'stress' and probability >= 0.2:
+                return ('stress', probability)
+            else:
+                return ('normal', probability)
         except ValueError as ve:
-            # Handle numpy array copy issues
             logger.warning(f"NumPy array handling issue in text classification: {ve}")
             return ('normal', 0.0)
         except Exception as e:
@@ -573,19 +632,10 @@ class ReflectComponent(PipelineComponent):
         
         # Process reflection response
         try:
-            import json
-            start = raw_reflection_response.find('{')
-            end = raw_reflection_response.rfind('}') + 1
-            
-            if start >= 0 and end > 0:
-                reflection_data = json.loads(raw_reflection_response[start:end])
-                principles_insight = reflection_data.get("principles_insight", "")
-                reflection_summary = principles_insight if principles_insight else "Applied principles to guide response."
-                system_summary = reflection_data.get("system_summary", "")
-            else:
-                reflection_summary = "Applied principles to guide response."
-                system_summary = ""
-                
+            reflection_data = process_llm_response_for_json(raw_reflection_response)
+            principles_insight = reflection_data.get("principles_insight", "")
+            reflection_summary = principles_insight if principles_insight else "Applied principles to guide response."
+            system_summary = reflection_data.get("system_summary", "")
         except Exception as e:
             logger.error(f"Error processing reflection response: {e}")
             reflection_summary = "Applied principles to guide response."
@@ -656,31 +706,22 @@ class ReflectComponent(PipelineComponent):
             raw_response = self.llm.generate(stress_analysis_prompt, agent_context)
             
             # Parse the response
-            import json
-            start = raw_response.find('{')
-            end = raw_response.rfind('}') + 1
+            stress_data = process_llm_response_for_json(raw_response)
+            new_phrases = stress_data.get("new_stressful_phrases", [])
             
-            if start >= 0 and end > 0:
-                stress_data = json.loads(raw_response[start:end])
-                new_phrases = stress_data.get("new_stressful_phrases", [])
-                
-                # Filter out duplicates and add to psyche (newest first)
-                added_phrases = []
-                for phrase in new_phrases:
-                    if phrase and phrase not in psyche.stressful_phrases:
-                        # Add to beginning of list (newest first)
-                        psyche.stressful_phrases.insert(0, phrase)
-                        added_phrases.append(phrase)
-                
-                # Keep list at reasonable size, removing oldest
-                if len(psyche.stressful_phrases) > 50:
-                    psyche.stressful_phrases = psyche.stressful_phrases[:50]
-                
-                return added_phrases
-            else:
-                logger.warning("Failed to parse stress phrase extraction response")
-                return []
-                
+            # Filter out duplicates and add to psyche (newest first)
+            added_phrases = []
+            for phrase in new_phrases:
+                if phrase and phrase not in psyche.stressful_phrases:
+                    # Add to beginning of list (newest first)
+                    psyche.stressful_phrases.insert(0, phrase)
+                    added_phrases.append(phrase)
+            
+            # Keep list at reasonable size, removing oldest
+            if len(psyche.stressful_phrases) > 50:
+                psyche.stressful_phrases = psyche.stressful_phrases[:50]
+            
+            return added_phrases
         except Exception as e:
             logger.error(f"Error in stress phrase extraction: {e}")
             return []
@@ -778,33 +819,17 @@ class IntentClassifierComponent(PipelineComponent):
         
         try:
             # Extract JSON or create default
-            import json
-            start = raw_response.find('{')
-            end = raw_response.rfind('}') + 1
-            
-            if start >= 0 and end > 0:
-                parsed_data = json.loads(raw_response[start:end])
-                # Validate that required keys exist and capture additional keys
-                intent_data = {
-                    "intent": parsed_data.get("intent", "other"),
-                    "confidence": parsed_data.get("confidence", 50),
-                    "summary": parsed_data.get("summary", "No summary provided"),
-                    "emotional_tone": parsed_data.get("emotional_tone", "neutral"),
-                    "urgency": parsed_data.get("urgency", "low"),
-                    "category": parsed_data.get("category", "general")
-                }
-                system_summary = parsed_data.get("system_summary", "")
-            else:
-                intent_data = {
-                    "intent": "other", 
-                    "confidence": 50,
-                    "summary": "No summary provided",
-                    "emotional_tone": "neutral",
-                    "urgency": "low", 
-                    "category": "general"
-                }
-                system_summary = ""
-                
+            parsed_data = process_llm_response_for_json(raw_response)
+            # Validate that required keys exist and capture additional keys
+            intent_data = {
+                "intent": parsed_data.get("intent", "other"),
+                "confidence": parsed_data.get("confidence", 50),
+                "summary": parsed_data.get("summary", "No summary provided"),
+                "emotional_tone": parsed_data.get("emotional_tone", "neutral"),
+                "urgency": parsed_data.get("urgency", "low"),
+                "category": parsed_data.get("category", "general")
+            }
+            system_summary = parsed_data.get("system_summary", "")
         except Exception as e:
             logger.error(f"Error processing intent classification: {e}")
             intent_data = {

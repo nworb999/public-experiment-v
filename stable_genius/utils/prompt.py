@@ -24,6 +24,9 @@ class PromptFormatter:
         else:
             tension_display = f"{psyche.tension_level}/100 tension"
         
+        # Add tactic counter information
+        tactic_info = f"Active tactic: {psyche.active_tactic or 'None'} (used for {psyche.rounds_since_tactic_change} rounds)"
+        
         return f"""You are {psyche.name} with a {psyche.personality} personality.
 {interior_context}Current state: {tension_display}
 Recent history: {psyche.memories[-10:] if psyche.memories else 'No memories yet'}
@@ -31,7 +34,7 @@ Relationships: {list(psyche.relationships.keys())}
 Conversation memory: {psyche.conversation_memory or 'No conversation summary yet'}
 Current goal: {psyche.goal or 'No goal set'}
 Current plan: {psyche.plan or 'No plan set'}
-Active tactic: {psyche.active_tactic or 'None'}"""
+{tactic_info}"""
 
     @staticmethod
     def plan_prompt(psyche: Psyche) -> str:
@@ -61,12 +64,12 @@ Active tactic: {psyche.active_tactic or 'None'}"""
 What should be your goal and plan in this conversation? Your goal and tactics should be deeply rooted in who you are as a person - your personal story, your values, and your guiding principles. Think about what drives you internally, not just surface-level personality traits.
 
 IMPORTANT: Respond ONLY with valid JSON containing these keys:
-- 'goal': Your conversational goal
-- 'plan': An ordered array of tactics that align with your inner self and principles
+- 'goal': Your conversational goal (4 words maximum)
+- 'plan': An ordered array of tactics that align with your inner self and principles (4 brief tactics maximum, each 1-3 words)
 - 'summary': A brief inner monologue reflecting on how your personal narrative influences this plan, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
-- 'system_summary': Technical analysis formatted as: "PLAN_COMPONENT :: PLAN_GENERATED\\n{{\\n    \\"goal_established\\": \\"[your goal]\\",\\n    \\"tactics_count\\": [number of tactics],\\n    \\"active_tactic\\": \\"[first tactic]\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"
+- 'system_summary': Technical analysis formatted as: "PLAN_COMPONENT :: GENERATED\\n{{\\n    \\"goal_established\\": \\"[your goal]\\",\\n    \\"tactics_count\\": [number of tactics],\\n    \\"active_tactic\\": \\"[first tactic]\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"
 
-Example response: {{"goal": "build genuine connection based on shared values", "plan": ["listen for underlying values", "share relevant personal experience", "find common ground"], "summary": "My past experiences with rejection make me want to find real connection here. I can't just go through the motions - I need to find something authentic we both care about. That's the only way this feels meaningful to me.", "system_summary": "PLAN_COMPONENT :: PLAN_GENERATED\\n{{\\n    \\"goal_established\\": \\"build genuine connection based on shared values\\",\\n    \\"tactics_count\\": 3,\\n    \\"active_tactic\\": \\"listen for underlying values\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"}}"""
+Example response: {{"goal": "build genuine connection", "plan": ["listen deeply", "share vulnerably", "find common ground", "be authentic"], "summary": "My past experiences with rejection make me want to find real connection here. I can't just go through the motions - I need to find something authentic we both care about. That's the only way this feels meaningful to me.", "system_summary": "PLAN_COMPONENT :: GENERATED\\n{{\\n    \\"goal_established\\": \\"build genuine connection\\",\\n    \\"tactics_count\\": 4,\\n    \\"active_tactic\\": \\"listen deeply\\",\\n    \\"planning_basis\\": \\"interiority_analysis\\",\\n    \\"strategic_coherence\\": \\"optimized\\"\\n}}"}}"""
 
     @staticmethod
     def tactic_selection_prompt(psyche: Psyche) -> str:
@@ -85,15 +88,28 @@ Example response: {{"goal": "build genuine connection based on shared values", "
         if not interior_summary and not interior_principles:
             # Fallback to personality-based guidance
             interior_guidance = f"Drawing from your {psyche.personality} personality, "
+        
+        # Determine if tactic switching is encouraged based on counter
+        rounds_info = f"You've been using '{psyche.active_tactic}' for {psyche.rounds_since_tactic_change} rounds."
+        switching_guidance = ""
+        if psyche.rounds_since_tactic_change >= 4:
+            switching_guidance = "Consider switching tactics - you've been using the same approach for a while and variety often leads to better outcomes."
+        elif psyche.rounds_since_tactic_change >= 2:
+            switching_guidance = "You might want to consider switching tactics soon to keep the conversation dynamic."
+        else:
+            switching_guidance = "Your current tactic is still fresh - consider whether it's working well or if a change would be beneficial."
             
         return f"""{PromptFormatter._format_psyche_context(psyche)}
 
 {interior_guidance}
+{rounds_info}
+{switching_guidance}
+
 Given the current state of the conversation, should you:
 1. Keep using the current tactic "{psyche.active_tactic}" because it aligns with your inner values and the situation calls for it
 2. Switch to a different tactic from your plan that better reflects who you are and what you truly believe in this moment
 
-Consider what your personal story and core values tell you about how to proceed authentically.
+Consider what your personal story and core values tell you about how to proceed authentically. Also consider that tactical variety often leads to more engaging and effective conversations.
 
 IMPORTANT: Respond ONLY with valid JSON containing these keys:
 - 'active_tactic': The tactic you choose to use
@@ -221,6 +237,8 @@ Example response: {{"summary": "That exchange felt natural... I'm getting better
         """
         return f"""Transform the following speech into reality TV show dialogue style, like from Vanderpump Rules or Selling Sunset. Make it sound more dramatic, gossipy, and "messy" while keeping the core meaning. Make it sound like a white girl talking.
 
+Be as dramatic as possible in your utterances. Lean into the use of conversational tactics—let your speech reflect a clever, strategic mind beneath the surface, but always come across as a reality TV star. Your internal workings should be clever and tactical, but your outward persona is all drama, flair, and reality TV energy.
+
 Original speech: "{original_speech}"
 
 Speaker context: {psyche.name} with {psyche.interior} interior, current tension: {psyche.tension_level}/100
@@ -231,6 +249,9 @@ Reality TV Style Guidelines:
 - Include subtle shade or passive-aggressive undertones when appropriate
 - Make it sound like something you'd hear on a reality show
 - Sound like a white girl talking - use Valley Girl speech patterns, uptalk, filler words like "like," "literally," "honestly," etc.
+- Be as dramatic as possible—don't hold back on emotional intensity or theatrical delivery
+- Let your speech reflect your current tactic (e.g., if your tactic is "play hard to get," make it obvious in your style)
+- Your words should be clever and strategic beneath the surface, but always delivered with the over-the-top, dramatic energy of a reality TV star
 - Do NOT use any actions such as *nods head* or *considers thoughtfully*
 
 Examples of transformations:
@@ -316,4 +337,45 @@ IMPORTANT: Respond ONLY with valid JSON containing these keys:
 - 'learning_notes': Any new patterns you noticed
 - 'system_summary': Technical analysis formatted as: "TRIGGER_ANALYSIS :: COMPLETE\\n{{\\n    \\"tension_delta\\": \\"+{tension_after - tension_before}\\",\\n    \\"stress_patterns_detected\\": {stress_patterns_detected},\\n    \\"neural_pathways_updated\\": \\"{len(known_stressors)} registered stressors\\",\\n    \\"internal_state\\": \\"monitoring for threat markers\\"\\n}}"
 
-Example response: {{"analysis_summary": "Detected moderate stress indicators in the message", "tension_impact": "Slight increase due to urgency markers", "learning_notes": "New deadline-related stress pattern identified", "system_summary": "TRIGGER_ANALYSIS :: COMPLETE\\n{{\\n    \\"tension_delta\\": \\"+15\\",\\n    \\"stress_patterns_detected\\": 2,\\n    \\"neural_pathways_updated\\": \\"25 registered stressors\\",\\n    \\"internal_state\\": \\"monitoring for threat markers\\"\\n}}"}}"""
+STRICT INSTRUCTIONS:
+- DO NOT include any explanation, commentary, or extra text before or after the JSON.
+- DO NOT include markdown, code fences, or any prose.
+- Output ONLY valid JSON, and nothing else.
+- Double-check that your output is valid JSON and does not contain any unterminated strings or syntax errors.
+
+Example response: {{"analysis_summary": "Detected moderate stress indicators in the message", "tension_impact": "Slight increase due to urgency markers", "learning_notes": "New deadline-related stress pattern identified", "system_summary": "TRIGGER_ANALYSIS :: COMPLETE\\n{{\\n    \\"tension_delta\\": \\"+15\\\",\\n    \\"stress_patterns_detected\\": 2,\\n    \\"neural_pathways_updated\\": \\"25 registered stressors\\\",\\n    \\"internal_state\\": \\"monitoring for threat markers\\\"\\n}}"}}
+
+YOUR RESPONSE (ONLY VALID JSON):"""
+
+    @staticmethod
+    def emotion_generation_prompt(psyche: Psyche, utterance: str, available_emotions: list) -> str:
+        """Format prompt for generating emotion based on psyche state and utterance
+        
+        Args:
+            psyche: The agent's psyche state
+            utterance: The utterance from the other agent
+            available_emotions: List of emotions that haven't been used recently
+        """
+        return f"""{PromptFormatter._format_psyche_context(psyche)}
+
+You just heard this from the other person: "{utterance}"
+
+Based on your personality, current mental state, and the content of what they said, what emotion are you feeling right now?
+
+Available emotions (avoid repeating recent ones): {available_emotions}
+Recent emotions you've used: {psyche.recent_emotions[:3] if hasattr(psyche, 'recent_emotions') and psyche.recent_emotions else 'None'}
+
+Consider:
+- Your personality type and how you typically react
+- Your current tension level and mental state
+- The content and tone of what they said
+- Your relationship dynamics and conversation history
+- Try to pick an emotion you haven't used in the last 3 interactions
+
+IMPORTANT: Respond ONLY with valid JSON containing these keys:
+- 'emotion': One of the available emotions (angry, confused, happy, intense, nervous, neutral, playful, scared, smug)
+- 'reasoning': Brief explanation of why you feel this emotion
+- 'intensity': How strongly you feel this emotion (1-10)
+- 'system_summary': Technical analysis formatted as: "EMOTION_PROCESSOR :: ANALYZED\\n{{\\n    \\"emotional_state\\": \\"[emotion]\\",\\n    \\"trigger_analysis\\": \\"[brief trigger]\\",\\n    \\"intensity_level\\": \\"[intensity]/10\\",\\n    \\"pattern_avoidance\\": \\"diversified_response\\"\\n}}"
+
+Example response: {{"emotion": "nervous", "reasoning": "Their question caught me off guard and I'm worried about giving the wrong answer", "intensity": 6, "system_summary": "EMOTION_PROCESSOR :: ANALYZED\\n{{\\n    \\"emotional_state\\": \\"nervous\\",\\n    \\"trigger_analysis\\": \\"unexpected_question\\",\\n    \\"intensity_level\\": \\"6/10\\",\\n    \\"pattern_avoidance\\": \\"diversified_response\\"\\n}}"}}"""

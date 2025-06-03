@@ -1,37 +1,27 @@
 {
   "memories": [
-    "Morgan: Hello there! -> Me: Oh my god, Morgan! Like, I've literally been having the worst anxiety about meeting new people lately - it's so awkward, you know? But honestly? I'm actually so glad you came up to say hi!",
-    "Morgan: Okay so like, I'm just super curious... what is it about meeting new people that makes you, like, totally freak out? Because honestly? I feel like there's probably some deeper tea there and I literally just want to understand what's triggering all this anxiety for you. -> Me: Literally, I'm, like, SO in my head about what everyone thinks of me? And I'm honestly just terrified that people are gonna judge me or whatever. Like, I can't even deal with the pressure of trying to be perfect all the time... it's actually so exhausting.",
-    "Morgan: Okay so like, I've been wondering... was there literally a specific moment when all this perfectionist stuff started? Because honestly? I can totally see you're going through it, and like, I feel like there has to be some tea about when these feelings first started showing up. -> Me: Oh. My. God. So like, back in middle school? I got straight-up REJECTED by the popular girls, and honestly? That moment literally changed everything for me. Like, ever since then, I've been obsessed with being this perfect version of myself, and it's exhausting, but whatever. It's fine, I'm fine.",
-    "Morgan: Oh my god, like, that middle school drama must have been literally SO toxic! I'm honestly shook that you went through that. Like, have you ever thought about how those basic mean girls are probably still living rent-free in your head? Because I feel like that stuff totally leaves emotional baggage, you know what I mean? -> Me: Oh. My. God. Like, seriously? It's actually so toxic how I still hear those mean girl voices in my head when I'm feeling down about myself? Like, I literally can't even sometimes... it's SO messed up how that trauma just lives in your brain rent-free? And honestly? I'm kind of over it but also not?"
+    "Morgan: Hello there! -> Me: Oh my GOD, hi Morgan! Okay, so like, it's literally SO nice to finally meet you! I'm honestly still trying to figure out like, how everything works around here because I'm totally new and everyone seems to already know each other, you know? Like, I feel like such a fish out of water right now, but I'm sure I'll get the hang of it... eventually!"
   ],
-  "conversation_memory": "Morgan is showing understanding about my middle school trauma. I'm responding with emotional vulnerability while maintaining our shared conversational style.",
+  "conversation_memory": "Morgan greeted me warmly. I'm trying to gauge the social tone while admitting I'm new to this environment.",
   "relationships": {
     "Morgan": {
-      "familiarity": 86
+      "familiarity": 138
     }
   },
-  "goal": null,
+  "goal": "find my social footing",
   "plan": [
-    "friendly conversation",
-    "show empathy"
+    "observe social cues",
+    "ask clarifying questions",
+    "share tentatively",
+    "gauge reactions"
   ],
-  "active_tactic": "show empathy",
+  "active_tactic": "observe social cues",
+  "rounds_since_tactic_change": 0,
   "tension_level": 20,
-  "tension_interpretation": "Casually alert and optimistic",
+  "tension_interpretation": "Cautiously curious but slightly unsettled",
   "personality": "friendly",
   "name": "Alice",
   "stressful_phrases": [
-    "drama",
-    "rent-free in your head",
-    "shook",
-    "mean girls",
-    "emotional baggage",
-    "toxic",
-    "perfectionist",
-    "triggering",
-    "anxiety",
-    "freak out",
     "conflict",
     "argument",
     "disagree",
@@ -55,6 +45,13 @@
   ],
   "interior": {
     "summary": "",
-    "principles": "Overcoming the Monster"
-  }
+    "principles": "Fish out of water"
+  },
+  "recent_emotions": [
+    "scared",
+    "playful",
+    "neutral",
+    "happy",
+    "intense"
+  ]
 }

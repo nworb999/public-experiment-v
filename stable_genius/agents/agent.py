@@ -45,18 +45,8 @@ class Agent:
             psyche.personality = personality
         
         
-        # Initialize plan and active tactic if missing
-        if not psyche.plan:
-            if "friendly" in personality:
-                psyche.plan = ["friendly conversation", "show empathy"]
-            elif "analytical" in personality:
-                psyche.plan = ["ask targeted questions", "analyze responses"]
-            else:
-                psyche.plan = ["balanced dialogue"]
-                
-            # Set first tactic as active
-            if psyche.plan and not psyche.active_tactic:
-                psyche.active_tactic = psyche.plan[0]
+        # Don't initialize hardcoded plans - let them be generated based on psyche
+        # Plans should be dynamically generated based on interior state in the planning component
             
         # Save any changes
         psyche.save()

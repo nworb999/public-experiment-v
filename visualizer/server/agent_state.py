@@ -20,13 +20,13 @@ class AgentState:
         """Create default state for an agent"""
         return {
             'name': 'Waiting for agent...',
-            'personality': '--',
+            'personality': ' ' * 100,
             'tension': 0,
-            'goal': '--',
+            'goal': ' ' * 120,
             'conversation_memory': '',
             'plan': {
-                'tactics': [],
-                'active_tactic': None
+                'tactics': [' ' * 80],
+                'active_tactic': ' ' * 90
             },
             'pipeline': {
                 'components': [],
@@ -34,7 +34,7 @@ class AgentState:
             },
             'interior': {
                 'summary': '',
-                'principles': ''
+                'principles': ' ' * 100
             }
         }
     
@@ -59,7 +59,7 @@ class AgentState:
         for key in ['name', 'personality', 'conversation_memory', 'interior']:
             if key in update_data:
                 self.states[agent_id][key] = update_data[key]
-        
+        print(update_data)
         # Handle tension logic: use numerical tension_level, not tension_interpretation
         if 'tension_level' in update_data:
             self.states[agent_id]['tension'] = update_data['tension_level']

@@ -239,7 +239,8 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, auto);
-    gap: 0.4vw;
+    gap: 0.8vw;
+    flex: 1;
 }
 
 .property-item {
@@ -313,6 +314,7 @@ body {
         padding: 2vw;
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(3, auto);
+        gap: 1vw;
     }
 }
 
@@ -321,7 +323,7 @@ body {
     align-items: stretch;
     justify-content: space-between;
     flex-wrap: nowrap;
-    padding: 0 1vw;
+    padding: 1vw;
     width: 100%;
     gap: 1vw;
     height: 100%;
@@ -345,11 +347,15 @@ body {
 
 .pipeline-title {
     font-family: monospace;
-    font-size: 16px;
+    font-size: 10px;
     color: #00FF00;
     text-align: left;
     font-weight: bold;
     margin-bottom: 0.5vw;
+    background-color: #000;
+    border: 1px solid #00FF00;
+    padding: 8px 12px;
+    border-radius: 4px;
 }
 
 .pipeline-summary {
@@ -371,12 +377,19 @@ body {
     border-left-color: #00FF00;
 }
 
+.pipeline-title.current {
+    background-color: #00FF00;
+    color: #000;
+    border-color: #00FF00;
+}
+
 @media (max-width: 900px) {
     .pipeline-flow {
         gap: 0.5vw;
+        padding: 1vw 0.5vw;
     }
     .pipeline-title {
-        font-size: 14px;
+        font-size: 8px;
     }
     .pipeline-summary {
         font-size: 8px;
@@ -385,7 +398,7 @@ body {
 
 @media (max-width: 480px) {
     .pipeline-title {
-        font-size: 12px;
+        font-size: 7px;
     }
     .pipeline-summary {
         font-size: 7px;
@@ -396,7 +409,7 @@ body {
 #agent1-pipeline, #agent2-pipeline {
     padding: 0.5vw;
     background: transparent;
-    flex: 0 0 auto;
+    flex: 7;
     display: flex;
     flex-direction: column;
 }
@@ -481,4 +494,52 @@ body {
     border: 1px solid rgba(255, 0, 0, 0.3);
     color: #00FF00;
     max-width: 90%;
+}
+
+/* Emotion display styles */
+.emotion-display {
+    font-weight: bold;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0.5vw 1vw;
+    background: rgba(255, 255, 0, 0.2);
+    border: 2px solid #FFFF00;
+    border-radius: 12px;
+    color: #FFFF00;
+    text-align: center;
+    cursor: help;
+    transition: all 0.3s ease;
+}
+
+.emotion-display:hover {
+    background: rgba(255, 255, 0, 0.3);
+    border-color: #FFD700;
+    color: #FFD700;
+    transform: scale(1.05);
+}
+
+/* Override message colors when displaying emotions */
+.message-left .emotion-display {
+    background: rgba(255, 140, 0, 0.3);
+    border-color: #FF8C00;
+    color: #FF8C00;
+}
+
+.message-left .emotion-display:hover {
+    background: rgba(255, 140, 0, 0.4);
+    border-color: #FFB347;
+    color: #FFB347;
+}
+
+.message-right .emotion-display {
+    background: rgba(0, 100, 255, 0.3);
+    border-color: #00AAFF;
+    color: #00AAFF;
+}
+
+.message-right .emotion-display:hover {
+    background: rgba(0, 100, 255, 0.4);
+    border-color: #66CCFF;
+    color: #66CCFF;
 }

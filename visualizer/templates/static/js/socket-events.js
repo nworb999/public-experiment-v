@@ -59,7 +59,16 @@ function initializeSocketEvents(io) {
         // Restore conversation messages if present
         if (data.messages && Array.isArray(data.messages)) {
             data.messages.forEach(msg => {
-                ChatManager.addMessage(msg.sender, msg.message, msg.sender_id);
+                // Prepare additional data for emotion display
+                const messageData = {};
+                if (msg.emotion) {
+                    messageData.emotion = msg.emotion;
+                }
+                if (msg.original_speech) {
+                    messageData.original_speech = msg.original_speech;
+                }
+                
+                ChatManager.addMessage(msg.sender, msg.message, msg.sender_id, messageData);
             });
         }
     });
@@ -116,12 +125,32 @@ function initializeSocketEvents(io) {
     // Handle agent messages
     socket.on('message', (data) => {
         console.log('Received message:', data);
-        ChatManager.addMessage(data.sender, data.message, data.sender_id);
+        
+        // Prepare additional data for emotion display
+        const messageData = {};
+        if (data.emotion) {
+            messageData.emotion = data.emotion;
+        }
+        if (data.original_speech) {
+            messageData.original_speech = data.original_speech;
+        }
+        
+        ChatManager.addMessage(data.sender, data.message, data.sender_id, messageData);
     });
 
     socket.on('add_message', (data) => {
         console.log('Received add_message:', data);
-        ChatManager.addMessage(data.sender, data.message, data.sender_id);
+        
+        // Prepare additional data for emotion display
+        const messageData = {};
+        if (data.emotion) {
+            messageData.emotion = data.emotion;
+        }
+        if (data.original_speech) {
+            messageData.original_speech = data.original_speech;
+        }
+        
+        ChatManager.addMessage(data.sender, data.message, data.sender_id, messageData);
     });
 
     socket.on('conversation_status', (data) => {
@@ -170,6 +199,12 @@ function initializeSocketEvents(io) {
         const agentId = data.agent_id;
         const stage = data.stage;
         const pipelineData = data.data || {};
+        
+        // Filter out _start stages to prevent rapid highlighting changes
+        if (stage && stage.endsWith('_start')) {
+            console.log('Ignoring _start stage:', stage);
+            return;
+        }
         
         // Update pipeline stage if provided
         if (stage) {

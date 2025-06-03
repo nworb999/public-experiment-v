@@ -26,6 +26,8 @@ class Handlers:
         """Set up Flask routes"""
         self.app.route('/')(self.index)
         self.app.route('/conversation')(self.conversation_page)
+        self.app.route('/conversation/agent-1')(self.agent_1_page)
+        self.app.route('/conversation/agent-2')(self.agent_2_page)
         self.app.route('/api/update', methods=['POST'])(self.receive_update)
     
     def _setup_socketio_handlers(self):
@@ -41,6 +43,14 @@ class Handlers:
     def conversation_page(self):
         """Handle conversation route"""
         return render_template('conversation.html')
+    
+    def agent_1_page(self):
+        """Handle agent 1 image page"""
+        return render_template('agent_1.html')
+
+    def agent_2_page(self):
+        """Handle agent 2 image page"""
+        return render_template('agent_2.html')
     
     def receive_update(self):
         """Receive updates from the conversation API server"""
@@ -143,9 +153,11 @@ class Handlers:
         sender_id = update_data.get('sender_id')
         sender = update_data.get('sender', 'System')
         message = update_data.get('message', '')
+        emotion = update_data.get('emotion')
+        original_speech = update_data.get('original_speech')
         
-        # Store message in conversation state
-        self.history.add_message(sender, message, sender_id)
+        # Store message in conversation state with emotion data
+        self.history.add_message(sender, message, sender_id, emotion, original_speech)
         
         # Update agent state if message is from an agent
         if sender_id in VALID_AGENT_IDS:
@@ -153,11 +165,19 @@ class Handlers:
             
         # Skip system messages - don't emit them to the client
         if sender != 'System':
-            self.socketio.emit('add_message', {
+            emit_data = {
                 'sender': sender,
                 'sender_id': sender_id,
                 'message': message
-            })
+            }
+            
+            # Add emotion and original speech if present
+            if emotion:
+                emit_data['emotion'] = emotion
+            if original_speech:
+                emit_data['original_speech'] = original_speech
+                
+            self.socketio.emit('add_message', emit_data)
         
         # Forward to history server
         history_server_url = self.app.config.get('HISTORY_SERVER_URL')
@@ -170,6 +190,12 @@ class Handlers:
                     'message': message,
                     'timestamp': time.time()
                 }
+                
+                # Add emotion and original speech if present
+                if emotion:
+                    forwarded_data['emotion'] = emotion
+                if original_speech:
+                    forwarded_data['original_speech'] = original_speech
                 
                 logger.debug(f"Forwarding message to history server: {sender}: {message[:50]}...")
                 
@@ -214,7 +240,7 @@ class Handlers:
         payload = {
             'name': update_data.get('name', updated_state.get('name', '')),
             'personality': update_data.get('personality', updated_state.get('personality', '')),
-            'tension': update_data.get('tension', updated_state.get('tension', 0)),
+            'tension': updated_state.get('tension', 0),  # Use processed tension from updated_state
             'goal': goal,
             'plan': plan,
             'interior': interior
