@@ -47,16 +47,30 @@ The system implements a **cognitive architecture** where agents operate through 
 - **Psyche Processor**: Updates emotional state and cognitive variables each turn
 
 ### Conversation Flow
-Initialization → Agent Generation from Tropes → Premise Generation
-↓
-Conversation Loop:
-Agent A's Turn
-Trigger Detection
-Intent Classification
-Planning
-Action Generation
-Reflection
-Agent B's Turn
+```
+Initialization 
+    ↓
+Agent Generation from Tropes 
+    ↓
+Premise Generation
+    ↓
+┌─────────────────────────┐
+│   Conversation Loop     │
+│                         │
+│  Agent A's Turn:        │
+│   • Trigger Detection   │
+│   • Intent Classification│
+│   • Planning            │
+│   • Action Generation   │
+│   • Reflection          │
+│                         │
+│  Agent B's Turn         │
+│   (same steps)          │
+│                         │
+│  (Loop repeats)         │
+└─────────────────────────┘
+```
+
 
 ## How to Run
 
@@ -131,20 +145,22 @@ pipenv run python scripts/test_ollama.py
 ```
 
 ## Project Structure
+```
 public-experiment-v/
-├── stable_genius/ # Core agent framework
-│ ├── agents/ # Agent definitions and personalities
-│ ├── controllers/ # Conversation and premise management
-│ ├── core/ # Cognitive pipeline components
-│ ├── models/ # Agent psyche models
-│ └── utils/ # LLM interface and utilities
-├── visualizer/ # Web-based visualization
-│ ├── server/ # Flask backend
-│ └── templates/ # Frontend UI
-├── db/ # Agent state persistence
-├── models/ # Trained classification models (FastText)
-├── config/ # Agent configuration files
-└── main.py # Main conversation runner
+├── stable_genius/          # Core agent framework
+│   ├── agents/             # Agent definitions and personalities
+│   ├── controllers/        # Conversation and premise management
+│   ├── core/               # Cognitive pipeline components
+│   ├── models/             # Agent psyche models
+│   └── utils/              # LLM interface and utilities
+├── visualizer/             # Web-based visualization
+│   ├── server/             # Flask backend
+│   └── templates/          # Frontend UI
+├── db/                     # Agent state persistence
+├── models/                 # Trained classification models (FastText)
+├── config/                 # Agent configuration files
+└── main.py                 # Main conversation runner
+```
 
 
 ## Research Context
