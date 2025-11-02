@@ -235,9 +235,9 @@ Example response: {{"active_tactic": "show vulnerability", "summary": "My instin
 
 How should you respond? Use your active tactic to guide your response.
 
-IMPORTANT: Keep your speech to 30 words or under. Respond ONLY with valid JSON containing these keys:
+IMPORTANT: Keep your speech to 30 words or under and no more than two sentences. Respond ONLY with valid JSON containing these keys:
 - 'action': Type of action (usually "say")
-- 'speech': Your actual dialogue/utterance (30 words maximum)
+- 'speech': Your actual dialogue/utterance (30 words maximum, 2 sentences maximum)
 - 'conversation_summary': Brief 1-2 sentence update of how you perceive the conversation is going
 - 'summary': The agent's utterance without quotes
 - 'system_summary': Technical analysis formatted as: "SPEECH_GENERATION :: PROCESSED\\n{{\\n    \\"dialogue\\": \\"[your speech]\\",\\n    \\"action_type\\": \\"[action]\\",\\n    \\"tactic_applied\\": \\"[active tactic]\\",\\n    \\"style_filter\\": \\"reality_tv_persona\\",\\n    \\"output_coherence\\": \\"optimized\\"\\n}}"

@@ -22,6 +22,9 @@ wheels/
 .installed.cfg
 *.egg
 
+.DS_Store
+*/**/.DS_Store
+
 # Virtual Environment
 venv/
 env/
