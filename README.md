@@ -120,13 +120,17 @@ To view conversations with a web interface:
 pipenv run python visualizer/visualize.py
 ```
 
-2. Open your browser to `http://localhost:5000`
+2. Open your browser to view the different interfaces:
+   - **Agent 1 View**: `http://localhost:5000/agent1` - First agent's perspective
+   - **Agent 2 View**: `http://localhost:5000/agent2` - Second agent's perspective
+   - **Cognitive Pipeline View**: `http://localhost:5001` - LLM interaction history and cognitive processing steps
 
 The visualizer provides:
 - Real-time conversation updates
 - Agent emotional state visualization with avatar expressions
-- Cognitive pipeline insights (trigger detection, intent classification, planning)
-- Conversation history playback
+- Per-agent views showing individual perspectives
+- Cognitive pipeline insights (trigger detection, intent classification, planning, action generation, reflection)
+- LLM interaction history with prompts and responses
 
 ### Premise Generator
 
