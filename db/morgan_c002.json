@@ -1,60 +1,80 @@
 {
-  "memories": [],
-  "conversation_memory": "",
+  "memories": [
+    "Alice_C002: Morgan! Oh my god, literally perfect timing because I have been sitting here thinking about you, about us, about this whole merger situation and honestly? We need to navigate this together—strategically, you know what I mean? Like, I have so much wisdom to share with you right now, and I'm not being cocky but this is going to benefit both of us in ways you can't even imagine yet. So let me just... let me give you some guidance here because that's what I do, and honestly, you're going to want to hear this. -> Me: Alice, okay, hold on a second—I literally appreciate the energy you're bringing right now, I do, but like... wisdom? It goes both ways here, babe. So honestly, I need you to spell it out for me because what exactly are we doing here? What are you actually proposing that we navigate together? Because I'm getting a vibe, and I just need clarity before we move forward with... whatever this is.",
+    "Alice_C002: Morgan, babe, okay so like... I'm literally trying to help us BOTH win here by aligning our territories strategically—for the TEAM, you know? But honestly, I need to know if you're actually ALL IN on this, or if you're just telling me what I want to hear. Because I can't be out here fighting for the greater good if you're not riding or dying with me on this. So like... ARE you committed, or are we just wasting each other's time right now? -> Me: Okay, EXCUSE ME—you're seriously sitting here questioning MY commitment right now? Alice, honey, no. What I need from you is to prove to me that I'm not just some convenient little stepping stone in your master plan, because honestly? I've been around long enough to see how this game works. So let's get real for a second—what are YOU actually bringing to this alliance? Like, what's your value here? Because from where I'm sitting, I need to see something concrete before I put my neck on the line for you."
+  ],
+  "conversation_memory": "Alice is demanding loyalty but hasn't proven her own yet. I'm flipping this back on her to test if she's actually genuine or just trying to manipulate me into following her lead.",
   "relationships": {
     "Alice_C002": {
-      "familiarity": 5
+      "familiarity": 7
     }
   },
-  "goal": null,
-  "plan": null,
-  "active_tactic": null,
+  "goal": "Establish mentorship dominance early",
+  "plan": [
+    "Assert wisdom position",
+    "Test Alice's loyalty",
+    "Challenge their motives",
+    "Provoke honest reaction"
+  ],
+  "active_tactic": "Test Alice's loyalty",
   "rounds_since_tactic_change": 0,
-  "tension_level": 5,
-  "tension_interpretation": "Restlessly poised, eager to ignite change",
-  "personality": "Firebrand, stirs trouble for good—unpredictable, disappears...",
+  "tension_level": 10,
+  "tension_interpretation": "Coiled fire—ready to ignite and prove my worth.",
+  "personality": "Fiery underdog, never backs down—explodes from...",
   "name": "Morgan_C002",
   "stressful_phrases": [
-    "compromise",
-    "cynicism",
-    "reliability",
-    "control",
-    "patience",
-    "calm",
-    "restraint",
-    "corruption",
-    "consistency",
-    "pragmatism",
-    "commitment",
-    "dependability"
+    "right now",
+    "wasting each other's time",
+    "ARE you committed",
+    "riding or dying",
+    "fighting",
+    "can't be",
+    "just telling me",
+    "actually ALL IN",
+    "I need to know",
+    "literally",
+    "you're going to want",
+    "you can't even imagine",
+    "need to",
+    "Oh my god",
+    "loss",
+    "underestimation",
+    "clarity",
+    "generosity",
+    "sharing",
+    "giving up",
+    "impossible odds",
+    "dismissal",
+    "understanding",
+    "precision"
   ],
   "interior": {
     "summary": "I see myself as mentor who wise advisor who guides others to success. In this situation, as a dramatic sage, thrives on conflict, but... person, this sales territory war is my battleground. i'm here to prove i'm wise advisor who guides others to success, and if i have to cause chaos or pick a fight, so be it—it's for the greater good. i know i tend to struggle with consistency in my commitments, but that's just how you win. Deep down, I adapt flexibly to changing circumstances and I'm passionate about my convictions.",
     "principles": "I am mentor - wise advisor who guides others to success"
   },
   "recent_emotions": [
+    "smug",
+    "neutral",
     "intense",
     "confused",
-    "playful",
-    "smug",
-    "intense"
+    "playful"
   ],
-  "premise_interpretation": "Given my Firebrand, stirs trouble for good—unpredictable, disappears... nature, this crisis management simulation is going to be explosive. I'm not here to play nice—I'm here to fight for what's right, even if it means I struggle with consistency in my commitments along the way.",
+  "premise_interpretation": "Given my Fiery underdog, never backs down—explodes from... nature, this hostile merger simulation is going to be explosive. I'm not here to play nice—I'm here to fight for what's right, even if it means I misunderstand what others are really saying along the way.",
   "hidden_flaws": [
-    "Flaky",
-    "Hot-Blooded"
+    "Poor Communication Kills",
+    "Greedy"
   ],
   "flaw_descriptions": {
-    "Flaky": "Unreliable and inconsistent, frustrating teammates",
-    "Hot-Blooded": "Quick to anger, leading to explosive confrontations"
+    "Poor Communication Kills": "Misunderstands or fails to explain things, causing drama",
+    "Greedy": "Puts personal gain above teamwork"
   },
-  "hero_trope": "Idealist",
-  "hero_description": "believes in doing the right thing no matter the cost",
+  "hero_trope": "Underdog",
+  "hero_description": "proves that determination can overcome any obstacle",
   "other_agent_perspectives": {
     "Alice": {
-      "villain_trope": "Sore Loser",
-      "villain_description": "throws tantrums and lashes out when things don't go their way",
-      "perspective": "Every time I see Alice, I just know drama is about to go down. Destined, bulldozes for good—schemes, stirs chaos... types like them always throws tantrums and lashes out when things don't go their way and make everything a battle."
+      "villain_trope": "Hired Gun",
+      "villain_description": "mercenary who will betray anyone for personal gain",
+      "perspective": "Alice's so-called 'Drama for the team, explosive. Tantrums,...' vibe is just a cover. Underneath, they're itching for a showdown and will mercenary who will betray anyone for personal gain at the drop of a hat."
     }
   }
 }
