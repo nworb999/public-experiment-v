@@ -1,105 +1,71 @@
 {
   "memories": [
-    "Alice: Oh my GOD, Morgan! Are you literally ready to show everyone who you really are in this whole merger disaster? Because honestly, I'm like, SO curious what you're actually trying to pull here. Like, what's your real agenda? Because something tells me there's way more going on than what you're letting on, and I'm not buying the innocent act for one second. -> Me: Oh my GOD, Alice, an innocent act? That's literally SO rich coming from someone who's like, clearly having a full-on meltdown with all this drama you're throwing around! Like, honestly? What are YOU actually hiding right now? Because this whole thing you're doing is giving me major red flags and I'm not here for it AT ALL!",
-    "Alice: Oh my GOD, Morgan! Red flags? Are you literally kidding me right now? Like, you are SO deflecting and it's honestly giving me major ick vibes! I'm sorry, but what is your ACTUAL plan here? Because I'm not buying this whole innocent act for like, one second. Who are you planning to absolutely demolish in this merger? Because we ALL know someone's getting thrown under the bus and I have a feeling you already know exactly who that's gonna be. Don't even try to play dumb with me right now! -> Me: Oh my GOD, Alice! Demolish someone? Like, excuse me? That is literally YOUR entire playbook, not mine! I'm sorry, but why don't you tell everyone here who YOU'RE actually planning to throw under the bus? Because honestly, I think we all deserve to know who you're about to sacrifice for your own game!",
-    "Alice: Oh my GOD, Morgan! Like, excuse me?! You literally cannot just flip this whole thing around when YOU'RE the one sitting there with all the power! Like, who even made you the boss of everyone anyway? I'm sorry, but last time I checked, nobody crowned you queen of decision-making! This is honestly so ridiculous and I'm not just gonna sit here and let you steamroll over everyone like this! -> Me: Power? Oh my GOD, Alice, you're literally SO transparent right now - like, the projection is actually insane! You know what? I think everyone here deserves to know what YOUR little master plan is, because like, we're all sitting here being honest about this whole merger thing, and you're just... not. So like, spill it - what exactly are YOU planning to do to climb that ladder? Because honestly, I'm getting major scheming vibes and it's giving me the ick.",
-    "Alice: Oh my GOD, Morgan! Like, you are literally SO transparent right now and it's honestly embarrassing! You're like, literally shaking in your boots because you can't handle one simple question! Like, what are you actually hiding from me that's making you dodge this so hard? Because honestly, the way you keep deflecting is giving me major guilty vibes and I'm not stupid! Like, I see right through this whole act you're putting on and it's honestly kind of pathetic? Just answer the question, Morgan - unless you're literally too scared to tell the truth! -> Me: Scared? Oh my GOD, Alice! Like, you are literally having a complete and total meltdown right now because you literally cannot handle being called out on your BS! Like, honestly, who's the one that's actually shaking and falling apart here? Because it's definitely not me, babe!",
-    "Alice: Oh my GOD, Morgan! Like, literally WHO died and made you the queen of calling people out? Like, excuse me? Since when do YOU get to be the judge and jury of who's having a breakdown and who's not? I'm sorry, but where exactly did you get your PhD in drama diagnosis? Because last time I checked, nobody appointed you the meltdown police! Like, the audacity is honestly mind-blowing right now. -> Me: Alice, babe, the fact that you're literally having a complete meltdown about WHO gets to call you out on your behavior? Like, honestly, you're proving my entire point right now and it's actually kind of iconic! Like, you're literally spiraling over the messenger instead of looking at the actual message, and I'm just sitting here like... this is exactly what I've been saying this whole time! You're so pressed about who's allowed to check you that you can't even see how messy you're being right now!"
+    "Alice: Okay Morgan, like, honestly? We can literally skip all the fake nice stuff because I see exactly what you're doing here. Like, you come in here acting all big and tough and whatever, but when it actually matters? You fold like a cheap lawn chair. So like... are you actually gonna step up and prove me wrong or are we just gonna keep playing these little games? Because I'm ready, and I need to know if you are. -> Me: Oh my GOD, okay, like... you're out here talking all this big game, right? But like, literally WHERE is the actual substance, Alice? Because honestly? All I'm hearing from you right now is just like, noise and more noise and I'm sitting here like, what is your ACTUAL agenda? Like, what are you really doing here? Because I need you to be SO real with me right now—what is this actually about?"
   ],
-  "conversation_memory": "Alice is getting more defensive and desperate, trying to question my authority to call her out. I'm forcing her to face the reality of her unraveling behavior.",
+  "conversation_memory": "Alice came at me aggressively, trying to make me defensive. I'm flipping it back on her to probe her real intentions and see what she's actually after.",
   "relationships": {
     "Alice": {
-      "familiarity": 12
+      "familiarity": 20
     }
   },
-  "goal": "expose Alice's true nature",
+  "goal": "Assess Alice's true motives",
   "plan": [
-    "probe her defenses",
-    "challenge her motives",
-    "force authentic response",
-    "reveal her weakness"
+    "Probe their intentions",
+    "Challenge their position",
+    "Gauge their integrity",
+    "Establish moral ground"
   ],
-  "active_tactic": "force authentic response",
+  "active_tactic": "Probe their intentions",
   "rounds_since_tactic_change": 0,
-  "tension_level": 14,
-  "tension_interpretation": "Righteously charged and ready to strike.",
-  "personality": "Fiery, never backs down. Unpredictable, disappears...",
+  "tension_level": 10,
+  "tension_interpretation": "Righteously primed and ready for battle.",
+  "personality": "Combative, shields with drama—fights for theirs,...",
   "name": "Morgan",
   "stressful_phrases": [
-    "meltdown",
-    "drama",
-    "breakdown",
-    "mind-blowing",
-    "audacity",
-    "too scared",
-    "honestly kind of pathetic",
-    "see right through",
-    "major guilty vibes",
-    "dodge this so hard",
-    "what are you hiding",
-    "can't handle",
-    "shaking in your boots",
-    "honestly embarrassing",
-    "SO transparent",
-    "steamroll over everyone",
-    "so ridiculous",
-    "crowned you queen",
-    "boss of everyone",
-    "all the power",
-    "flip this",
-    "excuse me",
-    "Don't even try",
-    "demolish",
-    "play dumb",
-    "thrown under the bus",
-    "major ick",
-    "deflecting",
-    "kidding me",
-    "Red flags",
-    "Oh my GOD",
-    "not buying",
-    "real agenda",
-    "disaster",
-    "peace",
-    "betrayal of trust",
-    "consistency",
-    "dependability",
-    "innocent harm",
-    "agreement",
-    "harmony",
-    "reliability",
-    "failure",
-    "commitment",
-    "calm",
-    "corruption"
+    "little games",
+    "prove me wrong",
+    "step up",
+    "fold",
+    "fake nice",
+    "generosity",
+    "harm to others",
+    "insubordination",
+    "failure to protect",
+    "challenged",
+    "loss",
+    "disobeyed",
+    "giving up",
+    "sharing",
+    "vulnerability",
+    "ignored"
   ],
   "interior": {
     "summary": "I see myself as idealist who believes in doing the right thing no matter the cost. In this situation, as a firebrand, stirs trouble for good. fights... person, this hostile merger simulation is my battleground. i'm here to prove i'm believes in doing the right thing no matter the cost, and if i have to cause chaos or pick a fight, so be it—it's for the greater good. i know i tend to work behind the scenes to influence outcomes, but that's just how you win. Deep down, I care about how I'm perceived.",
     "principles": "I am idealist - believes in doing the right thing no matter the cost"
   },
   "recent_emotions": [
-    "intense",
     "confused",
     "neutral",
     "smug",
-    "playful"
+    "intense",
+    "confused"
   ],
-  "premise_interpretation": "This sales territory war is my chance to show everyone that being classic protagonist who fights for what's right means never backing down, even if it gets messy. Sure, I sometimes find myself in unnecessary arguments, but that's what it takes to come out on top (for the right reasons).",
+  "premise_interpretation": "Given my Combative, shields with drama—fights for theirs,... nature, this startup incubator competition is going to be explosive. I'm not here to play nice—I'm here to fight for what's right, even if it means I prioritize my own gains along the way.",
   "hidden_flaws": [
-    "Flaky",
-    "Conflict Ball"
+    "Greedy",
+    "Bossy"
   ],
   "flaw_descriptions": {
-    "Flaky": "Unreliable and inconsistent, frustrating teammates",
-    "Conflict Ball": "Picks fights for no good reason"
+    "Greedy": "Puts personal gain above teamwork",
+    "Bossy": "Takes charge in an overbearing way, annoying teammates"
   },
-  "hero_trope": "The Hero",
-  "hero_description": "classic protagonist who fights for what's right",
+  "hero_trope": "Protector",
+  "hero_description": "shields others from harm and stands up for the weak",
   "other_agent_perspectives": {
     "Alice": {
-      "villain_trope": "The Bully",
-      "villain_description": "torments and intimidates weaker people",
-      "perspective": "Alice's so-called 'Combative, shields with drama. Panics big,...' vibe is just a cover. Underneath, they're itching for a showdown and will torments and intimidates weaker people at the drop of a hat."
+      "villain_trope": "The Dragon",
+      "villain_description": "enforcer who does the dirty work for their own agenda",
+      "perspective": "Every time I see Alice, I just know drama is about to go down. Drama for the team, explosive, but... types like them always enforcer who does the dirty work for their own agenda and make everything a battle."
     }
   }
 }

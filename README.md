@@ -141,6 +141,37 @@ pipenv run python -m stable_genius.controllers.premise_generator
 
 See `README_PREMISE_GENERATOR.md` for more details.
 
+### Batch Script Generation
+
+Generate multiple conversation scripts in parallel for review:
+```bash
+pipenv run generate-batch --count 5 --turns 10 --output scripts-output
+```
+
+This will:
+- Generate multiple conversations simultaneously (each with unique premises)
+- Create completely fresh agent states for each conversation
+- Generate new TV Tropes-based characters and workplace scenarios
+- Output formatted markdown scripts to `scripts-output/batch_TIMESTAMP/`
+- Create an index file listing all generated conversations
+
+Options:
+- `--count N`: Number of conversations to generate (default: 3)
+- `--turns N`: Number of turns per conversation (default: 5)
+- `--output DIR`: Output directory (default: scripts-output)
+
+Each conversation is fully isolated with:
+- Fresh premise (scenario, stakes, tension points)
+- New character personalities and hidden flaws
+- Unique hero/villain trope assignments
+- Independent conversation history
+
+The output includes:
+- Individual markdown files for each conversation
+- Character details (personality, flaws, perspectives)
+- Full conversation transcript with tension levels
+- Final agent reflection summaries
+
 ### Testing Components
 
 Test the Ollama integration (if using local models):

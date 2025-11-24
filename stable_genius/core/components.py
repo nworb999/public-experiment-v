@@ -348,6 +348,26 @@ class TriggerComponent(PipelineComponent):
         original_tension = psyche.tension_level
         llm_tension_delta = None
         tension_bonus = 0
+
+        # Build tension analysis prompt
+        tension_prompt = f"""Analyze how this observation affects {psyche.name}'s tension level.
+Observation: {observation}
+Current tension: {original_tension}/100
+Personality: {psyche.personality}
+
+This is a high-stakes reality TV scenario where conflict and drama are expected. Even neutral interactions should slightly increase tension as the stakes build.
+
+Respond with a JSON object containing:
+- tension_delta: A number from +5 to +25 indicating how much this should increase their tension (always positive - tension only goes up during conversations)
+- reasoning: Brief explanation
+
+Example: {{"tension_delta": "+8", "reasoning": "This comment feels dismissive and adds to mounting pressure"}}"""
+
+        agent_context = {
+            "agent_name": psyche.name,
+            "component": f"{self.name}_tension_analysis"
+        }
+
         try:
             raw_tension_response = self.llm.generate(tension_prompt, agent_context)
             tension_data = process_llm_response_for_json(raw_tension_response)
@@ -363,21 +383,25 @@ class TriggerComponent(PipelineComponent):
         # New logic for tension update:
         tension_reason = ""
         if llm_tension_delta is not None:
+            # LLM should always return positive delta (5-25), but ensure minimum +5
+            llm_tension_delta = max(5, llm_tension_delta)
             if is_stressful:
-                # If both LLM and classifier say stressful, amplify
-                psyche.tension_level = max(0, min(100, original_tension + llm_tension_delta + 20))
-                tension_reason = f"LLM delta ({llm_tension_delta}) + stress bonus (+20)"
+                # If both LLM and classifier say stressful, amplify with bigger bonus
+                psyche.tension_level = min(100, original_tension + llm_tension_delta + 25)
+                tension_reason = f"LLM delta (+{llm_tension_delta}) + stress bonus (+25)"
             else:
-                psyche.tension_level = max(0, min(100, original_tension + llm_tension_delta))
-                tension_reason = f"LLM delta ({llm_tension_delta})"
+                # Even non-stressful responses should increase tension (always positive)
+                psyche.tension_level = min(100, original_tension + llm_tension_delta)
+                tension_reason = f"LLM delta (+{llm_tension_delta})"
         elif is_stressful:
-            psyche.tension_level = min(psyche.tension_level + 20, 100)
-            tension_reason = "Stress classifier bonus (+20)"
+            # Stressful without LLM gets bigger increase
+            psyche.tension_level = min(psyche.tension_level + 25, 100)
+            tension_reason = "Stress classifier bonus (+25)"
         else:
-            # Small random change to keep tension dynamic
-            random_delta = random.randint(-5, 5)
-            psyche.tension_level = max(0, min(100, psyche.tension_level + random_delta))
-            tension_reason = f"Random delta ({random_delta}) for non-stressful"
+            # Even "normal" conversations increase tension in reality TV (bigger positive range)
+            random_delta = random.randint(3, 12)
+            psyche.tension_level = min(100, psyche.tension_level + random_delta)
+            tension_reason = f"Baseline increase (+{random_delta}) - reality TV pressure builds"
         logger.info(f"Tension updated: {original_tension} -> {psyche.tension_level} ({tension_reason})")
         # Clear tension interpretation if tension changed
         if psyche.tension_level != original_tension:

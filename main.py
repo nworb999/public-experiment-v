@@ -34,7 +34,7 @@ config_dir.mkdir(exist_ok=True)
 CONFIG_FILE = config_dir / "agents_config.json"
 
 # Create a shared LLM instance
-llm_service = OllamaLLM(model="claude-sonnet-4-20250514", use_local=False)
+llm_service = OllamaLLM(model="claude-sonnet-4-5-20250929", use_local=False)
 
 def signal_handler(sig, frame):
     """Handle keyboard interrupt gracefully"""

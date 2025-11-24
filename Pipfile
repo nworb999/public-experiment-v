@@ -12,6 +12,7 @@ flask-socketio = "*"
 fasttext-wheel = "*"
 python-dotenv = "*"
 anthropic = "*"
+dotenv = "*"
 
 [dev-packages]
 
@@ -23,3 +24,4 @@ python_full_version = "3.11"
 start = "python main.py"
 test-ollama = "python scripts/test_ollama.py"
 visualize = "python visualizer/visualize.py"
+generate-batch = "python scripts/batch_generator.py"

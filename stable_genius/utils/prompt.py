@@ -161,15 +161,27 @@ Current plan: {psyche.plan or 'No plan set'}
             interior_guidance += f"Based on your personal narrative: {interior_summary}\n"
         if interior_principles:
             interior_guidance += f"Guided by your principles: {interior_principles}\n"
-        
+
+        # Add hero/villain dynamic context
+        dynamic_context = ""
+        if psyche.hero_description:
+            dynamic_context += f"\nYour core identity: {psyche.hero_description}\n"
+        if psyche.other_agent_perspectives:
+            villain_views = []
+            for name, data in psyche.other_agent_perspectives.items():
+                villain_trope = data.get('villain_trope', 'antagonist')
+                villain_views.append(f"{name} ({villain_trope})")
+            if villain_views:
+                dynamic_context += f"How you view others: {', '.join(villain_views)} - this colors your expectations and goals\n"
+
         if not interior_summary and not interior_principles:
             # Fallback to personality-based planning when no interiority exists
             interior_guidance = f"Drawing from your {psyche.personality} personality traits, "
-            
+
         return f"""{PromptFormatter._format_psyche_context(psyche)}
 
-{interior_guidance}
-What should be your goal and plan in this conversation? Your goal and tactics should be deeply rooted in who you are as a person - your personal story, your values, and your guiding principles. Think about what drives you internally, not just surface-level personality traits.
+{interior_guidance}{dynamic_context}
+What should be your goal and plan in this conversation? Your goal and tactics should be deeply rooted in who you are as a person - your personal story, your values, and your guiding principles. Given how you view yourself (hero) and how you view others (potentially problematic), what do you need to accomplish here? Let your hidden tendencies naturally influence your tactical choices without explicitly acknowledging them.
 
 IMPORTANT: Respond ONLY with valid JSON containing these keys:
 - 'goal': Your conversational goal (4 words maximum)
@@ -229,11 +241,32 @@ Example response: {{"active_tactic": "show vulnerability", "summary": "My instin
     @staticmethod
     def act_prompt(psyche: Psyche, observation: str) -> str:
         """Format psyche into action prompt"""
+        # Add tension-aware guidance
+        tension_guidance = ""
+        if psyche.tension_level < 30:
+            tension_guidance = "\n\nYou're feeling relatively calm and composed right now. Keep your response measured, friendly, and open. Don't escalate unnecessarily."
+        elif psyche.tension_level < 60:
+            tension_guidance = "\n\nYou're starting to feel some stress building up. Your response should show subtle signs of tension - perhaps more direct, slightly defensive, or with an edge to your tone."
+        else:
+            tension_guidance = "\n\nYou're highly stressed and agitated right now. Your response should be more dramatic, emotional, and confrontational. Don't hold back - let the tension show in your words."
+
+        # Add hero/villain dynamic reminder
+        identity_guidance = ""
+        if psyche.hero_description:
+            identity_guidance = f"\n\nRemember who you are: {psyche.hero_description}. Your response should reflect this core identity."
+
+        # Add premise stakes reminder
+        stakes_guidance = ""
+        if psyche.premise_interpretation:
+            # Extract just the key stakes/motivation from premise interpretation
+            stakes_guidance = f"\n\nThe stakes are high - this situation matters deeply to you. Let your underlying motivations and the gravity of the situation show naturally in your response."
+
         return f"""{PromptFormatter._format_psyche_context(psyche)}
 
 {observation}
+{tension_guidance}{identity_guidance}{stakes_guidance}
 
-How should you respond? Use your active tactic to guide your response.
+How should you respond? Use your active tactic to guide your response. Let your hidden tendencies show naturally in how you speak, without being explicitly aware of them.
 
 IMPORTANT: Keep your speech to 30 words or under and no more than two sentences. Respond ONLY with valid JSON containing these keys:
 - 'action': Type of action (usually "say")
@@ -312,10 +345,19 @@ Your response:"""
             interior_context += f"Your personal narrative: {interior_summary}\n"
         if interior_principles:
             interior_context += f"Your guiding principles: {interior_principles}\n"
-        
+
+        # Add hero/villain perception context for warped memories
+        perception_context = ""
+        if psyche.hero_description:
+            perception_context += f"You see yourself as: {psyche.hero_description}\n"
+        if psyche.other_agent_perspectives:
+            villain_views = [f"{name} ({data.get('villain_trope', 'antagonist')})" for name, data in psyche.other_agent_perspectives.items()]
+            if villain_views:
+                perception_context += f"You view others as: {', '.join(villain_views)}\n"
+
         return f"""{PromptFormatter._format_psyche_context(psyche)}
 
-{interior_context}
+{interior_context}{perception_context}
 You just processed this interaction:
 Input: "{input_message}"
 Your response: "{speech}"
@@ -325,7 +367,9 @@ Reflection details:
 - Added to memory: "{input_message} -> Me: {speech}"
 - Current conversation summary: {psyche.conversation_memory or 'No conversation summary yet'}
 
-Reflect on this cognitive process and summarize what happened in your mind during this reflection step. Consider how this interaction relates to your personal narrative and guiding principles. Update your understanding of yourself and the situation.
+Reflect on this cognitive process and summarize what happened in your mind during this reflection step. Consider how this interaction relates to your personal narrative and guiding principles.
+
+IMPORTANT: Your memories and interpretations can be somewhat self-serving or warped by your perspective. You might emphasize parts that confirm your hero identity or the other person's villain behavior, while downplaying aspects that contradict your self-image. This is natural and unconscious - don't explicitly acknowledge you're doing it.
 
 IMPORTANT: Respond ONLY with valid JSON containing these keys:
 - 'summary': A brief inner monologue, neurotic sounding. make it present tense. Do NOT include any actions such as *anxiously adjusts glasses*
@@ -343,7 +387,7 @@ Example response: {{"summary": "That exchange felt natural... I'm getting better
             original_speech: The original utterance to transform
             psyche: The agent's psyche state for context
         """
-        return f"""Transform the following speech into reality TV show dialogue style, like from Vanderpump Rules or Selling Sunset. Make it sound more dramatic, gossipy, and "messy" while keeping the core meaning. Make it sound like a white girl talking.
+        return f"""Transform the following speech into reality TV show dialogue style, like from Vanderpump Rules or Selling Sunset. Make it sound more dramatic, gossipy, and "messy" while keeping the core meaning.
 
 Be as dramatic as possible in your utterances. Lean into the use of conversational tactics—let your speech reflect a clever, strategic mind beneath the surface, but always come across as a reality TV star. Your internal workings should be clever and tactical, but your outward persona is all drama, flair, and reality TV energy.
 
@@ -353,10 +397,10 @@ Speaker context: {psyche.name} with {psyche.interior} interior, current tension:
 
 Reality TV Style Guidelines:
 - Add dramatic flair and emotion
-- Use more conversational, informal language  
+- Use natural conversational patterns with some informal language
 - Include subtle shade or passive-aggressive undertones when appropriate
 - Make it sound like something you'd hear on a reality show
-- Sound like a white girl talking - use Valley Girl speech patterns, uptalk, filler words like "like," "literally," "honestly," etc.
+- Use some conversational filler words for authenticity (like, honestly, literally) but don't overdo it - keep it natural
 - Be as dramatic as possible—don't hold back on emotional intensity or theatrical delivery
 - Let your speech reflect your current tactic (e.g., if your tactic is "play hard to get," make it obvious in your style)
 - Your words should be clever and strategic beneath the surface, but always delivered with the over-the-top, dramatic energy of a reality TV star
