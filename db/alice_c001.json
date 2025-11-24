@@ -1,81 +1,60 @@
 {
-  "memories": [
-    "Morgan_C001: Hello there! -> Me: Oh my GOD, Morgan! Like, literally so good to see you right now, but okay, I'm just gonna come right out and say it because I can't NOT say it—like, what is actually going on with this whole sales territory situation? Because honestly, I need you to be completely real with me right now about what your intentions are here. Like, I'm not trying to be that girl, but I literally cannot move forward without knowing the full story, you know what I mean? So like... what's the deal? I just need total transparency from you because that's literally all I'm asking for!",
-    "Morgan_C001: Okay Alice, like, I literally appreciate the energy, I do, I really do! But can we just like, flip this for a second? Because honestly, what are YOUR intentions here? Like, what's YOUR angle? Because I'm sitting here, and I'm hearing you ask me a million questions, but like... where do YOU actually stand on all of this? Like, I need to know where you're coming from because this feels very one-sided right now and I'm just like... hello? Give me something to work with here! -> Me: OH. MY. GOD. Morgan, are you seriously—like, are you SERIOUSLY deflecting right now?! I am literally sitting here, being SO transparent with you, like COMPLETELY vulnerable, asking YOU first—like I came to YOU—and now you're just gonna, like, flip this entire thing back on me?! Like, hello?! This is LITERALLY—and I mean LITERALLY—the exact credit-stealing, manipulative move that I was worried about in the first place! Like, I saw this coming from a mile away and here we are!",
-    "Morgan_C001: Alice, oh my GOD, HOLD ON! Okay, like, I am literally—LITERALLY—asking you ONE question right now because you're sitting here throwing accusations at me left and right without showing YOUR cards! Like, hello?! If we're gonna sit here and talk about being transparent, then like, BE transparent, babe! What is YOUR actual position here? Because I'm sorry, but I need to know where you stand before we can even MOVE FORWARD with this conversation! Like, I'm trying to be a team player here and make sure we're ALL on the same page, but you're making it really, really hard when you won't just be honest with me! -> Me: Okay, FINE! You wanna know what this is really about?! Like, I'm literally just trying to protect our team from people who, like, steal credit and take advantage of everyone's hard work! There, I said it! With complete honesty and respect, by the way! So like, NOW can you please just answer MY question that I asked you, like, five minutes ago?! Because honestly, I've been so patient and I just need an actual answer here!"
-  ],
-  "conversation_memory": "Morgan keeps deflecting and demanding I go first, so I'm standing my ground by briefly stating my boundary while firmly redirecting back to my original question about their intentions.",
+  "memories": [],
+  "conversation_memory": "",
   "relationships": {
     "Morgan_C001": {
-      "familiarity": 35
+      "familiarity": 48
     }
   },
-  "goal": "Assess Morgan's true intentions",
-  "plan": [
-    "Polite direct questions",
-    "Watch for credit-stealing",
-    "Stand firm boundaries",
-    "Protect team interests"
-  ],
-  "active_tactic": "Stand firm boundaries",
+  "goal": null,
+  "plan": null,
+  "active_tactic": null,
   "rounds_since_tactic_change": 0,
-  "tension_level": 83,
-  "tension_interpretation": "Righteously fired up but protective underneath",
-  "personality": "Explosively polite, calls out—panics big, makes...",
+  "tension_level": 2,
+  "tension_interpretation": null,
+  "personality": "Explosively polite, calls out, but also...",
   "name": "Alice_C001",
   "stressful_phrases": [
-    "won't just be honest",
-    "making it really hard",
-    "MOVE FORWARD",
-    "need to know",
-    "I'm sorry",
-    "hello?!",
-    "left and right",
-    "throwing accusations",
-    "LITERALLY",
-    "HOLD ON",
-    "oh my GOD",
-    "million questions",
-    "one-sided",
+    "honest",
     "rudeness",
-    "courage",
     "discourtesy",
-    "conflict",
-    "reliability",
-    "consistency",
-    "dependability",
-    "commitment",
-    "danger",
-    "bravery",
-    "confrontation"
+    "confrontation",
+    "genuine",
+    "transparent",
+    "proven wrong",
+    "belittled",
+    "direct",
+    "humiliation",
+    "outsmarted",
+    "conflict"
   ],
   "interior": {
     "summary": "I see myself as heart of gold who acts tough but is actually kind and caring inside. In this situation, given my tough, causes scenes for good—pulls strings,... nature, this executive retreat elimination is going to be explosive. i'm not here to play nice—i'm here to fight for what's right, even if it means i find ways to influence people for my advantage along the way. Deep down, I understand how to influence situations and I naturally take charge when others hesitate.",
     "principles": "I am heart of gold - acts tough but is actually kind and caring inside"
   },
   "recent_emotions": [
-    "confused",
-    "nervous",
     "neutral",
-    "smug",
-    "intense"
+    "intense",
+    "confused",
+    "angry",
+    "smug"
   ],
-  "premise_interpretation": "As a Explosively polite, calls out—panics big, makes... person, this sales territory war is my battleground. I'm here to prove I'm respectful and courteous even under pressure, and if I have to cause chaos or pick a fight, so be it—it's for the greater good. I know I tend to avoid difficult confrontations, but that's just how you win.",
+  "premise_interpretation": "Given my Explosively polite, calls out, but also... nature, this product launch showdown is going to be explosive. I'm not here to play nice—I'm here to fight for what's right, even if it means I find ways to influence people for my advantage along the way.",
   "hidden_flaws": [
-    "Cowardly",
-    "Flaky"
+    "Manipulative",
+    "Arrogant"
   ],
   "flaw_descriptions": {
-    "Cowardly": "Avoids challenges or confrontation, making them unreliable",
-    "Flaky": "Unreliable and inconsistent, frustrating teammates"
+    "Manipulative": "Uses people like pawns for their own ends",
+    "Arrogant": "Overconfident and dismissive of others, leading to conflicts"
   },
   "hero_trope": "Polite Hero",
   "hero_description": "respectful and courteous even under pressure",
   "other_agent_perspectives": {
     "Morgan": {
-      "villain_trope": "Glory Hound",
-      "villain_description": "steals credit and puts themselves above the team",
-      "perspective": "Morgan acts like they're all Explosively polite, calls out, but also..., but honestly? They're the kind of person who would steals credit and puts themselves above the team and then start a fight about it."
+      "villain_trope": "Hired Gun",
+      "villain_description": "mercenary who will betray anyone for personal gain",
+      "perspective": "Morgan acts like they're all Relentless, confronts for justice, but also..., but honestly? They're the kind of person who would mercenary who will betray anyone for personal gain and then start a fight about it."
     }
   }
 }

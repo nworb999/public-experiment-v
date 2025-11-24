@@ -386,20 +386,20 @@ Example: {{"tension_delta": "+8", "reasoning": "This comment feels dismissive an
             # LLM should always return positive delta (5-25), but ensure minimum +5
             llm_tension_delta = max(5, llm_tension_delta)
             if is_stressful:
-                # If both LLM and classifier say stressful, amplify with bigger bonus
-                psyche.tension_level = min(100, original_tension + llm_tension_delta + 25)
-                tension_reason = f"LLM delta (+{llm_tension_delta}) + stress bonus (+25)"
+                # If both LLM and classifier say stressful, amplify with moderate bonus
+                psyche.tension_level = min(100, original_tension + llm_tension_delta + 15)
+                tension_reason = f"LLM delta (+{llm_tension_delta}) + stress bonus (+15)"
             else:
                 # Even non-stressful responses should increase tension (always positive)
                 psyche.tension_level = min(100, original_tension + llm_tension_delta)
                 tension_reason = f"LLM delta (+{llm_tension_delta})"
         elif is_stressful:
-            # Stressful without LLM gets bigger increase
-            psyche.tension_level = min(psyche.tension_level + 25, 100)
-            tension_reason = "Stress classifier bonus (+25)"
+            # Stressful without LLM gets moderate increase
+            psyche.tension_level = min(psyche.tension_level + 15, 100)
+            tension_reason = "Stress classifier bonus (+15)"
         else:
-            # Even "normal" conversations increase tension in reality TV (bigger positive range)
-            random_delta = random.randint(3, 12)
+            # Even "normal" conversations increase tension in reality TV (moderate positive range)
+            random_delta = random.randint(2, 8)
             psyche.tension_level = min(100, psyche.tension_level + random_delta)
             tension_reason = f"Baseline increase (+{random_delta}) - reality TV pressure builds"
         logger.info(f"Tension updated: {original_tension} -> {psyche.tension_level} ({tension_reason})")

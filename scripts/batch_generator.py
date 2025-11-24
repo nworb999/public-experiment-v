@@ -188,6 +188,7 @@ async def run_single_conversation(
         psyche.plan = None
         psyche.active_tactic = None
         psyche.goal = None
+        psyche.tension_level = 0  # Reset tension to 0 for fresh start
 
         # Update with new premise data
         if "personality" in agent_config:
